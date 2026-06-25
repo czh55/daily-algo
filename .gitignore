@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Generated
+data/history.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# venv
+venv/
+.env
