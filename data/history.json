@@ -10,5 +10,11 @@
     "slug": "sliding-window-maximum",
     "title": "滑动窗口最大值",
     "type": "固定滑窗最值"
+  },
+  {
+    "date": "2026-06-26",
+    "slug": "minimum-window-substring",
+    "title": "最小覆盖子串",
+    "type": "可变滑窗"
   }
 ]
