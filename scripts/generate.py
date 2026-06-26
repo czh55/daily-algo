@@ -11,6 +11,7 @@
 """
 
 import json
+import re
 import sys
 import os
 from pathlib import Path
@@ -1022,13 +1023,54 @@ def get_problem_semantics(slug: str) -> Optional[dict]:
     return VAR_SEMANTICS_DATA.get(slug)
 
 
+def _frontend_id_to_slug() -> dict[str, str]:
+    """题号 → slug 映射"""
+    return {data["frontend_id"]: slug for slug, data in VAR_SEMANTICS_DATA.items()}
+
+
+def rebuild_history_from_archives() -> list:
+    """从 docs/archive/ 已发布页面重建推荐历史（Git 持久化的真实来源）"""
+    id_to_slug = _frontend_id_to_slug()
+    history = []
+    if not ARCHIVE.exists():
+        return history
+
+    for path in sorted(ARCHIVE.glob("*.html")):
+        date_str = path.stem
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_str):
+            continue
+        content = path.read_text(encoding="utf-8")
+        match = re.search(r'problem-id">#(\d+)<', content)
+        if not match:
+            continue
+        slug = id_to_slug.get(match.group(1))
+        if not slug:
+            continue
+        semantics = VAR_SEMANTICS_DATA[slug]
+        history.append({
+            "date": date_str,
+            "slug": slug,
+            "title": semantics.get("title", slug),
+            "type": semantics.get("type", ""),
+        })
+    return history
+
+
 def load_history() -> list:
-    """加载已推荐历史"""
+    """加载推荐历史，合并 history.json 与 archive 页面（archive 优先）"""
+    file_history = []
     path = DATA / "history.json"
     if path.exists():
         with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
+            file_history = json.load(f)
+
+    merged: dict[str, dict] = {}
+    for item in file_history:
+        merged[item.get("date", "")] = item
+    for item in rebuild_history_from_archives():
+        merged[item["date"]] = item
+
+    return sorted(merged.values(), key=lambda x: x.get("date", ""))
 
 
 def save_history(history: list):
@@ -1122,14 +1164,17 @@ def render_template(slug: str, semantics: dict, date_str: str = None) -> str:
     return template
 
 
-def generate_index_html(today_slug: str = None, today_semantics: dict = None):
+def generate_index_html(today_slug: str = None, today_semantics: dict = None,
+                        target_date: str = None):
     """生成/更新主页面 index.html"""
     history = load_history()
-    today_date = date.today().isoformat()
+    featured_date = target_date or date.today().isoformat()
 
-    # 构建归档列表
+    # 构建归档列表（排除今日推荐，避免重复展示）
     archive_items = []
     for item in history:
+        if item.get("date") == featured_date:
+            continue
         archive_items.append({
             "date": item.get("date", ""),
             "slug": item.get("slug", ""),
@@ -1146,14 +1191,14 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None):
         diff_class = {"简单": "easy", "中等": "medium", "困难": "hard"}.get(diff, "medium")
         today_html = f"""<div class="today-problem">
             <div class="today-label">&#x1F4C5; 今日推荐</div>
-            <h2><a href="archive/{today_date}.html">{today_semantics.get('frontend_id', '')}. {today_semantics.get('title', '')}</a></h2>
+            <h2><a href="archive/{featured_date}.html">{today_semantics.get('frontend_id', '')}. {today_semantics.get('title', '')}</a></h2>
             <div class="today-meta">
                 <span class="problem-type {type_class}">{ptype}</span>
                 <span class="problem-difficulty difficulty-{diff_class}">{diff}</span>
             </div>
             <p style="margin-top:12px; color:var(--text-secondary); font-size:0.9rem;">
                 {today_semantics.get('description', '')[:200]}...
-                <a href="archive/{today_date}.html">[查看完整讲解]</a>
+                <a href="archive/{featured_date}.html">[查看完整讲解]</a>
             </p>
         </div>"""
 
@@ -1188,7 +1233,7 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None):
                 <span class="logo-icon">&#x25B3;</span>
                 <span class="logo-text">每日算法</span>
             </a>
-            <span class="header-date">{today_date}</span>
+            <span class="header-date">{featured_date}</span>
         </div>
     </header>
 
@@ -1222,17 +1267,18 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None):
         f.write(index_html)
 
 
-def add_to_history(slug: str, semantics: dict, date_str: str = None):
+def add_to_history(slug: str, semantics: dict, date_str: str = None, force: bool = False):
     """添加一条推荐记录到历史"""
     if date_str is None:
         date_str = date.today().isoformat()
 
     history = load_history()
 
-    # 检查今天是否已记录
     if any(item.get("date") == date_str for item in history):
-        print(f"今日 ({date_str}) 已有记录，跳过")
-        return
+        if not force:
+            print(f"今日 ({date_str}) 已有记录，跳过")
+            return
+        history = [item for item in history if item.get("date") != date_str]
 
     history.append({
         "date": date_str,
@@ -1244,9 +1290,9 @@ def add_to_history(slug: str, semantics: dict, date_str: str = None):
 
 
 def generate_today(dry_run: bool = False, use_api: bool = False, use_bank: bool = True,
-                   force_slug: str = None) -> bool:
+                   force_slug: str = None, target_date: str = None, force: bool = False) -> bool:
     """生成今日题目页面"""
-    today_date = date.today().isoformat()
+    today_date = target_date or date.today().isoformat()
 
     if force_slug:
         slug = force_slug
@@ -1281,10 +1327,10 @@ def generate_today(dry_run: bool = False, use_api: bool = False, use_bank: bool 
         f.write(html)
 
     # 更新主页
-    generate_index_html(slug, semantics)
+    generate_index_html(slug, semantics, target_date=today_date)
 
     # 记录历史
-    add_to_history(slug, semantics, today_date)
+    add_to_history(slug, semantics, today_date, force=force)
 
     print(f"✓ 已生成 docs/archive/{today_date}.html")
     print(f"✓ 已更新 docs/index.html")
@@ -1298,6 +1344,8 @@ def main():
     parser.add_argument("--api", action="store_true", help="尝试从 LeetCode API 选")
     parser.add_argument("--dry-run", action="store_true", help="预览但不写入文件")
     parser.add_argument("--slug", type=str, help="指定题目 slug")
+    parser.add_argument("--date", type=str, help="指定日期 YYYY-MM-DD（默认今天）")
+    parser.add_argument("--force", action="store_true", help="覆盖已有日期的记录")
     parser.add_argument("--list", action="store_true", help="列出题库中所有题目")
     args = parser.parse_args()
 
@@ -1312,6 +1360,8 @@ def main():
         use_api=args.api,
         use_bank=not args.api or args.bank,
         force_slug=args.slug,
+        target_date=args.date,
+        force=args.force,
     )
 
 

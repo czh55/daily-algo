@@ -4,8 +4,7 @@ __pycache__/
 *.pyo
 .DS_Store
 
-# Generated
-data/history.json
+# Generated (history.json is committed for cross-run dedup)
 
 # IDE
 .idea/
