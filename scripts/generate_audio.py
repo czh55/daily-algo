@@ -93,62 +93,122 @@ def extract_examples(html: str) -> list[str]:
     return items
 
 
-def build_narration_script(semantics: dict) -> str:
-    """将题目语义数据组装为完整语音旁白稿"""
-    parts = []
+def estimate_duration_label(char_count: int) -> str:
+    """根据字数估算朗读时长（中文神经语音约 280 字/分钟）"""
+    minutes = char_count / 280
+    low = max(1, int(minutes))
+    high = max(low, int(minutes + 0.99))
+    if low == high:
+        return f"约 {low} 分钟"
+    return f"约 {low} 到 {high} 分钟"
 
+
+def _ordinal(n: int) -> str:
+    """1-based 序号转中文读法"""
+    names = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
+    if 1 <= n <= len(names):
+        return f"第{names[n - 1]}"
+    return f"第{n}"
+
+
+def collect_narration_sections(semantics: dict) -> list[tuple[str, str, list[str]]]:
+    """
+    收集讲解各章节：(章节名, 大纲描述, 正文段落列表)
+    """
+    sections: list[tuple[str, str, list[str]]] = []
+
+    desc = strip_html(semantics.get("description", ""))
+    examples = extract_examples(semantics.get("examples", ""))
+    if desc or examples:
+        parts = []
+        if desc:
+            parts.append(f"题目描述。{desc}")
+        if examples:
+            parts.append("示例。" + "。".join(examples))
+        sections.append(("题面与示例", "题面描述和输入输出示例", parts))
+
+    var_rows = extract_table_rows(semantics.get("var_semantics", ""))
+    if var_rows:
+        parts = ["接下来是变量语义，先理解每个变量的定义、维护和更新，再开始编码。"]
+        parts.extend(var_rows)
+        label = f"变量语义，共 {len(var_rows)} 个核心变量"
+        sections.append(("变量语义", label, parts))
+
+    thinking = extract_numbered_items(semantics.get("thinking_steps", ""))
+    if thinking:
+        parts = ["模拟答题者的思考过程。"] + thinking
+        label = f"思考过程，共 {len(thinking)} 步"
+        sections.append(("思考过程", label, parts))
+
+    code_steps = extract_numbered_items(semantics.get("code_steps", ""))
+    if code_steps:
+        parts = ["落码步骤如下。"] + code_steps
+        label = f"落码步骤，共 {len(code_steps)} 步"
+        sections.append(("落码步骤", label, parts))
+
+    time_c = semantics.get("time_complexity", "")
+    space_c = semantics.get("space_complexity", "")
+    if time_c or space_c:
+        parts = [f"复杂度分析。时间复杂度 {time_c}，空间复杂度 {space_c}。"]
+        sections.append(("复杂度分析", "时间与空间复杂度", parts))
+
+    pitfalls = extract_pitfalls(semantics.get("pitfalls", ""))
+    if pitfalls:
+        parts = ["常见坑点，请注意。"] + pitfalls
+        label = f"常见坑点，共 {len(pitfalls)} 条"
+        sections.append(("常见坑点", label, parts))
+
+    edge_cases = extract_edge_cases(semantics.get("edge_cases", ""))
+    if edge_cases:
+        parts = ["必测的边界情况。"] + edge_cases
+        label = f"边界情况，共 {len(edge_cases)} 条"
+        sections.append(("边界情况", label, parts))
+
+    return sections
+
+
+def build_opening_intro(semantics: dict, sections: list[tuple[str, str, list[str]]], body_char_count: int) -> str:
+    """构建开场白：题目信息 + 预计时长 + 内容结构"""
     title = semantics.get("title", "")
     pid = semantics.get("frontend_id", "")
     ptype = semantics.get("type", "")
     diff = semantics.get("difficulty", "")
 
-    parts.append(
+    # 开场白本身约 200 字，计入总时长估算
+    duration = estimate_duration_label(body_char_count + 200)
+
+    outline_parts = []
+    for i, (_, label, _) in enumerate(sections, 1):
+        outline_parts.append(f"{_ordinal(i)}，{label}")
+
+    outline_text = "；".join(outline_parts)
+    section_count = len(sections)
+
+    return (
         f"欢迎收听每日算法语音讲解。今天是第 {pid} 题，{title}。"
         f"题型是{ptype}，难度{diff}。"
+        f"本次讲解预计时长 {duration}，共 {section_count} 个部分。"
+        f"内容结构如下：{outline_text}。"
+        f"好，我们开始。"
     )
 
-    desc = strip_html(semantics.get("description", ""))
-    if desc:
-        parts.append(f"题目描述。{desc}")
 
-    examples = extract_examples(semantics.get("examples", ""))
-    if examples:
-        parts.append("示例。" + "。".join(examples))
+def build_narration_script(semantics: dict) -> str:
+    """将题目语义数据组装为完整语音旁白稿"""
+    sections = collect_narration_sections(semantics)
 
-    var_rows = extract_table_rows(semantics.get("var_semantics", ""))
-    if var_rows:
-        parts.append("接下来是变量语义，先理解每个变量的定义、维护和更新，再开始编码。")
-        parts.extend(var_rows)
+    body_parts = []
+    for _, _, parts in sections:
+        body_parts.extend(parts)
 
-    thinking = extract_numbered_items(semantics.get("thinking_steps", ""))
-    if thinking:
-        parts.append("模拟答题者的思考过程。")
-        parts.extend(thinking)
+    body_parts.append(
+        "讲解完毕。建议回到网页查看完整代码实现，动手写一遍加深理解。祝学习顺利！"
+    )
 
-    code_steps = extract_numbered_items(semantics.get("code_steps", ""))
-    if code_steps:
-        parts.append("落码步骤如下。")
-        parts.extend(code_steps)
+    body_text = "\n\n".join(p.strip() for p in body_parts if p.strip())
+    intro = build_opening_intro(semantics, sections, len(body_text))
 
-    time_c = semantics.get("time_complexity", "")
-    space_c = semantics.get("space_complexity", "")
-    if time_c or space_c:
-        parts.append(f"复杂度分析。时间复杂度 {time_c}，空间复杂度 {space_c}。")
-
-    pitfalls = extract_pitfalls(semantics.get("pitfalls", ""))
-    if pitfalls:
-        parts.append("常见坑点，请注意。")
-        parts.extend(pitfalls)
-
-    edge_cases = extract_edge_cases(semantics.get("edge_cases", ""))
-    if edge_cases:
-        parts.append("必测的边界情况。")
-        parts.extend(edge_cases)
-
-    parts.append("讲解完毕。建议回到网页查看完整代码实现，动手写一遍加深理解。祝学习顺利！")
-
-    script = "\n\n".join(p.strip() for p in parts if p.strip())
-    # TTS 友好：去掉多余符号
+    script = f"{intro}\n\n{body_text}"
     script = script.replace("→", "，得到").replace("=>", "等于")
     script = re.sub(r"`([^`]+)`", r"\1", script)
     return script
