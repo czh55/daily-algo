@@ -33,6 +33,26 @@
                 <span class="problem-type mono-stack">单调栈</span>
                 <span class="problem-difficulty difficulty-hard">困难</span>
             </div>
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-06-27">
+                        <source src="audio/2026-06-27.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-06-27', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-06-27', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-06-27', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-06-27', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
             <p style="margin-top:12px; color:var(--text-secondary); font-size:0.9rem;">
                 <p>给定 <code>n</code> 个非负整数表示每个宽度为 <code>1</code> 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。</p>...
                 <a href="archive/2026-06-27.html">[查看完整讲解]</a>
@@ -71,5 +91,18 @@
             <p class="footer-meta">基于 daily-algo 项目 · Cursor Automations 自动生成 · 每天 8:00 AM 更新</p>
         </div>
     </footer>
+    <script>
+    function setSpeed(dateStr, rate) {
+        var audio = document.getElementById('audio-' + dateStr);
+        if (!audio) return;
+        audio.playbackRate = rate;
+        var wrap = audio.closest('.audio-player-wrap');
+        if (!wrap) return;
+        wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+            if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+        });
+    }
+    </script>
 </body>
 </html>
