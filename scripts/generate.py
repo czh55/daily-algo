@@ -21,6 +21,8 @@ from typing import Optional
 
 # 项目根目录
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 DOCS = ROOT / "docs"
 ARCHIVE = DOCS / "archive"
 DATA = ROOT / "data"
@@ -1119,10 +1121,12 @@ def select_problem(use_api: bool = False, use_bank: bool = True) -> tuple:
     return (None, None)
 
 
-def render_template(slug: str, semantics: dict, date_str: str = None) -> str:
+def render_template(slug: str, semantics: dict, date_str: str = None, has_audio: bool = False) -> str:
     """将变量语义数据填充到 HTML 模板中"""
     if date_str is None:
         date_str = date.today().isoformat()
+
+    from scripts.generate_audio import render_audio_section, AUDIO_SCRIPT_JS
 
     template_path = TEMPLATES / "problem.html"
     with open(template_path, "r", encoding="utf-8") as f:
@@ -1156,6 +1160,8 @@ def render_template(slug: str, semantics: dict, date_str: str = None) -> str:
         "{{SPACE_COMPLEXITY}}": semantics.get("space_complexity", ""),
         "{{PITFALLS}}": semantics.get("pitfalls", ""),
         "{{EDGE_CASES}}": semantics.get("edge_cases", ""),
+        "{{AUDIO_SECTION}}": render_audio_section(date_str) if has_audio else "",
+        "{{AUDIO_SCRIPT}}": AUDIO_SCRIPT_JS if has_audio else "",
     }
 
     for key, value in replacements.items():
@@ -1189,6 +1195,8 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
         type_class = TYPE_CLASS_MAP.get(ptype, "other")
         diff = today_semantics.get("difficulty", "中等")
         diff_class = {"简单": "easy", "中等": "medium", "困难": "hard"}.get(diff, "medium")
+        from scripts.generate_audio import render_audio_section
+        audio_block = render_audio_section(featured_date, base_path="audio")
         today_html = f"""<div class="today-problem">
             <div class="today-label">&#x1F4C5; 今日推荐</div>
             <h2><a href="archive/{featured_date}.html">{today_semantics.get('frontend_id', '')}. {today_semantics.get('title', '')}</a></h2>
@@ -1196,6 +1204,7 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
                 <span class="problem-type {type_class}">{ptype}</span>
                 <span class="problem-difficulty difficulty-{diff_class}">{diff}</span>
             </div>
+            {audio_block}
             <p style="margin-top:12px; color:var(--text-secondary); font-size:0.9rem;">
                 {today_semantics.get('description', '')[:200]}...
                 <a href="archive/{featured_date}.html">[查看完整讲解]</a>
@@ -1259,6 +1268,19 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
             <p class="footer-meta">基于 daily-algo 项目 · Cursor Automations 自动生成 · 每天 8:00 AM 更新</p>
         </div>
     </footer>
+    <script>
+    function setSpeed(dateStr, rate) {{
+        var audio = document.getElementById('audio-' + dateStr);
+        if (!audio) return;
+        audio.playbackRate = rate;
+        var wrap = audio.closest('.audio-player-wrap');
+        if (!wrap) return;
+        wrap.querySelectorAll('.speed-btn').forEach(function(btn) {{
+            btn.classList.remove('active');
+            if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+        }});
+    }}
+    </script>
 </body>
 </html>"""
 
@@ -1290,7 +1312,8 @@ def add_to_history(slug: str, semantics: dict, date_str: str = None, force: bool
 
 
 def generate_today(dry_run: bool = False, use_api: bool = False, use_bank: bool = True,
-                   force_slug: str = None, target_date: str = None, force: bool = False) -> bool:
+                   force_slug: str = None, target_date: str = None, force: bool = False,
+                   skip_audio: bool = False) -> bool:
     """生成今日题目页面"""
     today_date = target_date or date.today().isoformat()
 
@@ -1320,13 +1343,24 @@ def generate_today(dry_run: bool = False, use_api: bool = False, use_bank: bool 
         print("\n[Dry-run] 跳过文件写入")
         return True
 
+    # 生成语音讲解
+    has_audio = False
+    if not skip_audio:
+        try:
+            from scripts.generate_audio import generate_audio
+            has_audio = generate_audio(semantics, today_date)
+        except ImportError as e:
+            print(f"⚠ 语音模块加载失败，跳过语音生成: {e}")
+        except Exception as e:
+            print(f"⚠ 语音生成失败: {e}")
+
     # 生成题目页面
-    html = render_template(slug, semantics, today_date)
+    html = render_template(slug, semantics, today_date, has_audio=has_audio)
     ARCHIVE.mkdir(parents=True, exist_ok=True)
     with open(ARCHIVE / f"{today_date}.html", "w", encoding="utf-8") as f:
         f.write(html)
 
-    # 更新主页
+    # 更新主页（含音频播放器）
     generate_index_html(slug, semantics, target_date=today_date)
 
     # 记录历史
@@ -1347,6 +1381,7 @@ def main():
     parser.add_argument("--date", type=str, help="指定日期 YYYY-MM-DD（默认今天）")
     parser.add_argument("--force", action="store_true", help="覆盖已有日期的记录")
     parser.add_argument("--list", action="store_true", help="列出题库中所有题目")
+    parser.add_argument("--skip-audio", action="store_true", help="跳过语音讲解生成")
     args = parser.parse_args()
 
     if args.list:
@@ -1362,6 +1397,7 @@ def main():
         force_slug=args.slug,
         target_date=args.date,
         force=args.force,
+        skip_audio=args.skip_audio,
     )
 
 

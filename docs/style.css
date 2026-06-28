@@ -557,6 +557,85 @@ code {
     background: transparent;
 }
 
+/* ===== Audio Player ===== */
+.audio-section {
+    background: linear-gradient(135deg, rgba(163, 113, 247, 0.08), rgba(88, 166, 255, 0.08));
+    border: 1px solid rgba(163, 113, 247, 0.25);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 8px;
+}
+
+.audio-hint {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    margin-bottom: 16px;
+}
+
+.audio-player-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.audio-player {
+    width: 100%;
+    height: 48px;
+    border-radius: var(--radius);
+    outline: none;
+}
+
+.audio-player::-webkit-media-controls-panel {
+    background: var(--bg-secondary);
+}
+
+.playback-speed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.speed-label {
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+    margin-right: 4px;
+}
+
+.speed-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 52px;
+    min-height: 36px;
+}
+
+.speed-btn:hover {
+    border-color: var(--accent-purple);
+    color: var(--text-primary);
+}
+
+.speed-btn.active {
+    background: rgba(163, 113, 247, 0.15);
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+    font-weight: 600;
+}
+
+.today-problem .audio-section {
+    margin-top: 16px;
+    padding: 16px 20px;
+}
+
+.today-problem .audio-player {
+    height: 44px;
+}
+
 /* ===== Footer ===== */
 .site-footer {
     border-top: 1px solid var(--border);
