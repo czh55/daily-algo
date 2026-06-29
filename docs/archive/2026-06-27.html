@@ -72,6 +72,20 @@
 </div>
             </section>
 
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 问题本质：每根柱子能接多少水 = min(左边最高, 右边最高) - 自身高度。</p>
+<p class="thinking-step">2. 双指针法（按列算）：维护 leftMax / rightMax，谁小就处理谁那侧的柱子。</p>
+<p class="thinking-step">3. 单调栈法（按行算）：遇到一个上升的柱子，它和左侧柱子形成的「凹槽」可以存水。</p>
+<p class="thinking-step">4. 每次弹出时，以 mid 为底，left 和 i 为两壁，高度差 × 宽度就是这层的水量。</p>
+                </div>
+            </section>
+
             <!-- 变量语义 -->
             <section class="section highlight-box">
                 <h2 class="section-title">
@@ -87,20 +101,6 @@
     <tr><td><code>left</code></td><td>int</td><td><b>定义</b>：弹出后新栈顶，作为接雨水的左边界<br><b>维护</b>：mid 弹出后 st.top()（若栈非空）<br><b>更新</b>：结算宽度 = i - left - 1</td></tr>
     </tbody>
 </table>
-                </div>
-            </section>
-
-            <!-- 模拟答题者思考 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F4AD;</span>
-                    模拟答题者思考
-                </h2>
-                <div class="thinking-steps">
-                    <p class="thinking-step">1. 问题本质：每根柱子能接多少水 = min(左边最高, 右边最高) - 自身高度。</p>
-<p class="thinking-step">2. 双指针法（按列算）：维护 leftMax / rightMax，谁小就处理谁那侧的柱子。</p>
-<p class="thinking-step">3. 单调栈法（按行算）：遇到一个上升的柱子，它和左侧柱子形成的「凹槽」可以存水。</p>
-<p class="thinking-step">4. 每次弹出时，以 mid 为底，left 和 i 为两壁，高度差 × 宽度就是这层的水量。</p>
                 </div>
             </section>
 

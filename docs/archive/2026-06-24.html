@@ -77,6 +77,20 @@
 </div>
             </section>
 
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 我先写暴力：枚举 (l,r)，算 sum(l..r) 是否为 k，O(n²)。</p>
+<p class="thinking-step">2. 重复在哪里？每个 r 都在重复找「哪些 l 可行」。</p>
+<p class="thinking-step">3. 我想把「找 l」变成查表：pre[r] - pre[l-1] = k → pre[l-1] = pre[r] - k。</p>
+<p class="thinking-step">4. 所以扫到 r 时，只要知道历史上 pre[r]-k 出现几次即可。</p>
+                </div>
+            </section>
+
             <!-- 变量语义 -->
             <section class="section highlight-box">
                 <h2 class="section-title">
@@ -92,20 +106,6 @@
     <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：和为 k 的连续子数组个数<br><b>维护</b>：累计所有满足 pre[r] - pre[l-1] = k 的 (l,r) 对数<br><b>更新</b>：每轮 ans += cnt[pre - k]</td></tr>
     </tbody>
 </table>
-                </div>
-            </section>
-
-            <!-- 模拟答题者思考 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F4AD;</span>
-                    模拟答题者思考
-                </h2>
-                <div class="thinking-steps">
-                    <p class="thinking-step">1. 我先写暴力：枚举 (l,r)，算 sum(l..r) 是否为 k，O(n²)。</p>
-<p class="thinking-step">2. 重复在哪里？每个 r 都在重复找「哪些 l 可行」。</p>
-<p class="thinking-step">3. 我想把「找 l」变成查表：pre[r] - pre[l-1] = k → pre[l-1] = pre[r] - k。</p>
-<p class="thinking-step">4. 所以扫到 r 时，只要知道历史上 pre[r]-k 出现几次即可。</p>
                 </div>
             </section>
 

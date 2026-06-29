@@ -72,6 +72,20 @@
 </div>
             </section>
 
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 直观想法：我需要把每个节点的 next 指针反过来指向前一个节点。</p>
+<p class="thinking-step">2. 关键问题：改了 cur.next 之后，我就找不到原来的下一个节点了——所以在改之前必须用 nxt 保存。</p>
+<p class="thinking-step">3. 初始状态：第 0 个位置是 null（pre = None），第 1 个是 head（cur = head）。</p>
+<p class="thinking-step">4. 循环结束后 pre 就指向了新的头节点（原链表的尾）。</p>
+                </div>
+            </section>
+
             <!-- 变量语义 -->
             <section class="section highlight-box">
                 <h2 class="section-title">
@@ -87,20 +101,6 @@
     <tr><td><code>nxt</code></td><td>ListNode*</td><td><b>定义</b>：cur 的原后继（改指针前先保存，防断链）<br><b>维护</b>：每轮保存 cur.next<br><b>更新</b>：nxt = cur.next（在 cur.next 被改写之前）</td></tr>
     </tbody>
 </table>
-                </div>
-            </section>
-
-            <!-- 模拟答题者思考 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F4AD;</span>
-                    模拟答题者思考
-                </h2>
-                <div class="thinking-steps">
-                    <p class="thinking-step">1. 直观想法：我需要把每个节点的 next 指针反过来指向前一个节点。</p>
-<p class="thinking-step">2. 关键问题：改了 cur.next 之后，我就找不到原来的下一个节点了——所以在改之前必须用 nxt 保存。</p>
-<p class="thinking-step">3. 初始状态：第 0 个位置是 null（pre = None），第 1 个是 head（cur = head）。</p>
-<p class="thinking-step">4. 循环结束后 pre 就指向了新的头节点（原链表的尾）。</p>
                 </div>
             </section>
 

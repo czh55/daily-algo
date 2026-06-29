@@ -8,8 +8,8 @@
 
 每道题按 [COACH-VAR-SEMANTICS.md](https://github.com/chenzhiheng/bear_cursor/blob/main/algo-restore-2026/COACH-VAR-SEMANTICS.md) 结构输出：
 1. **认型** — 题型 + 输入参数 + 核心变量列表
-2. **变量语义三句** — 定义/维护/更新
-3. **模拟答题者思考** — 暴力 → 找重复 → 优化动机
+2. **模拟答题者思考** — 暴力 → 找重复 → 优化动机
+3. **变量语义三句** — 定义/维护/更新
 4. **落码步骤** — 编号清单
 5. **代码实现** — Python + C++ 双语言
 6. **常见坑 + 边界 Case**

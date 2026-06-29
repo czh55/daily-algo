@@ -127,18 +127,18 @@ def collect_narration_sections(semantics: dict) -> list[tuple[str, str, list[str
             parts.append("示例。" + "。".join(examples))
         sections.append(("题面与示例", "题面描述和输入输出示例", parts))
 
+    thinking = extract_numbered_items(semantics.get("thinking_steps", ""))
+    if thinking:
+        parts = ["先模拟答题者的思考过程，从暴力解法出发，找到重复劳动，再推导优化方向。"] + thinking
+        label = f"思考过程，共 {len(thinking)} 步"
+        sections.append(("思考过程", label, parts))
+
     var_rows = extract_table_rows(semantics.get("var_semantics", ""))
     if var_rows:
         parts = ["接下来是变量语义，先理解每个变量的定义、维护和更新，再开始编码。"]
         parts.extend(var_rows)
         label = f"变量语义，共 {len(var_rows)} 个核心变量"
         sections.append(("变量语义", label, parts))
-
-    thinking = extract_numbered_items(semantics.get("thinking_steps", ""))
-    if thinking:
-        parts = ["模拟答题者的思考过程。"] + thinking
-        label = f"思考过程，共 {len(thinking)} 步"
-        sections.append(("思考过程", label, parts))
 
     code_steps = extract_numbered_items(semantics.get("code_steps", ""))
     if code_steps:

@@ -72,6 +72,20 @@
 </div>
             </section>
 
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力法：对每个窗口遍历找最大值，O(nk)。问题：k 接近 n 时太慢。</p>
+<p class="thinking-step">2. 重复劳动在哪？相邻窗口共享 k-1 个元素，只有一个出队一个入队。每次重新扫太浪费。</p>
+<p class="thinking-step">3. 我需要一个能快速获取最大值、支持滑动更新的结构 → 单调队列：维护候选最大值的递减序列。</p>
+<p class="thinking-step">4. 单调队列的妙处：新元素入队时，比它小的「旧元素」永远不可能成为答案，直接弹出。队首一定最大。</p>
+                </div>
+            </section>
+
             <!-- 变量语义 -->
             <section class="section highlight-box">
                 <h2 class="section-title">
@@ -86,20 +100,6 @@
     <tr><td><code>i - k + 1</code></td><td>int</td><td><b>定义</b>：当前窗口的左边界下标<br><b>维护</b>：随 i 递增<br><b>更新</b>：每轮右移窗口时 +1</td></tr>
     </tbody>
 </table>
-                </div>
-            </section>
-
-            <!-- 模拟答题者思考 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F4AD;</span>
-                    模拟答题者思考
-                </h2>
-                <div class="thinking-steps">
-                    <p class="thinking-step">1. 暴力法：对每个窗口遍历找最大值，O(nk)。问题：k 接近 n 时太慢。</p>
-<p class="thinking-step">2. 重复劳动在哪？相邻窗口共享 k-1 个元素，只有一个出队一个入队。每次重新扫太浪费。</p>
-<p class="thinking-step">3. 我需要一个能快速获取最大值、支持滑动更新的结构 → 单调队列：维护候选最大值的递减序列。</p>
-<p class="thinking-step">4. 单调队列的妙处：新元素入队时，比它小的「旧元素」永远不可能成为答案，直接弹出。队首一定最大。</p>
                 </div>
             </section>
 

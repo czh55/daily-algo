@@ -72,6 +72,20 @@
 </div>
             </section>
 
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力：枚举所有子串检查是否覆盖 t。要滑动窗口就必须回答「可行」（cover）→「比长度」。</p>
+<p class="thinking-step">2. 右指针 r 扩张到覆盖为止，一旦覆盖就尝试收左指针 l 缩到最短。</p>
+<p class="thinking-step">3. 需要 O(1) 判断是否覆盖，所以引入计数表 need/window 和 valid 计数。</p>
+<p class="thinking-step">4. 当 valid == distinct_chars_in_t 时，当前窗口 [l,r) 是一个可行解，尝试缩小 l 找更短。</p>
+                </div>
+            </section>
+
             <!-- 变量语义 -->
             <section class="section highlight-box">
                 <h2 class="section-title">
@@ -87,20 +101,6 @@
     <tr><td><code>valid</code></td><td>int</td><td><b>定义</b>：已满足需求的字符种类数<br><b>维护</b>：每轮后 valid = 满足 window[c] >= need[c] 的字符 c 的数量<br><b>更新</b>：当 window[c] 刚好等于 need[c]（从 < 变成 =）时 valid++</td></tr>
     </tbody>
 </table>
-                </div>
-            </section>
-
-            <!-- 模拟答题者思考 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F4AD;</span>
-                    模拟答题者思考
-                </h2>
-                <div class="thinking-steps">
-                    <p class="thinking-step">1. 暴力：枚举所有子串检查是否覆盖 t。要滑动窗口就必须回答「可行」（cover）→「比长度」。</p>
-<p class="thinking-step">2. 右指针 r 扩张到覆盖为止，一旦覆盖就尝试收左指针 l 缩到最短。</p>
-<p class="thinking-step">3. 需要 O(1) 判断是否覆盖，所以引入计数表 need/window 和 valid 计数。</p>
-<p class="thinking-step">4. 当 valid == distinct_chars_in_t 时，当前窗口 [l,r) 是一个可行解，尝试缩小 l 找更短。</p>
                 </div>
             </section>
 
