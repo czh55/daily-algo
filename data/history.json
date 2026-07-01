@@ -40,5 +40,11 @@
     "slug": "edit-distance",
     "title": "编辑距离",
     "type": "二维DP"
+  },
+  {
+    "date": "2026-07-01",
+    "slug": "lowest-common-ancestor-of-a-binary-tree",
+    "title": "二叉树的最近公共祖先",
+    "type": "树后序递归"
   }
 ]
