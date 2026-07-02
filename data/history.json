@@ -46,5 +46,11 @@
     "slug": "lowest-common-ancestor-of-a-binary-tree",
     "title": "二叉树的最近公共祖先",
     "type": "树后序递归"
+  },
+  {
+    "date": "2026-07-02",
+    "slug": "number-of-provinces",
+    "title": "省份数量",
+    "type": "并查集"
   }
 ]
