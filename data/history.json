@@ -52,5 +52,11 @@
     "slug": "number-of-provinces",
     "title": "省份数量",
     "type": "并查集"
+  },
+  {
+    "date": "2026-07-03",
+    "slug": "number-of-islands",
+    "title": "岛屿数量",
+    "type": "网格搜索"
   }
 ]

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>岛屿数量 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+                <span class="logo-text">每日算法</span>
+            </a>
+            <span class="header-date">2026-07-03</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#200</span>
+                    <span class="problem-type tag-grid">网格搜索</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">岛屿数量</h1>
+                <a href="https://leetcode.cn/problems/number-of-islands/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-07-03">
+                        <source src="../audio/2026-07-03.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-03', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-07-03', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-03', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-03', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你一个由 <code>'1'</code>（陆地）和 <code>'0'</code>（水）组成的二维网格，请你计算网格中岛屿的数量。岛屿总是被水包围，并且每座岛屿只能由水平方向和/或竖直方向上相邻的陆地连接形成。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">grid = [["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]</div>
+    <div class="example-output">输出：1</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 遍历每个格子，遇到 '1' 就启动一次 DFS/BFS 把整个岛「淹没」。</p>
+<p class="thinking-step">2. 淹没操作：从该点出发向四个方向递归，把遇到的 '1' 都改成 '0'。</p>
+<p class="thinking-step">3. 每启动一次淹没就 ans++，因为这说明发现了一个新岛屿。</p>
+<p class="thinking-step">4. 原地修改 grid 代替 visited 数组，节省空间。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>grid[r][c]</code></td><td>char</td><td><b>定义</b>：当前位置的地形（'1'=未访问陆地, '0'=水 或 已访问）<br><b>维护</b>：访问陆地后置为 '0'（原地标记）<br><b>更新</b>：每次 DFS/BFS 进入时 grid[r][c] = '0'</td></tr>
+    <tr><td><code>dirs</code></td><td>int[][]</td><td><b>定义</b>：四方向偏移量<br><b>维护</b>：不变量 <code>[(0,1),(0,-1),(1,0),(-1,0)]</code><br><b>更新</b>：不更新</td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：岛屿总数<br><b>维护</b>：每次发现未访问陆地时 ans++<br><b>更新</b>：DFS/BFS 启动时 ans++</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 双重循环遍历 grid，遇到 '1' 时 ans++ 并启动 DFS</p>
+<p class="code-step">2. DFS(r,c)：若越界或 grid[r][c] != '1'，直接返回</p>
+<p class="code-step">3. <code>grid[r][c] = '0'</code>（标记已访问）</p>
+<p class="code-step">4. 对四个方向递归 DFS</p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def numIslands(self, grid: list[list[str]]) -> int:
+        m, n = len(grid), len(grid[0])
+        ans = 0
+
+        def dfs(r, c):
+            if r < 0 or r >= m or c < 0 or c >= n:
+                return
+            if grid[r][c] != '1':
+                return
+            grid[r][c] = '0'  # 淹没
+            dfs(r + 1, c)
+            dfs(r - 1, c)
+            dfs(r, c + 1)
+            dfs(r, c - 1)
+
+        for r in range(m):
+            for c in range(n):
+                if grid[r][c] == '1':
+                    ans += 1
+                    dfs(r, c)
+
+        return ans</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+    int m, n;
+public:
+    int numIslands(vector<vector<char>>& grid) {
+        m = grid.size(), n = grid[0].size();
+        int ans = 0;
+        for (int r = 0; r < m; r++) {
+            for (int c = 0; c < n; c++) {
+                if (grid[r][c] == '1') {
+                    ans++;
+                    dfs(grid, r, c);
+                }
+            }
+        }
+        return ans;
+    }
+
+    void dfs(vector<vector<char>>& grid, int r, int c) {
+        if (r < 0 || r >= m || c < 0 || c >= n || grid[r][c] != '1')
+            return;
+        grid[r][c] = '0';
+        dfs(grid, r + 1, c);
+        dfs(grid, r - 1, c);
+        dfs(grid, r, c + 1);
+        dfs(grid, r, c - 1);
+    }
+};
+// 时间 O(mn)，空间 O(mn)（递归栈）</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(mn)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(mn)（DFS 栈）/ O(min(m,n))（BFS 队列）</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> DFS 越界检查必须在 grid[r][c] 检查之前，否则会越界访问。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 原地修改 grid 后要确认题目是否允许修改输入。如果不允许，需要额外 visited 数组。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> Java/C++ 递归可能栈溢出（特别大的岛屿），改用 BFS 或迭代栈。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：空网格</div>
+    <code>grid = [] → 输出 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全是水</div>
+    <code>grid = [["0","0"],["0","0"]] → 输出 0</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>
