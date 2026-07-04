@@ -58,5 +58,11 @@
     "slug": "number-of-islands",
     "title": "岛屿数量",
     "type": "网格搜索"
+  },
+  {
+    "date": "2026-07-04",
+    "slug": "course-schedule",
+    "title": "课程表",
+    "type": "拓扑排序"
   }
 ]

@@ -1017,6 +1017,110 @@ public:
     <code>grid = [["0","0"],["0","0"]] → 输出 0</code>
 </div>""",
     },
+    "course-schedule": {
+        "type": "拓扑排序",
+        "difficulty": "中等",
+        "frontend_id": "207",
+        "title": "课程表",
+        "time_complexity": "O(V + E)",
+        "space_complexity": "O(V + E)",
+        "description": """<p>你这个学期必须选修 <code>numCourses</code> 门课程，记为 <code>0</code> 到 <code>numCourses - 1</code>。在选修某些课程之前需要一些先修课程。先修课程按数组 <code>prerequisites</code> 给出，其中 <code>prerequisites[i] = [a<sub>i</sub>, b<sub>i</sub>]</code>，表示如果要学习课程 <code>a<sub>i</sub></code> 则<b>必须先学习课程 b<sub>i</sub></b>。请你判断是否可能完成所有课程的学习？</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：numCourses = 2, prerequisites = [[1,0]]</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">先修关系：0 → 1，无环，可以学完。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：numCourses = 2, prerequisites = [[1,0],[0,1]]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">0 和 1 互相依赖，形成环，无法完成。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>graph[u]</code></td><td>list&lt;int&gt;[]</td><td><b>定义</b>：先修图，边 b→a 表示学完 b 才能学 a<br><b>维护</b>：建图后不变，graph[b] 存所有依赖 b 的课程<br><b>更新</b>：遍历 prerequisites 时 graph[b].append(a)</td></tr>
+    <tr><td><code>indeg[v]</code></td><td>int[]</td><td><b>定义</b>：课程 v 还剩多少门先修课未满足<br><b>维护</b>：每门课被「学完」时，其邻居 indeg--<br><b>更新</b>：建边 b→a 时 indeg[a]++；从队列弹出 u 时对每个 v∈graph[u] 执行 indeg[v]--</td></tr>
+    <tr><td><code>queue</code></td><td>queue&lt;int&gt;</td><td><b>定义</b>：当前所有先修已满足、可以立即选修的课程<br><b>维护</b>：弹出学完的课程，把新满足条件的课程入队<br><b>更新</b>：初始化时入队所有 indeg==0 的课；每轮 indeg[v] 变 0 时 v 入队</td></tr>
+    <tr><td><code>taken</code></td><td>int</td><td><b>定义</b>：已成功选修的课程数<br><b>维护</b>：每从队列弹出一门课 taken++<br><b>更新</b>：taken == numCourses 则无环，否则有环</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想：能不能学完所有课，等价于先修关系有没有形成环。</p>
+<p class="thinking-step">2. 有环就永远卡在某个互相等待的圈子里，返回 false。</p>
+<p class="thinking-step">3. 拓扑排序的思路：每次选一门「没有未满足先修」的课来学，学完就解锁后续课程。</p>
+<p class="thinking-step">4. 用入度数组 + 队列（Kahn 算法）：indeg==0 的课先入队，弹出后给邻居 indeg--，新变 0 的再入队。</p>
+<p class="thinking-step">5. 最终 taken == numCourses 说明所有课都排进了合法顺序，无环。</p>""",
+        "code_steps": """<p class="code-step">1. 建图：对每条 [a,b]，添加边 b→a，indeg[a]++</p>
+<p class="code-step">2. 将所有 indeg==0 的课程入队</p>
+<p class="code-step">3. 循环：弹出 u，taken++，对 graph[u] 中每个 v 执行 indeg[v]--，若变 0 则入队</p>
+<p class="code-step">4. 返回 taken == numCourses</p>""",
+        "code_python": """class Solution:
+    def canFinish(self, numCourses: int, prerequisites: list[list[int]]) -> bool:
+        graph = [[] for _ in range(numCourses)]
+        indeg = [0] * numCourses
+
+        for a, b in prerequisites:
+            graph[b].append(a)  # 先学 b，再学 a
+            indeg[a] += 1
+
+        queue = [i for i in range(numCourses) if indeg[i] == 0]
+        taken = 0
+
+        while queue:
+            u = queue.pop()
+            taken += 1
+            for v in graph[u]:
+                indeg[v] -= 1
+                if indeg[v] == 0:
+                    queue.append(v)
+
+        return taken == numCourses""",
+        "code_cpp": """class Solution {
+public:
+    bool canFinish(int numCourses, vector<vector<int>>& prerequisites) {
+        vector<vector<int>> graph(numCourses);
+        vector<int> indeg(numCourses, 0);
+
+        for (auto& p : prerequisites) {
+            int a = p[0], b = p[1];
+            graph[b].push_back(a);
+            indeg[a]++;
+        }
+
+        queue<int> q;
+        for (int i = 0; i < numCourses; i++)
+            if (indeg[i] == 0) q.push(i);
+
+        int taken = 0;
+        while (!q.empty()) {
+            int u = q.front(); q.pop();
+            taken++;
+            for (int v : graph[u]) {
+                if (--indeg[v] == 0)
+                    q.push(v);
+            }
+        }
+        return taken == numCourses;
+    }
+};
+// 时间 O(V+E)，空间 O(V+E)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 建边方向搞反：prerequisites[i]=[a,b] 表示 b 是 a 的先修，应建边 b→a，不是 a→b。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用 DFS 判环时状态要分三种（未访问/访问中/已完成），只分两种会漏判。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 有环时 Kahn 算法 taken &lt; numCourses，不能只检查队列是否为空就返回 true。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：无先修要求</div>
+    <code>numCourses = 3, prerequisites = [] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：自环</div>
+    <code>numCourses = 1, prerequisites = [[0,0]] → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：长链无环</div>
+    <code>numCourses = 4, prerequisites = [[1,0],[2,1],[3,2]] → true</code>
+</div>""",
+    },
 }
 
 
