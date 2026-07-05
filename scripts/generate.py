@@ -1121,6 +1121,126 @@ public:
     <code>numCourses = 4, prerequisites = [[1,0],[2,1],[3,2]] → true</code>
 </div>""",
     },
+
+    "3sum": {
+        "type": "排序+双指针",
+        "difficulty": "中等",
+        "frontend_id": "15",
+        "title": "三数之和",
+        "time_complexity": "O(n²)",
+        "space_complexity": "O(1)（不计排序）",
+        "description": """<p>给你一个整数数组 <code>nums</code>，判断是否存在三元组 <code>[nums[i], nums[j], nums[k]]</code> 满足 <code>i != j</code>、<code>i != k</code> 且 <code>j != k</code>，同时还满足 <code>nums[i] + nums[j] + nums[k] == 0</code>。请你返回所有和为 0 且<b>不重复</b>的三元组。</p>
+<p>注意：答案中不可以包含重复的三元组。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [-1,0,1,2,-1,-4]</div>
+    <div class="example-output">输出：[[-1,-1,2],[-1,0,1]]</div>
+    <div class="example-explain">nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0；nums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0。不重复三元组是 [-1,0,1] 和 [-1,-1,2]。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [0,1,1]</div>
+    <div class="example-output">输出：[]</div>
+    <div class="example-explain">唯一可能的三元组和不为 0。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [0,0,0]</div>
+    <div class="example-output">输出：[[0,0,0]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：固定三元组中第一个数的位置（排序后最小值）<br><b>维护</b>：每轮 i 向右移动，跳过与前一个相同的 nums[i]<br><b>更新</b>：for i in range(n-2)，若 nums[i]==nums[i-1] 则 continue</td></tr>
+    <tr><td><code>l</code></td><td>int</td><td><b>定义</b>：在 i 右侧区间内指向较小候选值的左指针<br><b>维护</b>：和太小时右移，找到答案后右移跳过重复<br><b>更新</b>：初始 l=i+1；sum&lt;0 时 l++；命中后 while nums[l]==nums[l-1] 则 l++</td></tr>
+    <tr><td><code>r</code></td><td>int</td><td><b>定义</b>：在 i 右侧区间内指向较大候选值的右指针<br><b>维护</b>：和太大时左移，找到答案后左移跳过重复<br><b>更新</b>：初始 r=n-1；sum&gt;0 时 r--；命中后 while nums[r]==nums[r+1] 则 r--</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&gt;</td><td><b>定义</b>：所有不重复的三元组答案<br><b>维护</b>：每当 nums[i]+nums[l]+nums[r]==0 时追加 [nums[i],nums[l],nums[r]]<br><b>更新</b>：命中后 l、r 同时内缩并各自跳过重复值</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写暴力：三重循环枚举 (i,j,k)，判断和是否为 0，O(n³)，还要额外去重。</p>
+<p class="thinking-step">2. 重复在哪里？固定一个数后，「在剩余数组里找两数之和为 -nums[i]」是经典子问题。</p>
+<p class="thinking-step">3. 排序后，两数之和可以用双指针：和小了 l++，和大了 r--，O(n)。</p>
+<p class="thinking-step">4. 外层固定 i，内层双指针找 complement = -nums[i]，整体 O(n²)。</p>
+<p class="thinking-step">5. 去重关键：排序后，i、l、r 三个位置都要跳过与前一个相同的值，否则会输出重复三元组。</p>""",
+        "code_steps": """<p class="code-step">1. 对 <code>nums</code> 升序排序</p>
+<p class="code-step">2. 外层 <code>for i in range(n-2)</code>，若 <code>nums[i]==nums[i-1]</code> 则跳过（i 去重）</p>
+<p class="code-step">3. 设 <code>l=i+1, r=n-1</code>，当 <code>l&lt;r</code> 时计算 <code>s=nums[i]+nums[l]+nums[r]</code></p>
+<p class="code-step">4. <code>s&lt;0</code> 则 <code>l++</code>；<code>s&gt;0</code> 则 <code>r--</code>；<code>s==0</code> 则记录答案，l、r 内缩并各自跳过重复</p>
+<p class="code-step">5. 返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def threeSum(self, nums: list[int]) -> list[list[int]]:
+        nums.sort()
+        n = len(nums)
+        ans = []
+
+        for i in range(n - 2):
+            # 固定第一个数，跳过重复
+            if i > 0 and nums[i] == nums[i - 1]:
+                continue
+
+            l, r = i + 1, n - 1
+            while l < r:
+                s = nums[i] + nums[l] + nums[r]
+                if s < 0:
+                    l += 1
+                elif s > 0:
+                    r -= 1
+                else:
+                    ans.append([nums[i], nums[l], nums[r]])
+                    l += 1
+                    r -= 1
+                    # 跳过 l、r 侧的重复值
+                    while l < r and nums[l] == nums[l - 1]:
+                        l += 1
+                    while l < r and nums[r] == nums[r + 1]:
+                        r -= 1
+
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        int n = nums.size();
+        vector<vector<int>> ans;
+
+        for (int i = 0; i < n - 2; i++) {
+            // 固定第一个数，跳过重复
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+
+            int l = i + 1, r = n - 1;
+            while (l < r) {
+                int s = nums[i] + nums[l] + nums[r];
+                if (s < 0) l++;
+                else if (s > 0) r--;
+                else {
+                    ans.push_back({nums[i], nums[l], nums[r]});
+                    l++; r--;
+                    // 跳过 l、r 侧的重复值
+                    while (l < r && nums[l] == nums[l - 1]) l++;
+                    while (l < r && nums[r] == nums[r + 1]) r--;
+                }
+            }
+        }
+        return ans;
+    }
+};
+// 时间 O(n²)，空间 O(1)（不计排序）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记排序：不排序就无法用双指针单调移动，也无法方便地去重。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只在一处去重：i、l、r 三个位置都可能产生重复三元组，三处都要跳过相同值。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 命中后忘记移动指针：找到一组答案后必须 l++、r--，否则会死循环在同一组 (l,r) 上。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：全零</div>
+    <code>nums = [0,0,0] → [[0,0,0]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：不足三个元素</div>
+    <code>nums = [1,2] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：大量重复值</div>
+    <code>nums = [-1,-1,0,1,1] → [[-1,0,1]]（只输出一组）</code>
+</div>""",
+    },
 }
 
 
