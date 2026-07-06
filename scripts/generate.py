@@ -1241,6 +1241,94 @@ public:
     <code>nums = [-1,-1,0,1,1] → [[-1,0,1]]（只输出一组）</code>
 </div>""",
     },
+
+    "validate-binary-search-tree": {
+        "type": "BST验证",
+        "difficulty": "中等",
+        "frontend_id": "98",
+        "title": "验证二叉搜索树",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)（递归栈）",
+        "description": """<p>给你一个二叉树的根节点 <code>root</code>，判断其是否是一个<b>有效的二叉搜索树（BST）</b>。</p>
+<p>有效 BST 定义如下：</p>
+<ul>
+<li>节点的左子树只包含<b>严格小于</b>当前节点的值</li>
+<li>节点的右子树只包含<b>严格大于</b>当前节点的值</li>
+<li>所有左子树和右子树自身必须也是二叉搜索树</li>
+</ul>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [2,1,3]</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [5,1,4,null,null,3,6]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">根节点 5，右子树中节点 4 小于 5，违反 BST 性质。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>low</code></td><td>int / long</td><td><b>定义</b>：当前子树所有节点值的下界（不含）<br><b>维护</b>：进入左子树时不变；进入右子树时更新为 <code>root.val</code><br><b>更新</b>：递归右子树传 <code>low=root.val</code></td></tr>
+    <tr><td><code>high</code></td><td>int / long</td><td><b>定义</b>：当前子树所有节点值的上界（不含）<br><b>维护</b>：进入右子树时不变；进入左子树时更新为 <code>root.val</code><br><b>更新</b>：递归左子树传 <code>high=root.val</code></td></tr>
+    <tr><td><code>root.val</code></td><td>int</td><td><b>定义</b>：当前节点的值<br><b>维护</b>：必须满足 <code>low &lt; root.val &lt; high</code><br><b>更新</b>：不满足则整棵子树无效，立即返回 false</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想：只比较「当前节点和直接子节点」够不够？不够——比如 [5,1,4,null,null,3,6] 中 3 在 5 的右子树里，但 3 &lt; 5。</p>
+<p class="thinking-step">2. 重复在哪里？每个节点不仅要大于左孩子、小于右孩子，还要落在「祖先链」允许的区间内。</p>
+<p class="thinking-step">3. 优化：DFS 时携带合法区间 (low, high)，当前值必须在开区间内。</p>
+<p class="thinking-step">4. 递归左子树时上界收紧为 root.val；递归右子树时下界收紧为 root.val。</p>
+<p class="thinking-step">5. 空节点视为合法；任一子树不合法则整棵树不合法。</p>""",
+        "code_steps": """<p class="code-step">1. 定义 <code>dfs(node, low, high)</code>：空节点返回 true</p>
+<p class="code-step">2. 若 <code>node.val &lt;= low</code> 或 <code>node.val &gt;= high</code>，返回 false</p>
+<p class="code-step">3. 左子树传 <code>(low, node.val)</code>，右子树传 <code>(node.val, high)</code></p>
+<p class="code-step">4. 左右子树都合法才返回 true</p>
+<p class="code-step">5. 入口调用 <code>dfs(root, -∞, +∞)</code>，注意用 long 避免 INT_MIN/INT_MAX 边界溢出</p>""",
+        "code_python": """class Solution:
+    def isValidBST(self, root: TreeNode) -> bool:
+        def dfs(node, low, high):
+            if not node:
+                return True
+            if not (low < node.val < high):
+                return False
+            return (
+                dfs(node.left, low, node.val)
+                and dfs(node.right, node.val, high)
+            )
+
+        return dfs(root, float("-inf"), float("inf"))""",
+        "code_cpp": """class Solution {
+public:
+    bool isValidBST(TreeNode* root) {
+        return dfs(root, LONG_MIN, LONG_MAX);
+    }
+
+    bool dfs(TreeNode* node, long low, long high) {
+        if (!node) return true;
+        if (node->val <= low || node->val >= high)
+            return false;
+        return dfs(node->left, low, node->val)
+            && dfs(node->right, node->val, high);
+    }
+};
+// 时间 O(n)，空间 O(n)（递归栈）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只比较父子节点：右子树里可能出现小于根的值（经典反例 [5,1,4,null,null,3,6]）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边界用 <code>&lt;=</code> / <code>&gt;=</code> 判非法：BST 要求<b>严格</b>小于/大于，相等也不合法。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> C++ 用 <code>INT_MIN/INT_MAX</code> 作初始边界时，节点值等于边界会溢出比较；应使用 <code>long</code> 或中序遍历 + <code>prev</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>root = [1] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：相等值</div>
+    <code>root = [2,2,2] → false（左孩子等于根）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：INT 边界</div>
+    <code>root = [2147483647] → true（long 边界不会误判）</code>
+</div>""",
+    },
 }
 
 

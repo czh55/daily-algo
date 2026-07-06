@@ -70,5 +70,11 @@
     "slug": "3sum",
     "title": "三数之和",
     "type": "排序+双指针"
+  },
+  {
+    "date": "2026-07-06",
+    "slug": "validate-binary-search-tree",
+    "title": "验证二叉搜索树",
+    "type": "BST验证"
   }
 ]
