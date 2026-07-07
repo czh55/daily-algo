@@ -76,5 +76,11 @@
     "slug": "validate-binary-search-tree",
     "title": "验证二叉搜索树",
     "type": "BST验证"
+  },
+  {
+    "date": "2026-07-07",
+    "slug": "subarray-sum-equals-k",
+    "title": "和为 K 的子数组",
+    "type": "前缀和+哈希"
   }
 ]
