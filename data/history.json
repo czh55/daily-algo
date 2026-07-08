@@ -82,5 +82,11 @@
     "slug": "subarray-sum-equals-k",
     "title": "和为 K 的子数组",
     "type": "前缀和+哈希"
+  },
+  {
+    "date": "2026-07-08",
+    "slug": "sliding-window-maximum",
+    "title": "滑动窗口最大值",
+    "type": "固定滑窗最值"
   }
 ]
