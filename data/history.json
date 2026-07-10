@@ -94,5 +94,11 @@
     "slug": "minimum-window-substring",
     "title": "最小覆盖子串",
     "type": "可变滑窗"
+  },
+  {
+    "date": "2026-07-10",
+    "slug": "trapping-rain-water",
+    "title": "接雨水",
+    "type": "单调栈"
   }
 ]
