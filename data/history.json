@@ -100,5 +100,11 @@
     "slug": "trapping-rain-water",
     "title": "接雨水",
     "type": "单调栈"
+  },
+  {
+    "date": "2026-07-11",
+    "slug": "reverse-linked-list",
+    "title": "反转链表",
+    "type": "链表指针"
   }
 ]
