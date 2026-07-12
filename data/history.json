@@ -106,5 +106,11 @@
     "slug": "reverse-linked-list",
     "title": "反转链表",
     "type": "链表指针"
+  },
+  {
+    "date": "2026-07-12",
+    "slug": "lru-cache",
+    "title": "LRU 缓存",
+    "type": "设计题"
   }
 ]
