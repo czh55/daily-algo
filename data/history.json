@@ -112,5 +112,11 @@
     "slug": "lru-cache",
     "title": "LRU 缓存",
     "type": "设计题"
+  },
+  {
+    "date": "2026-07-13",
+    "slug": "edit-distance",
+    "title": "编辑距离",
+    "type": "二维DP"
   }
 ]
