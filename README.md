@@ -27,7 +27,8 @@ daily-algo/
 │   ├── generate.py         # 主生成脚本（选题 + 渲染 HTML）
 │   └── leetcode_api.py     # LeetCode GraphQL API 封装
 ├── data/
-│   ├── bank.json           # 13 道核心题型题库
+│   ├── problem_pool.json   # 候选题库：LeetCode 前 200 题（选题去重轮换来源）
+│   ├── bank.json           # 13 道核心题型的元数据
 │   └── history.json        # 推荐历史记录
 ├── templates/
 │   └── problem.html        # 题目页面 HTML 模板
@@ -63,6 +64,10 @@ Automation 配置每天 8:00 AM 触发 Agent，Agent 执行：
 GitHub Pages 自动构建并更新网站。
 
 ## 题库
+
+候选题库是 **LeetCode 前 200 题**（`data/problem_pool.json`）。脚本按题号顺序每天推荐一道没讲过的题，约 200 天内不重复；全部讲完后按「最久未推荐」轮换。
+
+其中 13 道核心题型已内置完整的「变量语义法」精讲（见下表）；其余题目在被选中时会实时拉取 LeetCode 官方中文题面 + 官方代码自动出页。
 
 13 道核心题型（覆盖全部变量语义方法）：
 

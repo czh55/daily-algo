@@ -6,17 +6,15 @@
 
 ### 1. 生成今日题目
 
-运行生成脚本（从 13 道核心题库中自动选下一道未讲过的题）：
+运行生成脚本。候选题库是 **LeetCode 前 200 题**（`data/problem_pool.json`），脚本会按题号顺序自动选下一道还没推荐过的题：
 
 ```bash
 cd ~/Projects/daily-algo && python3 scripts/generate.py --bank
 ```
 
-如果题库全部用完，尝试从 LeetCode API 获取新题：
-
-```bash
-cd ~/Projects/daily-algo && python3 scripts/generate.py --bank --api
-```
+- 若选中的题目已内置精讲（`VAR_SEMANTICS_DATA` 中的 13 道），生成完整「变量语义法」讲解页。
+- 若选中的题目还没有精讲，脚本会**实时拉取 LeetCode 官方中文题面 + 官方代码**自动出页（变量语义等精讲区块会自动省略）。
+- 前 200 题全部推荐过后，按「最久未推荐」轮换，保证约 200 天内不重复、且绝不会连续两天推荐同一道题。
 
 ### 1.5 生成语音讲解
 
@@ -73,5 +71,6 @@ cd ~/Projects/daily-algo && git add -A && git commit -m "daily: $(date +%Y-%m-%d
 | 生成脚本报错 | 检查 `data/history.json` 是否损坏，必要时删除它重置历史 |
 | 当天已有记录 | 脚本会自动跳过，无需重复生成 |
 | 语音生成失败 | 检查 `pip install edge-tts` 和网络；可用 `--skip-audio` 跳过 |
-| 题库用完 + API 不可用 | 循环从第一道题重新开始 |
+| 前 200 题全部推荐过 | 自动按「最久未推荐」轮换，不会重复最近的题 |
+| 非精讲题拉取失败 | 检查网络后重试；或让 Agent 手动补充该题精讲 |
 | GitHub Pages 未更新 | 检查 Settings → Pages 是否指向正确分支和 `/docs` 目录 |
