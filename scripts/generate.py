@@ -27,6 +27,8 @@ DOCS = ROOT / "docs"
 ARCHIVE = DOCS / "archive"
 DATA = ROOT / "data"
 TEMPLATES = ROOT / "templates"
+# 候选题库：LeetCode 前 200 题（frontendId 1..200）。选题从这个池里去重轮换。
+POOL_FILE = DATA / "problem_pool.json"
 
 # 题型 → CSS class 映射
 TYPE_CLASS_MAP = {
@@ -1333,13 +1335,98 @@ public:
 
 
 def get_problem_semantics(slug: str) -> Optional[dict]:
-    """获取预置的变量语义数据"""
+    """获取预置的变量语义数据（仅精讲题库中的题目有）"""
     return VAR_SEMANTICS_DATA.get(slug)
 
 
+_POOL_CACHE: Optional[list] = None
+
+
+def load_pool() -> list:
+    """加载候选题库（LeetCode 前 200 题），跳过会员专享题（免费 API 取不到）。
+
+    返回按题号升序的列表，每项含 id / slug / title_en / difficulty。
+    """
+    global _POOL_CACHE
+    if _POOL_CACHE is not None:
+        return _POOL_CACHE
+    pool: list = []
+    if POOL_FILE.exists():
+        with open(POOL_FILE, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        pool = [p for p in raw if not p.get("paid_only")]
+        pool.sort(key=lambda p: p.get("id", 0))
+    _POOL_CACHE = pool
+    return pool
+
+
+def _pool_slug_to_meta() -> dict:
+    return {p["slug"]: p for p in load_pool()}
+
+
+# 英文/中文难度 → 中文难度
+_DIFF_ZH = {
+    "Easy": "简单", "Medium": "中等", "Hard": "困难",
+    "简单": "简单", "中等": "中等", "困难": "困难",
+}
+
+
+def build_semantics_from_leetcode(slug: str) -> Optional[dict]:
+    """题库中没有精讲的题目：实时从 LeetCode 拉取官方中文题面 + 代码片段，
+    组装成 render_template / 语音生成可用的字典。
+
+    精讲专属字段（变量语义 / 思考 / 落码步骤 / 坑 / 边界 / 复杂度）留空，
+    模板会自动省略这些区块。拉取失败返回 None。
+    """
+    try:
+        from scripts.leetcode_api import fetch_problem_detail
+        q = fetch_problem_detail(slug)
+    except Exception as e:
+        print(f"⚠ 拉取 LeetCode 题目 {slug} 失败: {e}")
+        return None
+    if not q or not q.get("questionFrontendId"):
+        return None
+
+    snippets = {s.get("langSlug"): s.get("code", "") for s in (q.get("codeSnippets") or [])}
+    code_python = snippets.get("python3") or snippets.get("python") or ""
+    code_cpp = snippets.get("cpp") or ""
+
+    tags = q.get("topicTags") or []
+    ptype = (tags[0].get("translatedName") or tags[0].get("name")) if tags else "算法题"
+
+    return {
+        "title": q.get("translatedTitle") or q.get("title") or slug,
+        "frontend_id": str(q.get("questionFrontendId", "")),
+        "type": ptype or "算法题",
+        "difficulty": _DIFF_ZH.get(q.get("difficulty", ""), "中等"),
+        "time_complexity": "",
+        "space_complexity": "",
+        # translatedContent 已包含题面 + 示例，整体作为描述展示
+        "description": q.get("translatedContent") or "",
+        "examples": "",
+        "var_semantics": "",
+        "thinking_steps": "",
+        "code_steps": "",
+        "code_python": _html_escape(code_python),
+        "code_cpp": _html_escape(code_cpp),
+        "pitfalls": "",
+        "edge_cases": "",
+    }
+
+
+def _html_escape(text: str) -> str:
+    """转义代码中的 < > &，避免 vector<int> 之类被当成 HTML 标签吞掉。"""
+    if not text:
+        return ""
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def _frontend_id_to_slug() -> dict[str, str]:
-    """题号 → slug 映射"""
-    return {data["frontend_id"]: slug for slug, data in VAR_SEMANTICS_DATA.items()}
+    """题号 → slug 映射（精讲题库 + 候选题池，用于从归档页重建历史）"""
+    mapping = {data["frontend_id"]: slug for slug, data in VAR_SEMANTICS_DATA.items()}
+    for p in load_pool():
+        mapping.setdefault(str(p.get("id", "")), p.get("slug", ""))
+    return mapping
 
 
 def rebuild_history_from_archives() -> list:
@@ -1360,12 +1447,20 @@ def rebuild_history_from_archives() -> list:
         slug = id_to_slug.get(match.group(1))
         if not slug:
             continue
-        semantics = VAR_SEMANTICS_DATA[slug]
+        semantics = VAR_SEMANTICS_DATA.get(slug)
+        if semantics:
+            title = semantics.get("title", slug)
+            ptype = semantics.get("type", "")
+        else:
+            # 池内非精讲题：标题从归档页里抓，题型无法确定
+            title_match = re.search(r'class="problem-title">([^<]+)<', content)
+            title = title_match.group(1).strip() if title_match else slug
+            ptype = ""
         history.append({
             "date": date_str,
             "slug": slug,
-            "title": semantics.get("title", slug),
-            "type": semantics.get("type", ""),
+            "title": title,
+            "type": ptype,
         })
     return history
 
@@ -1394,28 +1489,43 @@ def save_history(history: list):
         json.dump(history, f, ensure_ascii=False, indent=2)
 
 
+def _last_used_map(history: list) -> dict:
+    """slug -> 最近一次被推荐的日期"""
+    last_used: dict[str, str] = {}
+    for item in history:
+        s = item.get("slug", "")
+        d = item.get("date", "")
+        if s and d > last_used.get(s, ""):
+            last_used[s] = d
+    return last_used
+
+
 def select_problem(use_api: bool = False, use_bank: bool = True) -> tuple:
-    """选择今日推荐的题目。返回 (slug, source) 或 (None, None)"""
+    """选择今日推荐的题目。返回 (slug, source) 或 (None, None)。
+
+    候选题库是 LeetCode 前 200 题（data/problem_pool.json）。优先选题号最小的
+    未推荐过的题；全部推荐过后，按「最久未推荐」轮换，保证约 200 天内不重复、
+    且绝不会连续两天推荐同一道题。
+    """
     history = load_history()
     used_slugs = {item.get("slug", "") for item in history}
+    pool = load_pool()
 
-    # 策略 1：从预置题库中选未用过的
-    if use_bank:
-        for slug in VAR_SEMANTICS_DATA:
-            if slug not in used_slugs:
-                return (slug, "bank")
+    # 策略 1：按题号顺序，从候选题库里选第一道还没推荐过的题
+    if use_bank and pool:
+        for entry in pool:
+            if entry["slug"] not in used_slugs:
+                return (entry["slug"], "pool")
 
-    # 策略 2：如果题库用完，从 API 获取热门题
+    # 策略 2：可选地尝试 LeetCode API（每日一题 / 热门题）
     if use_api:
         try:
             from scripts.leetcode_api import fetch_hot_problems, fetch_daily_problem
-            # 优先尝试每日一题
             daily = fetch_daily_problem()
             daily_slug = daily.get("titleSlug", "")
             if daily_slug and daily_slug not in used_slugs:
                 return (daily_slug, "api-daily")
 
-            # 退到热门题列表
             hot = fetch_hot_problems(limit=50)
             for p in hot:
                 slug = p.get("titleSlug", "")
@@ -1424,26 +1534,23 @@ def select_problem(use_api: bool = False, use_bank: bool = True) -> tuple:
         except Exception:
             pass
 
-    # 策略 3：题库用完 → 轮换「最久未推荐」的题目
-    # 注意：不能永远返回 slugs[0]，否则题库用完后每天都会推荐同一道题（重复）。
-    # 改为选出距今最久没被推荐过的题目，保证每天都与最近若干天不同。
-    if use_bank:
+    # 策略 3：候选题库全部推荐过 → 轮换「最久未推荐」的题目
+    # （不能永远返回第一题，否则题库用完后每天都推荐同一道题造成重复）
+    if use_bank and pool:
+        last_used = _last_used_map(history)
+        # 按 (最近推荐日期, 题号) 升序取第一个：最久没推荐的排最前，平局按题号。
+        best = min(pool, key=lambda e: (last_used.get(e["slug"], ""), e.get("id", 0)))
+        return (best["slug"], "pool-cycle")
+
+    # 兜底：候选题库不可用时，回退到精讲题库轮换
+    if use_bank and VAR_SEMANTICS_DATA:
         slugs = list(VAR_SEMANTICS_DATA.keys())
-        if slugs:
-            # 每道题最近一次被推荐的日期（题库外的历史记录忽略）
-            last_used: dict[str, str] = {}
-            for item in history:
-                s = item.get("slug", "")
-                d = item.get("date", "")
-                if s in VAR_SEMANTICS_DATA and d > last_used.get(s, ""):
-                    last_used[s] = d
-            # 按 (最近推荐日期, 题库原始顺序) 升序取第一个：
-            # 从未推荐过的（默认空串）排最前，其次是最久没推荐的；平局按题库顺序。
-            best_idx, best_slug = min(
-                enumerate(slugs),
-                key=lambda pair: (last_used.get(pair[1], ""), pair[0]),
-            )
-            return (best_slug, "bank-cycle")
+        last_used = _last_used_map(history)
+        best_idx, best_slug = min(
+            enumerate(slugs),
+            key=lambda pair: (last_used.get(pair[1], ""), pair[0]),
+        )
+        return (best_slug, "bank-cycle")
 
     return (None, None)
 
@@ -1491,9 +1598,41 @@ def render_template(slug: str, semantics: dict, date_str: str = None, has_audio:
         "{{AUDIO_SCRIPT}}": AUDIO_SCRIPT_JS if has_audio else "",
     }
 
+    # 省略没有内容的可选区块（自动出页的题目通常只有题面 + 官方代码）
+    template = _strip_empty_sections(template, semantics)
+
     for key, value in replacements.items():
         template = template.replace(key, value)
 
+    return template
+
+
+# 可选区块标记 → 判断是否为空所依据的 semantics 字段
+_OPTIONAL_SECTIONS = {
+    "THINKING": ["thinking_steps"],
+    "VARSEM": ["var_semantics"],
+    "CODESTEPS": ["code_steps"],
+    "CODE": ["code_python", "code_cpp"],
+    "COMPLEXITY": ["time_complexity", "space_complexity"],
+    "PITFALLS": ["pitfalls"],
+    "EDGECASES": ["edge_cases"],
+}
+
+
+def _strip_empty_sections(template: str, semantics: dict) -> str:
+    """模板中用 <!--S:NAME-->...<!--/S:NAME--> 包裹可选区块；
+    若对应字段全为空则整段删除，否则只删掉标记注释。"""
+    for name, fields in _OPTIONAL_SECTIONS.items():
+        has_content = any((semantics.get(f) or "").strip() for f in fields)
+        pattern = re.compile(
+            r"[ \t]*<!--S:%s-->.*?<!--/S:%s-->[ \t]*\n?" % (name, name),
+            flags=re.S,
+        )
+        if has_content:
+            # 保留内容，去掉标记注释本身
+            template = template.replace(f"<!--S:{name}-->", "").replace(f"<!--/S:{name}-->", "")
+        else:
+            template = pattern.sub("", template)
     return template
 
 
@@ -1657,9 +1796,14 @@ def generate_today(dry_run: bool = False, use_api: bool = False, use_bank: bool 
 
     semantics = get_problem_semantics(slug)
     if not semantics:
-        print(f"题目 {slug} 没有预置的变量语义数据，需要 Agent 手动生成。")
-        print(f"来源：{source}，请让 Agent 调用 LeetCode API 获取题目信息并生成讲解。")
-        return False
+        # 候选题库里没有精讲的题目：实时拉取 LeetCode 官方中文题面 + 代码自动出页
+        semantics = build_semantics_from_leetcode(slug)
+        if semantics:
+            source = f"{source}+leetcode"
+        else:
+            print(f"题目 {slug} 无精讲数据且 LeetCode 拉取失败，跳过。")
+            print("可让 Agent 手动补充讲解，或检查网络后重试。")
+            return False
 
     print(f"今日题目：{semantics['title']} (#{semantics['frontend_id']})")
     print(f"题型：{semantics['type']}")
@@ -1712,9 +1856,12 @@ def main():
     args = parser.parse_args()
 
     if args.list:
-        print("=== 题库中的题目（共 {} 道）===".format(len(VAR_SEMANTICS_DATA)))
+        pool = load_pool()
+        print("=== 候选题库：LeetCode 前 200 题（可选 {} 道，会员题已排除）===".format(len(pool)))
+        print("--- 其中已内置精讲的题目（共 {} 道）---".format(len(VAR_SEMANTICS_DATA)))
         for slug, data in VAR_SEMANTICS_DATA.items():
             print(f"  #{data['frontend_id']:>4s} {data['title']:<20s} [{data['type']}] {data['difficulty']}")
+        print("--- 其余题目会在被选中时实时拉取 LeetCode 官方题面自动出页 ---")
         return
 
     generate_today(
