@@ -1424,11 +1424,26 @@ def select_problem(use_api: bool = False, use_bank: bool = True) -> tuple:
         except Exception:
             pass
 
-    # 策略 3：题库用完 → 循环
+    # 策略 3：题库用完 → 轮换「最久未推荐」的题目
+    # 注意：不能永远返回 slugs[0]，否则题库用完后每天都会推荐同一道题（重复）。
+    # 改为选出距今最久没被推荐过的题目，保证每天都与最近若干天不同。
     if use_bank:
         slugs = list(VAR_SEMANTICS_DATA.keys())
         if slugs:
-            return (slugs[0], "bank-cycle")
+            # 每道题最近一次被推荐的日期（题库外的历史记录忽略）
+            last_used: dict[str, str] = {}
+            for item in history:
+                s = item.get("slug", "")
+                d = item.get("date", "")
+                if s in VAR_SEMANTICS_DATA and d > last_used.get(s, ""):
+                    last_used[s] = d
+            # 按 (最近推荐日期, 题库原始顺序) 升序取第一个：
+            # 从未推荐过的（默认空串）排最前，其次是最久没推荐的；平局按题库顺序。
+            best_idx, best_slug = min(
+                enumerate(slugs),
+                key=lambda pair: (last_used.get(pair[1], ""), pair[0]),
+            )
+            return (best_slug, "bank-cycle")
 
     return (None, None)
 
