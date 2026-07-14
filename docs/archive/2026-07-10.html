@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>接雨水 | 每日算法 · 变量语义法</title>
+    <title>寻找两个正序数组的中位数 | 每日算法 · 变量语义法</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,12 +25,12 @@
             <!-- 题头 -->
             <header class="problem-header">
                 <div class="problem-meta">
-                    <span class="problem-id">#42</span>
-                    <span class="problem-type tag-mono-stack">单调栈</span>
+                    <span class="problem-id">#4</span>
+                    <span class="problem-type tag-other">数组</span>
                     <span class="problem-difficulty difficulty-hard">困难</span>
                 </div>
-                <h1 class="problem-title">接雨水</h1>
-                <a href="https://leetcode.cn/problems/trapping-rain-water/" class="problem-link" target="_blank" rel="noopener">
+                <h1 class="problem-title">寻找两个正序数组的中位数</h1>
+                <a href="https://leetcode.cn/problems/median-of-two-sorted-arrays/" class="problem-link" target="_blank" rel="noopener">
                     在 LeetCode 上查看 &#8599;
                 </a>
             </header>
@@ -63,61 +63,49 @@
                     题目描述
                 </h2>
                 <div class="problem-description">
-                    <p>给定 <code>n</code> 个非负整数表示每个宽度为 <code>1</code> 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。</p>
+                    <p>给定两个大小分别为 <code>m</code> 和 <code>n</code> 的正序（从小到大）数组&nbsp;<code>nums1</code> 和&nbsp;<code>nums2</code>。请你找出并返回这两个正序数组的 <strong>中位数</strong> 。</p>
+
+<p>算法的时间复杂度应该为 <code>O(log (m+n))</code> 。</p>
+
+<p>&nbsp;</p>
+
+<p><strong>示例 1：</strong></p>
+
+<pre>
+<strong>输入：</strong>nums1 = [1,3], nums2 = [2]
+<strong>输出：</strong>2.00000
+<strong>解释：</strong>合并数组 = [1,2,3] ，中位数 2
+</pre>
+
+<p><strong>示例 2：</strong></p>
+
+<pre>
+<strong>输入：</strong>nums1 = [1,2], nums2 = [3,4]
+<strong>输出：</strong>2.50000
+<strong>解释：</strong>合并数组 = [1,2,3,4] ，中位数 (2 + 3) / 2 = 2.5
+</pre>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p><strong>提示：</strong></p>
+
+<ul>
+	<li><code>nums1.length == m</code></li>
+	<li><code>nums2.length == n</code></li>
+	<li><code>0 &lt;= m &lt;= 1000</code></li>
+	<li><code>0 &lt;= n &lt;= 1000</code></li>
+	<li><code>1 &lt;= m + n &lt;= 2000</code></li>
+	<li><code>-10<sup>6</sup> &lt;= nums1[i], nums2[i] &lt;= 10<sup>6</sup></code></li>
+</ul>
+
                 </div>
-                <div class="example-block">
-    <h4>示例 1</h4>
-    <div class="example-input">输入：height = [0,1,0,2,1,0,1,3,2,1,2,1]</div>
-    <div class="example-output">输出：6</div>
-</div>
+                
             </section>
 
-            <!-- 模拟答题者思考 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F4AD;</span>
-                    模拟答题者思考
-                </h2>
-                <div class="thinking-steps">
-                    <p class="thinking-step">1. 问题本质：每根柱子能接多少水 = min(左边最高, 右边最高) - 自身高度。</p>
-<p class="thinking-step">2. 双指针法（按列算）：维护 leftMax / rightMax，谁小就处理谁那侧的柱子。</p>
-<p class="thinking-step">3. 单调栈法（按行算）：遇到一个上升的柱子，它和左侧柱子形成的「凹槽」可以存水。</p>
-<p class="thinking-step">4. 每次弹出时，以 mid 为底，left 和 i 为两壁，高度差 × 宽度就是这层的水量。</p>
-                </div>
-            </section>
 
-            <!-- 变量语义 -->
-            <section class="section highlight-box">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F9E0;</span>
-                    变量语义（先读这三句再编码）
-                </h2>
-                <div class="var-semantics">
-                    <table class="var-table">
-    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
-    <tbody>
-    <tr><td><code>st</code></td><td>stack&lt;int&gt;</td><td><b>定义</b>：存下标，栈内高度单调递减<br><b>维护</b>：栈底到栈顶对应的高度严格递减<br><b>更新</b>：当前高度 >= 栈顶高度时弹出栈顶并结算雨水；然后将当前下标压入</td></tr>
-    <tr><td><code>mid</code></td><td>int</td><td><b>定义</b>：被弹出的低谷位置（即栈顶）<br><b>维护</b>：每次弹出时取值<br><b>更新</b>：st.pop() 得到</td></tr>
-    <tr><td><code>left</code></td><td>int</td><td><b>定义</b>：弹出后新栈顶，作为接雨水的左边界<br><b>维护</b>：mid 弹出后 st.top()（若栈非空）<br><b>更新</b>：结算宽度 = i - left - 1</td></tr>
-    </tbody>
-</table>
-                </div>
-            </section>
 
-            <!-- 落码步骤 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x2328;&#xFE0F;</span>
-                    落码步骤
-                </h2>
-                <div class="code-steps">
-                    <p class="code-step">1. 初始化空栈 <code>st</code>，<code>ans = 0</code></p>
-<p class="code-step">2. 遍历 <code>height</code>，当前高度 >= 栈顶高度时循环结算</p>
-<p class="code-step">3. <code>mid = st.pop()</code>（谷底），若栈非空则 <code>left = st[-1]</code></p>
-<p class="code-step">4. <code>h = min(height[left], height[i]) - height[mid]</code>，<code>w = i - left - 1</code></p>
-<p class="code-step">5. <code>ans += h * w</code>，最后 <code>st.append(i)</code></p>
-                </div>
-            </section>
 
             <!-- 代码实现 -->
             <section class="section">
@@ -131,118 +119,21 @@
                 </div>
                 <div class="code-panel active" id="tab-python">
                     <pre><code class="language-python">class Solution:
-    def trap(self, height: list[int]) -> int:
-        st = []  # 单调递减栈，存下标
-        ans = 0
-
-        for i in range(len(height)):
-            while st and height[i] >= height[st[-1]]:
-                mid = st.pop()
-                if not st:
-                    break
-                left = st[-1]
-                h = min(height[left], height[i]) - height[mid]
-                w = i - left - 1
-                ans += h * w
-            st.append(i)
-
-        return ans
-
-# 双指针优化版（O(1) 空间）：
-class Solution:
-    def trap(self, height: list[int]) -> int:
-        l, r = 0, len(height) - 1
-        left_max = right_max = 0
-        ans = 0
-        while l < r:
-            left_max = max(left_max, height[l])
-            right_max = max(right_max, height[r])
-            if left_max < right_max:
-                ans += left_max - height[l]
-                l += 1
-            else:
-                ans += right_max - height[r]
-                r -= 1
-        return ans</code></pre>
+    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -&gt; float:
+        </code></pre>
                 </div>
                 <div class="code-panel" id="tab-cpp">
                     <pre><code class="language-cpp">class Solution {
 public:
-    int trap(vector<int>& height) {
-        stack<int> st;  // 单调递减栈，存下标
-        int ans = 0;
-
-        for (int i = 0; i < height.size(); i++) {
-            while (!st.empty() && height[i] >= height[st.top()]) {
-                int mid = st.top(); st.pop();
-                if (st.empty()) break;
-                int left = st.top();
-                int h = min(height[left], height[i]) - height[mid];
-                int w = i - left - 1;
-                ans += h * w;
-            }
-            st.push(i);
-        }
-        return ans;
+    double findMedianSortedArrays(vector&lt;int&gt;&amp; nums1, vector&lt;int&gt;&amp; nums2) {
+        
     }
-};
-// 时间 O(n)，空间 O(n)
-// 双指针优化版可达 O(1) 空间</code></pre>
+};</code></pre>
                 </div>
             </section>
 
-            <!-- 复杂度分析 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F4C8;</span>
-                    复杂度分析
-                </h2>
-                <div class="complexity">
-                    <div class="complexity-item">
-                        <span class="complexity-label">时间复杂度</span>
-                        <code class="complexity-value">O(n)</code>
-                    </div>
-                    <div class="complexity-item">
-                        <span class="complexity-label">空间复杂度</span>
-                        <code class="complexity-value">O(n)</code>
-                    </div>
-                </div>
-            </section>
 
-            <!-- 常见坑 -->
-            <section class="section pitfalls-section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
-                    常见坑
-                </h2>
-                <div class="pitfalls">
-                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 单调栈要求 <code>height[i] >= height[st[-1]]</code>（而非 >）：相等时也要弹出，否则会重复计算。</p>
-<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 弹出 mid 后栈为空：说明当前柱子高过所有左侧柱，无法形成凹槽，直接 break。</p>
-<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 双指针法只适用于算「每列能接多少」，单调栈法算「每行（水平层）能接多少」——两种思路完全不同。</p>
-                </div>
-            </section>
 
-            <!-- 边界 Case -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F50D;</span>
-                    必测边界 Case
-                </h2>
-                <div class="edge-cases">
-                    <div class="edge-case">
-    <div class="edge-label">Case 1：单调递增</div>
-    <code>height = [1,2,3,4] → 输出 0（无凹槽）</code>
-</div>
-<div class="edge-case">
-    <div class="edge-label">Case 2：V 形</div>
-    <code>height = [3,0,3] → 输出 3</code>
-</div>
-<div class="edge-case">
-    <div class="edge-label">Case 3：空数组</div>
-    <code>height = [] → 输出 0</code>
-</div>
-                </div>
-            </section>
         </article>
     </main>
 

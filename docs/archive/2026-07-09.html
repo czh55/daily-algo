@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>最小覆盖子串 | 每日算法 · 变量语义法</title>
+    <title>无重复字符的最长子串 | 每日算法 · 变量语义法</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,12 +25,12 @@
             <!-- 题头 -->
             <header class="problem-header">
                 <div class="problem-meta">
-                    <span class="problem-id">#76</span>
-                    <span class="problem-type tag-sliding-var">可变滑窗</span>
-                    <span class="problem-difficulty difficulty-hard">困难</span>
+                    <span class="problem-id">#3</span>
+                    <span class="problem-type tag-other">哈希表</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
                 </div>
-                <h1 class="problem-title">最小覆盖子串</h1>
-                <a href="https://leetcode.cn/problems/minimum-window-substring/" class="problem-link" target="_blank" rel="noopener">
+                <h1 class="problem-title">无重复字符的最长子串</h1>
+                <a href="https://leetcode.cn/problems/longest-substring-without-repeating-characters/" class="problem-link" target="_blank" rel="noopener">
                     在 LeetCode 上查看 &#8599;
                 </a>
             </header>
@@ -63,60 +63,50 @@
                     题目描述
                 </h2>
                 <div class="problem-description">
-                    <p>给你一个字符串 <code>s</code>、一个字符串 <code>t</code>。返回 <code>s</code> 中涵盖 <code>t</code> 所有字符的最小子串。如果 <code>s</code> 中不存在涵盖 <code>t</code> 所有字符的子串，则返回空字符串 <code>""</code>。</p>
+                    <p>给定一个字符串 <code>s</code> ，请你找出其中不含有重复字符的&nbsp;<strong>最长 <span data-keyword="substring-nonempty">子串</span></strong><strong>&nbsp;</strong>的长度。</p>
+
+<p>&nbsp;</p>
+
+<p><strong>示例&nbsp;1:</strong></p>
+
+<pre>
+<strong>输入: </strong>s = "abcabcbb"
+<strong>输出: </strong>3 
+<strong>解释:</strong> 因为无重复字符的最长子串是 <code>"abc"</code>，所以其长度为 3。注意 "bca" 和 "cab" 也是正确答案。
+</pre>
+
+<p><strong>示例 2:</strong></p>
+
+<pre>
+<strong>输入: </strong>s = "bbbbb"
+<strong>输出: </strong>1
+<strong>解释: </strong>因为无重复字符的最长子串是 <code>"b"</code>，所以其长度为 1。
+</pre>
+
+<p><strong>示例 3:</strong></p>
+
+<pre>
+<strong>输入: </strong>s = "pwwkew"
+<strong>输出: </strong>3
+<strong>解释: </strong>因为无重复字符的最长子串是&nbsp;<code>"wke"</code>，所以其长度为 3。
+&nbsp;    请注意，你的答案必须是 <strong>子串 </strong>的长度，<code>"pwke"</code>&nbsp;是一个<em>子序列，</em>不是子串。
+</pre>
+
+<p>&nbsp;</p>
+
+<p><strong>提示：</strong></p>
+
+<ul>
+	<li><code>0 &lt;= s.length &lt;= 5 * 10<sup>4</sup></code></li>
+	<li><code>s</code>&nbsp;由英文字母、数字、符号和空格组成</li>
+</ul>
+
                 </div>
-                <div class="example-block">
-    <h4>示例 1</h4>
-    <div class="example-input">输入：s = "ADOBECODEBANC", t = "ABC"</div>
-    <div class="example-output">输出："BANC"</div>
-</div>
+                
             </section>
 
-            <!-- 模拟答题者思考 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F4AD;</span>
-                    模拟答题者思考
-                </h2>
-                <div class="thinking-steps">
-                    <p class="thinking-step">1. 暴力：枚举所有子串检查是否覆盖 t。要滑动窗口就必须回答「可行」（cover）→「比长度」。</p>
-<p class="thinking-step">2. 右指针 r 扩张到覆盖为止，一旦覆盖就尝试收左指针 l 缩到最短。</p>
-<p class="thinking-step">3. 需要 O(1) 判断是否覆盖，所以引入计数表 need/window 和 valid 计数。</p>
-<p class="thinking-step">4. 当 valid == distinct_chars_in_t 时，当前窗口 [l,r) 是一个可行解，尝试缩小 l 找更短。</p>
-                </div>
-            </section>
 
-            <!-- 变量语义 -->
-            <section class="section highlight-box">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F9E0;</span>
-                    变量语义（先读这三句再编码）
-                </h2>
-                <div class="var-semantics">
-                    <table class="var-table">
-    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
-    <tbody>
-    <tr><td><code>need[c]</code></td><td>map&lt;char,int&gt;</td><td><b>定义</b>：目标串 t 对字符 c 的需求次数<br><b>维护</b>：不变量，初始化为 t 的字符频率<br><b>更新</b>：不更新</td></tr>
-    <tr><td><code>window[c]</code></td><td>map&lt;char,int&gt;</td><td><b>定义</b>：当前窗口内字符 c 的计数<br><b>维护</b>：随窗口滑动实时反映窗口内容<br><b>更新</b>：窗口右扩时 window[c]++，左缩时 window[c]--</td></tr>
-    <tr><td><code>valid</code></td><td>int</td><td><b>定义</b>：已满足需求的字符种类数<br><b>维护</b>：每轮后 valid = 满足 window[c] >= need[c] 的字符 c 的数量<br><b>更新</b>：当 window[c] 刚好等于 need[c]（从 < 变成 =）时 valid++</td></tr>
-    </tbody>
-</table>
-                </div>
-            </section>
 
-            <!-- 落码步骤 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x2328;&#xFE0F;</span>
-                    落码步骤
-                </h2>
-                <div class="code-steps">
-                    <p class="code-step">1. 统计 <code>need</code>：遍历 t，对每个字符 need[c]++</p>
-<p class="code-step">2. 右指针 <code>r</code> 扩张：window[s[r]]++，若 window[s[r]] == need[s[r]] 则 valid++</p>
-<p class="code-step">3. 当 <code>valid == len(need)</code>（全部满足），循环收缩左指针：更新答案，window[s[l]]--，若 window[s[l]] < need[s[l]] 则 valid--，l++</p>
-<p class="code-step">4. 返回最短子串或空串</p>
-                </div>
-            </section>
 
             <!-- 代码实现 -->
             <section class="section">
@@ -129,122 +119,22 @@
                     <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
                 </div>
                 <div class="code-panel active" id="tab-python">
-                    <pre><code class="language-python">from collections import Counter
-
-class Solution:
-    def minWindow(self, s: str, t: str) -> str:
-        need = Counter(t)
-        need_types = len(need)
-        window = Counter()
-        valid = 0
-        l = 0
-        start, min_len = 0, float('inf')
-
-        for r in range(len(s)):
-            c = s[r]
-            window[c] += 1
-            if window[c] == need[c]:
-                valid += 1
-
-            while valid == need_types:
-                if r - l + 1 < min_len:
-                    start, min_len = l, r - l + 1
-
-                d = s[l]
-                if window[d] == need[d]:
-                    valid -= 1
-                window[d] -= 1
-                l += 1
-
-        return s[start:start+min_len] if min_len != float('inf') else ''</code></pre>
+                    <pre><code class="language-python">class Solution:
+    def lengthOfLongestSubstring(self, s: str) -&gt; int:
+        </code></pre>
                 </div>
                 <div class="code-panel" id="tab-cpp">
                     <pre><code class="language-cpp">class Solution {
 public:
-    string minWindow(string s, string t) {
-        unordered_map<char, int> need, window;
-        for (char c : t) need[c]++;
-
-        int valid = 0;
-        int l = 0, start = 0, min_len = INT_MAX;
-
-        for (int r = 0; r < s.size(); r++) {
-            char c = s[r];
-            window[c]++;
-            if (need.count(c) && window[c] == need[c])
-                valid++;
-
-            while (valid == need.size()) {
-                if (r - l + 1 < min_len) {
-                    start = l;
-                    min_len = r - l + 1;
-                }
-                char d = s[l];
-                if (need.count(d) && window[d] == need[d])
-                    valid--;
-                window[d]--;
-                l++;
-            }
-        }
-        return min_len == INT_MAX ? "" : s.substr(start, min_len);
+    int lengthOfLongestSubstring(string s) {
+        
     }
-};
-// 时间 O(m+n)，空间 O(|Σ|)</code></pre>
+};</code></pre>
                 </div>
             </section>
 
-            <!-- 复杂度分析 -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F4C8;</span>
-                    复杂度分析
-                </h2>
-                <div class="complexity">
-                    <div class="complexity-item">
-                        <span class="complexity-label">时间复杂度</span>
-                        <code class="complexity-value">O(m+n)</code>
-                    </div>
-                    <div class="complexity-item">
-                        <span class="complexity-label">空间复杂度</span>
-                        <code class="complexity-value">O(|Σ|)</code>
-                    </div>
-                </div>
-            </section>
 
-            <!-- 常见坑 -->
-            <section class="section pitfalls-section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
-                    常见坑
-                </h2>
-                <div class="pitfalls">
-                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> valid 计数逻辑：必须 window[c] <b>刚好等于</b> need[c] 时才 valid++，超过不算（否则重复字符会虚增 valid）。</p>
-<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 收缩时更新顺序：先判断 window[d]==need[d] 再 window[d]--，和扩张时顺序相同。</p>
-<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回空串的判断：min_len 仍是 INF 说明从未形成合法窗口。</p>
-                </div>
-            </section>
 
-            <!-- 边界 Case -->
-            <section class="section">
-                <h2 class="section-title">
-                    <span class="section-icon">&#x1F50D;</span>
-                    必测边界 Case
-                </h2>
-                <div class="edge-cases">
-                    <div class="edge-case">
-    <div class="edge-label">Case 1：s 和 t 相同</div>
-    <code>s = "ABC", t = "ABC" → 输出 "ABC"</code>
-</div>
-<div class="edge-case">
-    <div class="edge-label">Case 2：t 比 s 长</div>
-    <code>s = "A", t = "AB" → 输出 ""</code>
-</div>
-<div class="edge-case">
-    <div class="edge-label">Case 3：t 有重复字符</div>
-    <code>s = "AAB", t = "AA" → 输出 "AA"</code>
-</div>
-                </div>
-            </section>
         </article>
     </main>
 
