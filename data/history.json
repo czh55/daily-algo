@@ -124,5 +124,11 @@
     "slug": "string-to-integer-atoi",
     "title": "字符串转换整数 (atoi)",
     "type": "字符串模拟"
+  },
+  {
+    "date": "2026-07-15",
+    "slug": "palindrome-number",
+    "title": "回文数",
+    "type": "数学"
   }
 ]
