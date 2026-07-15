@@ -45,6 +45,11 @@ TYPE_CLASS_MAP = {
     "拓扑排序": "topo",
     "排序+双指针": "two-pointer",
     "BST验证": "bst",
+    "哈希表": "hash",
+    "二分查找": "binary-search",
+    "中心扩展": "center-expand",
+    "字符串模拟": "string-sim",
+    "数学模拟": "math-sim",
 }
 
 # ─── Variable Semantics Data for 13 Core Problem Types ───
@@ -1331,6 +1336,665 @@ public:
     <code>root = [2147483647] → true（long 边界不会误判）</code>
 </div>""",
     },
+
+    "two-sum": {
+        "type": "哈希表",
+        "difficulty": "简单",
+        "frontend_id": "1",
+        "title": "两数之和",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "description": """<p>给定一个整数数组 <code>nums</code> 和一个整数目标值 <code>target</code>，请你在该数组中找出<b>和为目标值</b> <code>target</code> 的那<b>两个</b>整数，并返回它们的数组下标。你可以假设每种输入只会对应一个答案，且同一个元素不能使用两遍。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [2,7,11,15], target = 9</div>
+    <div class="example-output">输出：[0,1]（因为 nums[0] + nums[1] == 9）</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [3,2,4], target = 6</div>
+    <div class="example-output">输出：[1,2]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>seen</code></td><td>map&lt;int,int&gt;</td><td><b>定义</b>：已扫描过的「值 → 下标」映射<br><b>维护</b>：每轮结束后，seen 里存着 nums[0..i] 每个值最后出现的下标<br><b>更新</b>：处理完 nums[i] 后 seen[nums[i]] = i</td></tr>
+    <tr><td><code>target - x</code></td><td>int</td><td><b>定义</b>：当前元素 x 需要的「另一半」<br><b>维护</b>：随 x 变化<br><b>更新</b>：每轮用它去 seen 里查是否出现过</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：双重循环枚举所有 (i, j) 看和是否为 target，O(n²)。</p>
+<p class="thinking-step">2. 重复在哪？对每个 x 都在「重新遍历」找 target - x，其实只要知道它之前是否出现过。</p>
+<p class="thinking-step">3. 把「找另一半」变成查表：用哈希表存已扫过的值到下标，查找变 O(1)。</p>
+<p class="thinking-step">4. 边扫边存：先查 target - x 是否在表里，再把 x 存入，保证不会用到自己。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化空哈希表 <code>seen</code></p>
+<p class="code-step">2. 遍历数组，对每个 <code>x = nums[i]</code>：先查 <code>target - x</code> 是否在 seen 中</p>
+<p class="code-step">3. 若在，返回 <code>[seen[target-x], i]</code></p>
+<p class="code-step">4. 否则把 <code>seen[x] = i</code> 记入历史</p>""",
+        "code_python": """class Solution:
+    def twoSum(self, nums: list[int], target: int) -> list[int]:
+        seen = {}  # 值 -> 下标
+        for i, x in enumerate(nums):
+            if target - x in seen:
+                return [seen[target - x], i]
+            seen[x] = i
+        return []""",
+        "code_cpp": """class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, int> seen;  // 值 -> 下标
+        for (int i = 0; i < nums.size(); i++) {
+            auto it = seen.find(target - nums[i]);
+            if (it != seen.end()) return {it->second, i};
+            seen[nums[i]] = i;
+        }
+        return {};
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 必须「先查后存」：如果先把 x 存进表再查，可能会把自己当成另一半（当 target = 2*x 时）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回的是下标不是值；题目保证恰有一个答案，无需继续遍历。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 有重复值时哈希表会覆盖旧下标，但因为答案唯一，不影响正确性。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：包含负数</div>
+    <code>nums = [-3,4,3,90], target = 0 → [0,2]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两个相同值</div>
+    <code>nums = [3,3], target = 6 → [0,1]</code>
+</div>""",
+    },
+
+    "add-two-numbers": {
+        "type": "链表指针",
+        "difficulty": "中等",
+        "frontend_id": "2",
+        "title": "两数相加",
+        "time_complexity": "O(max(m,n))",
+        "space_complexity": "O(max(m,n))",
+        "description": """<p>给你两个<b>非空</b>的链表，表示两个非负整数。它们每位数字都是按照<b>逆序</b>的方式存储的，并且每个节点只能存储一位数字。请你将两个数相加，并以相同形式返回一个表示和的链表。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：l1 = [2,4,3], l2 = [5,6,4]（即 342 + 465）</div>
+    <div class="example-output">输出：[7,0,8]（即 807）</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哑结点，其 next 永远指向结果链表真正的头<br><b>维护</b>：不变，最后返回 dummy.next<br><b>更新</b>：不更新</td></tr>
+    <tr><td><code>cur</code></td><td>ListNode*</td><td><b>定义</b>：结果链表的尾指针<br><b>维护</b>：始终指向已建好部分的最后一个节点<br><b>更新</b>：每接一个新节点后 cur = cur.next</td></tr>
+    <tr><td><code>carry</code></td><td>int</td><td><b>定义</b>：进位（0 或 1）<br><b>维护</b>：等于上一位相加结果整除 10<br><b>更新</b>：carry = 当前位和 // 10</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 逆序存储正好模拟竖式加法：从个位开始逐位相加。</p>
+<p class="thinking-step">2. 每位的和 = l1 当前位 + l2 当前位 + 进位；结果位是和对 10 取余，新进位是和整除 10。</p>
+<p class="thinking-step">3. 用哑结点简化头节点的处理，避免单独判断第一个节点。</p>
+<p class="thinking-step">4. 循环条件要包含 carry：两链表都走完但还有进位时（如 5+5）也要再建一个节点。</p>""",
+        "code_steps": """<p class="code-step">1. 建哑结点 <code>dummy</code>，<code>cur = dummy</code>，<code>carry = 0</code></p>
+<p class="code-step">2. 当 <code>l1</code> 或 <code>l2</code> 或 <code>carry</code> 非空时循环</p>
+<p class="code-step">3. 求和 <code>s = carry + (l1?) + (l2?)</code>，同时后移 l1/l2</p>
+<p class="code-step">4. <code>carry, digit = divmod(s, 10)</code>，新建节点接到 cur 后，cur 前移</p>
+<p class="code-step">5. 返回 <code>dummy.next</code></p>""",
+        "code_python": """# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def addTwoNumbers(self, l1: ListNode, l2: ListNode) -> ListNode:
+        dummy = ListNode()   # 哑结点，dummy.next 是结果头
+        cur = dummy          # 结果链表尾指针
+        carry = 0            # 进位
+        while l1 or l2 or carry:
+            s = carry
+            if l1:
+                s += l1.val
+                l1 = l1.next
+            if l2:
+                s += l2.val
+                l2 = l2.next
+            carry, digit = divmod(s, 10)
+            cur.next = ListNode(digit)
+            cur = cur.next
+        return dummy.next""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        ListNode dummy;          // 哑结点
+        ListNode* cur = &dummy;  // 结果链表尾指针
+        int carry = 0;           // 进位
+        while (l1 || l2 || carry) {
+            int s = carry;
+            if (l1) { s += l1->val; l1 = l1->next; }
+            if (l2) { s += l2->val; l2 = l2->next; }
+            carry = s / 10;
+            cur->next = new ListNode(s % 10);
+            cur = cur->next;
+        }
+        return dummy.next;
+    }
+};
+// 时间 O(max(m,n))，空间 O(max(m,n))""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环条件别忘了 <code>carry</code>：最高位相加产生进位时还要补一个节点。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 两链表长度可能不同，取值前要判空。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用哑结点避免「结果头节点」的特殊处理，最后返回 dummy.next 而不是 dummy。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：进位到新位</div>
+    <code>l1 = [5], l2 = [5] → [0,1]（5+5=10）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：长度不等</div>
+    <code>l1 = [9,9,9], l2 = [1] → [0,0,0,1]</code>
+</div>""",
+    },
+
+    "longest-substring-without-repeating-characters": {
+        "type": "可变滑窗",
+        "difficulty": "中等",
+        "frontend_id": "3",
+        "title": "无重复字符的最长子串",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(|Σ|)",
+        "description": """<p>给定一个字符串 <code>s</code>，请你找出其中不含有重复字符的<b>最长子串</b>的长度。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "abcabcbb"</div>
+    <div class="example-output">输出：3（最长子串是 "abc"）</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "pwwkew"</div>
+    <div class="example-output">输出：3（最长子串是 "wke"）</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>left</code></td><td>int</td><td><b>定义</b>：当前无重复窗口的左边界<br><b>维护</b>：窗口 [left, right] 内永远无重复字符<br><b>更新</b>：遇到重复字符时，跳到该字符上次出现位置的右侧</td></tr>
+    <tr><td><code>last[c]</code></td><td>map&lt;char,int&gt;</td><td><b>定义</b>：字符 c 最近一次出现的下标<br><b>维护</b>：随扫描实时更新<br><b>更新</b>：每轮 last[s[right]] = right</td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：无重复子串的最大长度<br><b>维护</b>：所有合法窗口长度的最大值<br><b>更新</b>：ans = max(ans, right - left + 1)</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举所有子串再判断是否有重复，O(n³) 或 O(n²)。</p>
+<p class="thinking-step">2. 重复在哪？right 右移时，其实只有「新加入的字符」可能造成重复。</p>
+<p class="thinking-step">3. 用滑动窗口：right 不断右扩，一旦 s[right] 在窗口内出现过，就把 left 跳过去。</p>
+<p class="thinking-step">4. 关键：记录每个字符最近的下标，跳 left 时只能往右（用 max/判断 last[c] >= left），不能倒退。</p>""",
+        "code_steps": """<p class="code-step">1. <code>last = {}</code>，<code>left = 0</code>，<code>ans = 0</code></p>
+<p class="code-step">2. 遍历 <code>right</code>：若 <code>s[right]</code> 在 last 中且 <code>last[c] >= left</code>，则 <code>left = last[c] + 1</code></p>
+<p class="code-step">3. 更新 <code>last[s[right]] = right</code></p>
+<p class="code-step">4. <code>ans = max(ans, right - left + 1)</code></p>""",
+        "code_python": """class Solution:
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        last = {}   # 字符 -> 最近一次出现的下标
+        left = 0    # 当前窗口左边界
+        ans = 0
+        for right, c in enumerate(s):
+            if c in last and last[c] >= left:
+                left = last[c] + 1   # 左边界跳到重复字符右侧
+            last[c] = right
+            ans = max(ans, right - left + 1)
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int lengthOfLongestSubstring(string s) {
+        unordered_map<char, int> last;  // 字符 -> 最近下标
+        int left = 0, ans = 0;
+        for (int right = 0; right < (int)s.size(); right++) {
+            char c = s[right];
+            auto it = last.find(c);
+            if (it != last.end() && it->second >= left)
+                left = it->second + 1;
+            last[c] = right;
+            ans = max(ans, right - left + 1);
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(|Σ|)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 跳 left 前必须判断 <code>last[c] >= left</code>：字符虽出现过但若在窗口左侧之外，不能把 left 往回拉。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 先跳 left 再更新 last[c]，顺序不能反。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 窗口长度是 <code>right - left + 1</code>，不要漏掉 +1。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空串</div>
+    <code>s = "" → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全相同</div>
+    <code>s = "bbbb" → 1</code>
+</div>""",
+    },
+
+    "median-of-two-sorted-arrays": {
+        "type": "二分查找",
+        "difficulty": "困难",
+        "frontend_id": "4",
+        "title": "寻找两个正序数组的中位数",
+        "time_complexity": "O(log(min(m,n)))",
+        "space_complexity": "O(1)",
+        "description": """<p>给定两个大小分别为 <code>m</code> 和 <code>n</code> 的正序（从小到大）数组 <code>nums1</code> 和 <code>nums2</code>，请你找出并返回这两个正序数组的<b>中位数</b>。要求算法的时间复杂度为 O(log(m+n))。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums1 = [1,3], nums2 = [2]</div>
+    <div class="example-output">输出：2.0（合并后 [1,2,3]，中位数 2）</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums1 = [1,2], nums2 = [3,4]</div>
+    <div class="example-output">输出：2.5（合并后 [1,2,3,4]，中位数 (2+3)/2）</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：较短数组 nums1 划入「左半部分」的元素个数<br><b>维护</b>：二分范围 [0, m]<br><b>更新</b>：切分不合法时 i 左移或右移</td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：nums2 划入左半部分的个数，由 i 决定<br><b>维护</b>：始终满足 i + j = 左半部分总数<br><b>更新</b>：j = total_left - i</td></tr>
+    <tr><td><code>L1,R1,L2,R2</code></td><td>int</td><td><b>定义</b>：两数组在切分处的左/右边界值（越界用 ±∞）<br><b>维护</b>：合法切分需 L1&le;R2 且 L2&le;R1<br><b>更新</b>：随 i,j 取值</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：合并两数组再取中位数，O(m+n)，但题目要 O(log)。</p>
+<p class="thinking-step">2. 中位数的本质：把两数组切成「左右两半」，左半所有数 &le; 右半所有数，且左半元素个数固定。</p>
+<p class="thinking-step">3. 只要确定 nums1 在哪切（切 i 个），nums2 的切法 j 就唯一确定（i + j = 左半总数）。</p>
+<p class="thinking-step">4. 对较短数组二分 i：若 L1 &gt; R2 说明 i 太大，左移；若 L2 &gt; R1 说明 i 太小，右移。</p>""",
+        "code_steps": """<p class="code-step">1. 保证在较短数组上二分（必要时交换）</p>
+<p class="code-step">2. <code>total_left = (m + n + 1) // 2</code>，二分 <code>i</code> 于 [0, m]</p>
+<p class="code-step">3. <code>j = total_left - i</code>，取四个边界 L1/R1/L2/R2（越界用 ±∞）</p>
+<p class="code-step">4. 若 <code>L1 &le; R2 且 L2 &le; R1</code>：奇数返回 max(L1,L2)，偶数返回 (max(L1,L2)+min(R1,R2))/2</p>
+<p class="code-step">5. 否则据 <code>L1 &gt; R2</code> 调整二分区间</p>""",
+        "code_python": """class Solution:
+    def findMedianSortedArrays(self, nums1: list[int], nums2: list[int]) -> float:
+        if len(nums1) > len(nums2):      # 保证在较短数组上二分
+            nums1, nums2 = nums2, nums1
+        m, n = len(nums1), len(nums2)
+        total_left = (m + n + 1) // 2
+        INF = float('inf')
+        lo, hi = 0, m
+        while lo <= hi:
+            i = (lo + hi) // 2           # nums1 左边放 i 个
+            j = total_left - i           # nums2 左边放 j 个
+            L1 = nums1[i - 1] if i > 0 else -INF
+            R1 = nums1[i]     if i < m else INF
+            L2 = nums2[j - 1] if j > 0 else -INF
+            R2 = nums2[j]     if j < n else INF
+            if L1 <= R2 and L2 <= R1:    # 找到正确切分
+                if (m + n) % 2 == 1:
+                    return float(max(L1, L2))
+                return (max(L1, L2) + min(R1, R2)) / 2
+            elif L1 > R2:
+                hi = i - 1               # i 太大
+            else:
+                lo = i + 1               # i 太小
+        return 0.0""",
+        "code_cpp": """class Solution {
+public:
+    double findMedianSortedArrays(vector<int>& a, vector<int>& b) {
+        if (a.size() > b.size()) swap(a, b);
+        int m = a.size(), n = b.size();
+        int total_left = (m + n + 1) / 2;
+        const long INF = LONG_MAX;
+        int lo = 0, hi = m;
+        while (lo <= hi) {
+            int i = (lo + hi) / 2;       // a 左边放 i 个
+            int j = total_left - i;      // b 左边放 j 个
+            long L1 = (i > 0) ? a[i - 1] : -INF;
+            long R1 = (i < m) ? a[i]     :  INF;
+            long L2 = (j > 0) ? b[j - 1] : -INF;
+            long R2 = (j < n) ? b[j]     :  INF;
+            if (L1 <= R2 && L2 <= R1) {
+                if ((m + n) % 2) return max(L1, L2);
+                return (max(L1, L2) + min(R1, R2)) / 2.0;
+            } else if (L1 > R2) hi = i - 1;
+            else lo = i + 1;
+        }
+        return 0.0;
+    }
+};
+// 时间 O(log(min(m,n)))，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 一定在<b>较短</b>数组上二分，否则 j 可能为负越界。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 切分越界处用 ±∞ 兜底，避免访问 nums[-1] 或 nums[m]。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>total_left</code> 用 <code>(m+n+1)//2</code>，奇偶统一，奇数时中位数落在左半最大值。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：一个数组为空</div>
+    <code>nums1 = [], nums2 = [1] → 1.0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：不重叠</div>
+    <code>nums1 = [1,2], nums2 = [3,4] → 2.5</code>
+</div>""",
+    },
+
+    "longest-palindromic-substring": {
+        "type": "中心扩展",
+        "difficulty": "中等",
+        "frontend_id": "5",
+        "title": "最长回文子串",
+        "time_complexity": "O(n²)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个字符串 <code>s</code>，找到 <code>s</code> 中最长的<b>回文子串</b>。回文是指正着读和反着读都一样的字符串。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "babad"</div>
+    <div class="example-output">输出："bab"（"aba" 也是有效答案）</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "cbbd"</div>
+    <div class="example-output">输出："bb"</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>l, r</code></td><td>int</td><td><b>定义</b>：从某中心向两侧扩展时的左右指针<br><b>维护</b>：扩展过程中 s[l..r] 始终是回文<br><b>更新</b>：只要 s[l]==s[r] 就 l--、r++</td></tr>
+    <tr><td><code>start,end</code></td><td>int</td><td><b>定义</b>：目前发现的最长回文子串区间<br><b>维护</b>：始终记录最长的一段<br><b>更新</b>：某次扩展得到更长回文时更新</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举所有子串再逐个判断是否回文，O(n³)。</p>
+<p class="thinking-step">2. 回文有对称性：从中心往两边扩展，天然是回文，不必重复判断。</p>
+<p class="thinking-step">3. 中心有两类：奇数长度以单个字符为中心，偶数长度以两个字符之间为中心。</p>
+<p class="thinking-step">4. 枚举每个中心（共 2n-1 个）向外扩展，取最长的一段，O(n²) 时间、O(1) 空间。</p>""",
+        "code_steps": """<p class="code-step">1. 写一个 <code>expand(l, r)</code>：当 <code>s[l]==s[r]</code> 时 l--、r++，返回最长回文区间</p>
+<p class="code-step">2. 遍历每个 <code>i</code>：以 (i, i) 为中心求奇数回文</p>
+<p class="code-step">3. 以 (i, i+1) 为中心求偶数回文</p>
+<p class="code-step">4. 用更长者更新 <code>start, end</code>，最后返回 <code>s[start:end+1]</code></p>""",
+        "code_python": """class Solution:
+    def longestPalindrome(self, s: str) -> str:
+        start, end = 0, 0   # 最长回文区间 [start, end]
+
+        def expand(l: int, r: int):
+            # 从中心向两侧扩展，返回最长回文的 (左, 右)
+            while l >= 0 and r < len(s) and s[l] == s[r]:
+                l -= 1
+                r += 1
+            return l + 1, r - 1
+
+        for i in range(len(s)):
+            l1, r1 = expand(i, i)       # 奇数长度中心
+            if r1 - l1 > end - start:
+                start, end = l1, r1
+            l2, r2 = expand(i, i + 1)   # 偶数长度中心
+            if r2 - l2 > end - start:
+                start, end = l2, r2
+        return s[start:end + 1]""",
+        "code_cpp": """class Solution {
+public:
+    string longestPalindrome(string s) {
+        int start = 0, maxLen = 1;
+        auto expand = [&](int l, int r) {
+            while (l >= 0 && r < (int)s.size() && s[l] == s[r]) { l--; r++; }
+            if (r - l - 1 > maxLen) { maxLen = r - l - 1; start = l + 1; }
+        };
+        for (int i = 0; i < (int)s.size(); i++) {
+            expand(i, i);       // 奇数长度
+            expand(i, i + 1);   // 偶数长度
+        }
+        return s.substr(start, maxLen);
+    }
+};
+// 时间 O(n²)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 别漏掉偶数长度中心 (i, i+1)，否则 "bb" 这类会漏解。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 扩展结束时循环多走了一步，真正的回文区间是 <code>[l+1, r-1]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空串或单字符要能正确返回（maxLen 初始设 1，空串单独处理）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：整体回文</div>
+    <code>s = "aba" → "aba"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：无长回文</div>
+    <code>s = "abc" → "a"（任意单字符）</code>
+</div>""",
+    },
+
+    "zigzag-conversion": {
+        "type": "字符串模拟",
+        "difficulty": "中等",
+        "frontend_id": "6",
+        "title": "Z 字形变换",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "description": """<p>将一个给定字符串 <code>s</code> 根据给定的行数 <code>numRows</code>，以从上往下、从左到右进行 Z 字形排列后，按行读取拼接成新字符串并返回。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "PAYPALISHIRING", numRows = 3</div>
+    <div class="example-output">输出："PAHNAPLSIIGYIR"</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "PAYPALISHIRING", numRows = 4</div>
+    <div class="example-output">输出："PINALSIGYAHRPI"</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>rows</code></td><td>string[]</td><td><b>定义</b>：每一行按顺序累积的字符<br><b>维护</b>：第 r 行拿到所有落在该行的字符<br><b>更新</b>：每个字符追加到 rows[当前行]</td></tr>
+    <tr><td><code>r</code></td><td>int</td><td><b>定义</b>：当前字符应放的行号<br><b>维护</b>：在 0 和 numRows-1 之间来回<br><b>更新</b>：r += step</td></tr>
+    <tr><td><code>step</code></td><td>int</td><td><b>定义</b>：行号移动方向（+1 向下 / -1 向上）<br><b>维护</b>：到顶或到底时翻转<br><b>更新</b>：r==0 时置 +1，r==numRows-1 时置 -1</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 与其去推每个字符在 Z 形里的坐标公式，不如直接模拟「走 Z 字」的过程。</p>
+<p class="thinking-step">2. 一个指针在行号上下移动：到第 0 行就向下走，到最后一行就向上走。</p>
+<p class="thinking-step">3. 把每个字符按当前行号追加到对应行的缓冲区。</p>
+<p class="thinking-step">4. 最后把所有行拼起来即可。numRows == 1 时没有折返，直接返回原串。</p>""",
+        "code_steps": """<p class="code-step">1. 特判 <code>numRows == 1</code> 直接返回 s</p>
+<p class="code-step">2. 建 <code>rows</code> 数组，<code>r = 0</code>，<code>step = 1</code></p>
+<p class="code-step">3. 遍历每个字符，追加到 <code>rows[r]</code></p>
+<p class="code-step">4. 到边界翻转方向：<code>r==0 → step=1</code>，<code>r==numRows-1 → step=-1</code>；然后 <code>r += step</code></p>
+<p class="code-step">5. 拼接所有行返回</p>""",
+        "code_python": """class Solution:
+    def convert(self, s: str, numRows: int) -> str:
+        if numRows == 1:
+            return s
+        rows = [''] * numRows   # 每一行累积的字符
+        r = 0                   # 当前行号
+        step = 1                # 方向：+1 向下，-1 向上
+        for c in s:
+            rows[r] += c
+            if r == 0:
+                step = 1
+            elif r == numRows - 1:
+                step = -1
+            r += step
+        return ''.join(rows)""",
+        "code_cpp": """class Solution {
+public:
+    string convert(string s, int numRows) {
+        if (numRows == 1) return s;
+        vector<string> rows(numRows);
+        int r = 0, step = 1;
+        for (char c : s) {
+            rows[r] += c;
+            if (r == 0) step = 1;
+            else if (r == numRows - 1) step = -1;
+            r += step;
+        }
+        string ans;
+        for (auto& row : rows) ans += row;
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 必须特判 <code>numRows == 1</code>，否则 step 永远翻转不了会死循环/越界。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 翻转方向的判断要在移动 r 之前做。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 直接模拟比推坐标公式更不易错，代码更短。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单行</div>
+    <code>s = "ABCD", numRows = 1 → "ABCD"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：行数大于长度</div>
+    <code>s = "AB", numRows = 5 → "AB"</code>
+</div>""",
+    },
+
+    "reverse-integer": {
+        "type": "数学模拟",
+        "difficulty": "中等",
+        "frontend_id": "7",
+        "title": "整数反转",
+        "time_complexity": "O(log|x|)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个 32 位的有符号整数 <code>x</code>，返回将 <code>x</code> 中的数字部分反转后的结果。如果反转后整数超过 32 位有符号整数的范围 [−2³¹, 2³¹−1]，就返回 <code>0</code>。假设环境不允许存储 64 位整数。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：x = 123</div>
+    <div class="example-output">输出：321</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：x = -123</div>
+    <div class="example-output">输出：-321</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：x = 120</div>
+    <div class="example-output">输出：21</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>rev</code></td><td>int</td><td><b>定义</b>：已经反转好的部分<br><b>维护</b>：每弹出 x 的一位就接到 rev 末尾<br><b>更新</b>：rev = rev * 10 + digit</td></tr>
+    <tr><td><code>digit</code></td><td>int</td><td><b>定义</b>：x 当前的最低位<br><b>维护</b>：每轮取 x % 10<br><b>更新</b>：取完后 x //= 10</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 反转数字就是不断「弹出 x 的最低位、推到结果 rev 的最低位」。</p>
+<p class="thinking-step">2. 难点是 32 位溢出：不能先算完再判断，因为中间就可能溢出。</p>
+<p class="thinking-step">3. 在 <code>rev = rev*10 + digit</code> 之前先判断：若 rev 已经超过 INT_MAX/10，或等于且下一位过大，就必然溢出，返回 0。</p>
+<p class="thinking-step">4. Python 没有溢出，但仍按题意在结果超出 32 位范围时返回 0。</p>""",
+        "code_steps": """<p class="code-step">1. 取符号，转成绝对值处理（Python）；C++ 用带符号取模</p>
+<p class="code-step">2. 循环：<code>digit = x % 10</code>，<code>x //= 10</code></p>
+<p class="code-step">3. 更新前先做溢出判断，安全后 <code>rev = rev*10 + digit</code></p>
+<p class="code-step">4. 返回 rev（越界返回 0）</p>""",
+        "code_python": """class Solution:
+    def reverse(self, x: int) -> int:
+        INT_MIN, INT_MAX = -2**31, 2**31 - 1
+        sign = -1 if x < 0 else 1
+        x = abs(x)
+        rev = 0
+        while x:
+            rev = rev * 10 + x % 10
+            x //= 10
+        rev *= sign
+        return rev if INT_MIN <= rev <= INT_MAX else 0""",
+        "code_cpp": """class Solution {
+public:
+    int reverse(int x) {
+        int rev = 0;
+        while (x != 0) {
+            int digit = x % 10;   // C++ 对负数取模结果为负，符号自然保留
+            x /= 10;
+            // 溢出判断必须在更新之前
+            if (rev > INT_MAX / 10 || (rev == INT_MAX / 10 && digit > 7)) return 0;
+            if (rev < INT_MIN / 10 || (rev == INT_MIN / 10 && digit < -8)) return 0;
+            rev = rev * 10 + digit;
+        }
+        return rev;
+    }
+};
+// 时间 O(log|x|)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 溢出判断必须在 <code>rev*10+digit</code> 之前，否则中间结果已经溢出（题设不许用 64 位）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> INT_MAX 末位是 7、INT_MIN 末位是 8，边界时要单独比较最后一位。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 末尾有 0 会自然消失（120 → 21），无需特殊处理。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：反转后溢出</div>
+    <code>x = 1534236469 → 0（超过 INT_MAX）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：末尾为 0</div>
+    <code>x = 120 → 21</code>
+</div>""",
+    },
+
+    "string-to-integer-atoi": {
+        "type": "字符串模拟",
+        "difficulty": "中等",
+        "frontend_id": "8",
+        "title": "字符串转换整数 (atoi)",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>请你实现一个 <code>myAtoi(string s)</code> 函数，将字符串转换成一个 32 位有符号整数。规则：先丢弃前导空格；然后可选地读取一个正负号；接着尽可能多地读取连续数字；将结果限制在 [−2³¹, 2³¹−1] 内，越界则取边界值。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "42"</div>
+    <div class="example-output">输出：42</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "   -42 abc"</div>
+    <div class="example-output">输出：-42</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "words and 987"</div>
+    <div class="example-output">输出：0（第一个非空字符不是数字或符号）</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前扫描到的位置<br><b>维护</b>：依次跳过空格、符号、数字<br><b>更新</b>：每处理一个字符 i++</td></tr>
+    <tr><td><code>sign</code></td><td>int</td><td><b>定义</b>：正负号（+1 / -1）<br><b>维护</b>：只在符号位设置一次<br><b>更新</b>：遇到 '-' 置 -1，'+' 置 +1</td></tr>
+    <tr><td><code>num</code></td><td>int</td><td><b>定义</b>：目前累积的数字（绝对值）<br><b>维护</b>：每读一位 num = num*10 + 该位<br><b>更新</b>：累积后立即用 sign*num 判断是否越界并截断</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 这是一道模拟题，关键是严格按「空格 → 符号 → 数字」的顺序处理，遇到非法就停。</p>
+<p class="thinking-step">2. 只在开头跳一次前导空格；符号最多一个；数字一直读到非数字为止。</p>
+<p class="thinking-step">3. 溢出处理：每累加一位就检查 sign*num 是否已超出 32 位范围，超了直接返回边界值。</p>
+<p class="thinking-step">4. 首个有效字符若不是数字或符号，直接返回 0。</p>""",
+        "code_steps": """<p class="code-step">1. <code>i = 0</code>，跳过所有前导空格</p>
+<p class="code-step">2. 若当前是 '+'/'-'，记录 <code>sign</code> 并 i++</p>
+<p class="code-step">3. 循环读数字：<code>num = num*10 + (c - '0')</code></p>
+<p class="code-step">4. 每步判断 <code>sign*num</code> 是否 &le; INT_MIN 或 &ge; INT_MAX，越界返回边界</p>
+<p class="code-step">5. 返回 <code>sign * num</code></p>""",
+        "code_python": """class Solution:
+    def myAtoi(self, s: str) -> int:
+        INT_MIN, INT_MAX = -2**31, 2**31 - 1
+        i, n = 0, len(s)
+        while i < n and s[i] == ' ':      # 1. 跳过前导空格
+            i += 1
+        sign = 1
+        if i < n and s[i] in '+-':        # 2. 处理符号
+            sign = -1 if s[i] == '-' else 1
+            i += 1
+        num = 0
+        while i < n and s[i].isdigit():   # 3. 逐位累积
+            num = num * 10 + int(s[i])
+            i += 1
+            if sign * num <= INT_MIN:     # 4. 提前判溢出并截断
+                return INT_MIN
+            if sign * num >= INT_MAX:
+                return INT_MAX
+        return sign * num""",
+        "code_cpp": """class Solution {
+public:
+    int myAtoi(string s) {
+        int i = 0, n = s.size();
+        while (i < n && s[i] == ' ') i++;        // 1. 跳过空格
+        int sign = 1;
+        if (i < n && (s[i] == '+' || s[i] == '-')) {
+            sign = (s[i] == '-') ? -1 : 1;       // 2. 符号
+            i++;
+        }
+        long num = 0;                            // 用 long 累积防溢出
+        while (i < n && isdigit(s[i])) {
+            num = num * 10 + (s[i] - '0');       // 3. 累积
+            i++;
+            if (sign * num <= INT_MIN) return INT_MIN;   // 4. 截断
+            if (sign * num >= INT_MAX) return INT_MAX;
+        }
+        return (int)(sign * num);
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 前导空格只在最开头跳；数字中间或之后的空格意味着结束。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 符号最多一个，"+-2" 这类第二个符号即非法，停止读取。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边累积边判溢出并截断到 INT_MIN/INT_MAX，不要等全部读完再判。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：仅空格</div>
+    <code>s = "   " → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：正溢出</div>
+    <code>s = "91283472332" → 2147483647</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：符号后无数字</div>
+    <code>s = "+" → 0</code>
+</div>""",
+    },
 }
 
 
@@ -1407,8 +2071,8 @@ def build_semantics_from_leetcode(slug: str) -> Optional[dict]:
         "var_semantics": "",
         "thinking_steps": "",
         "code_steps": "",
-        "code_python": _html_escape(code_python),
-        "code_cpp": _html_escape(code_cpp),
+        "code_python": code_python,
+        "code_cpp": code_cpp,
         "pitfalls": "",
         "edge_cases": "",
     }
@@ -1588,8 +2252,8 @@ def render_template(slug: str, semantics: dict, date_str: str = None, has_audio:
         "{{VAR_SEMANTICS}}": semantics.get("var_semantics", ""),
         "{{THINKING_STEPS}}": semantics.get("thinking_steps", ""),
         "{{CODE_STEPS}}": semantics.get("code_steps", ""),
-        "{{CODE_PYTHON}}": semantics.get("code_python", ""),
-        "{{CODE_CPP}}": semantics.get("code_cpp", ""),
+        "{{CODE_PYTHON}}": _html_escape(semantics.get("code_python", "")),
+        "{{CODE_CPP}}": _html_escape(semantics.get("code_cpp", "")),
         "{{TIME_COMPLEXITY}}": semantics.get("time_complexity", ""),
         "{{SPACE_COMPLEXITY}}": semantics.get("space_complexity", ""),
         "{{PITFALLS}}": semantics.get("pitfalls", ""),
