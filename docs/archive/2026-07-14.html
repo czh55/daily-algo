@@ -26,7 +26,7 @@
             <header class="problem-header">
                 <div class="problem-meta">
                     <span class="problem-id">#8</span>
-                    <span class="problem-type tag-other">字符串</span>
+                    <span class="problem-type tag-string-sim">字符串模拟</span>
                     <span class="problem-difficulty difficulty-medium">中等</span>
                 </div>
                 <h1 class="problem-title">字符串转换整数 (atoi)</h1>
@@ -35,7 +35,26 @@
                 </a>
             </header>
 
-            
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-07-14">
+                        <source src="../audio/2026-07-14.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-14', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-07-14', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-14', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-14', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
 
             <!-- 题目描述 -->
             <section class="section">
@@ -44,125 +63,71 @@
                     题目描述
                 </h2>
                 <div class="problem-description">
-                    <p>请你来实现一个&nbsp;<code>myAtoi(string s)</code>&nbsp;函数，使其能将字符串转换成一个 32 位有符号整数。</p>
-
-<p>函数&nbsp;<code>myAtoi(string s)</code> 的算法如下：</p>
-
-<ol>
-	<li><strong>空格：</strong>读入字符串并丢弃无用的前导空格（<code>" "</code>）</li>
-	<li><strong>符号：</strong>检查下一个字符（假设还未到字符末尾）为&nbsp;<code>'-'</code> 还是 <code>'+'</code>。如果两者都不存在，则假定结果为正。</li>
-	<li><strong>转换：</strong>通过跳过前置零来读取该整数，直到遇到非数字字符或到达字符串的结尾。如果没有读取数字，则结果为0。</li>
-	<li><b>舍入：</b>如果整数数超过 32 位有符号整数范围 <code>[−2<sup>31</sup>,&nbsp; 2<sup>31&nbsp;</sup>− 1]</code> ，需要截断这个整数，使其保持在这个范围内。具体来说，小于 <code>−2<sup>31</sup></code> 的整数应该被舍入为 <code>−2<sup>31</sup></code> ，大于 <code>2<sup>31&nbsp;</sup>− 1</code> 的整数应该被舍入为 <code>2<sup>31&nbsp;</sup>− 1</code> 。</li>
-</ol>
-
-<p>返回整数作为最终结果。</p>
-
-<p>&nbsp;</p>
-
-<p><strong class="example">示例&nbsp;1：</strong></p>
-
-<div class="example-block">
-<p><strong>输入：</strong><span class="example-io">s = "42"</span></p>
-
-<p><strong>输出：</strong><span class="example-io">42</span></p>
-
-<p><strong>解释：</strong>加粗的字符串为已经读入的字符，插入符号是当前读取的字符。</p>
-
-<pre>
-带下划线线的字符是所读的内容，插入符号是当前读入位置。
-第 1 步："42"（当前没有读入字符，因为没有前导空格）
-         ^
-第 2 步："42"（当前没有读入字符，因为这里不存在 '-' 或者 '+'）
-         ^
-第 3 步："<u>42</u>"（读入 "42"）
-           ^
-</pre>
-</div>
-
-<p><strong class="example">示例&nbsp;2：</strong></p>
-
-<div class="example-block">
-<p><strong>输入：</strong><span class="example-io">s = " -042"</span></p>
-
-<p><strong>输出：</strong><span class="example-io">-42</span></p>
-
-<p><strong>解释：</strong></p>
-
-<pre>
-第 1 步："<u><strong>   </strong></u>-042"（读入前导空格，但忽视掉）
-            ^
-第 2 步："   <u>-</u>042"（读入 '-' 字符，所以结果应该是负数）
-             ^
-第 3 步："   <u>-042</u>"（读入 "042"，在结果中忽略前导零）
-               ^
-</pre>
-</div>
-
-<p><strong class="example">示例&nbsp;3：</strong></p>
-
-<div class="example-block">
-<p><strong>输入：</strong><span class="example-io">s = "</span>1337c0d3<span class="example-io">"</span></p>
-
-<p><strong>输出：</strong><span class="example-io">1337</span></p>
-
-<p><strong>解释：</strong></p>
-
-<pre>
-第 1 步："1337c0d3"（当前没有读入字符，因为没有前导空格）
-         ^
-第 2 步："1337c0d3"（当前没有读入字符，因为这里不存在 '-' 或者 '+'）
-         ^
-第 3 步："1337c0d3"（读入 "1337"；由于下一个字符不是一个数字，所以读入停止）
-             ^
-</pre>
-</div>
-
-<p><strong class="example">示例 4：</strong></p>
-
-<div class="example-block">
-<p><strong>输入：</strong><span class="example-io">s = "0-1"</span></p>
-
-<p><span class="example-io"><b>输出：</b>0</span></p>
-
-<p><strong>解释：</strong></p>
-
-<pre>
-第 1 步："0-1" (当前没有读入字符，因为没有前导空格)
-         ^
-第 2 步："0-1" (当前没有读入字符，因为这里不存在 '-' 或者 '+')
-         ^
-第 3 步："<u>0</u>-1" (读入 "0"；由于下一个字符不是一个数字，所以读入停止)
-          ^
-</pre>
-</div>
-
-<p><strong class="example">示例 5：</strong></p>
-
-<div class="example-block">
-<p><strong>输入：</strong><span class="example-io">s = "words and 987"</span></p>
-
-<p><strong>输出：</strong><span class="example-io">0</span></p>
-
-<p><strong>解释：</strong></p>
-
-<p>读取在第一个非数字字符“w”处停止。</p>
-</div>
-
-<p>&nbsp;</p>
-
-<p><strong>提示：</strong></p>
-
-<ul>
-	<li><code>0 &lt;= s.length &lt;= 200</code></li>
-	<li><code>s</code> 由英文字母（大写和小写）、数字（<code>0-9</code>）、<code>' '</code>、<code>'+'</code>、<code>'-'</code> 和 <code>'.'</code> 组成</li>
-</ul>
-
+                    <p>请你实现一个 <code>myAtoi(string s)</code> 函数，将字符串转换成一个 32 位有符号整数。规则：先丢弃前导空格；然后可选地读取一个正负号；接着尽可能多地读取连续数字；将结果限制在 [−2³¹, 2³¹−1] 内，越界则取边界值。</p>
                 </div>
-                
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "42"</div>
+    <div class="example-output">输出：42</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "   -42 abc"</div>
+    <div class="example-output">输出：-42</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "words and 987"</div>
+    <div class="example-output">输出：0（第一个非空字符不是数字或符号）</div>
+</div>
             </section>
 
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 这是一道模拟题，关键是严格按「空格 → 符号 → 数字」的顺序处理，遇到非法就停。</p>
+<p class="thinking-step">2. 只在开头跳一次前导空格；符号最多一个；数字一直读到非数字为止。</p>
+<p class="thinking-step">3. 溢出处理：每累加一位就检查 sign*num 是否已超出 32 位范围，超了直接返回边界值。</p>
+<p class="thinking-step">4. 首个有效字符若不是数字或符号，直接返回 0。</p>
+                </div>
+            </section>
 
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前扫描到的位置<br><b>维护</b>：依次跳过空格、符号、数字<br><b>更新</b>：每处理一个字符 i++</td></tr>
+    <tr><td><code>sign</code></td><td>int</td><td><b>定义</b>：正负号（+1 / -1）<br><b>维护</b>：只在符号位设置一次<br><b>更新</b>：遇到 '-' 置 -1，'+' 置 +1</td></tr>
+    <tr><td><code>num</code></td><td>int</td><td><b>定义</b>：目前累积的数字（绝对值）<br><b>维护</b>：每读一位 num = num*10 + 该位<br><b>更新</b>：累积后立即用 sign*num 判断是否越界并截断</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
 
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. <code>i = 0</code>，跳过所有前导空格</p>
+<p class="code-step">2. 若当前是 '+'/'-'，记录 <code>sign</code> 并 i++</p>
+<p class="code-step">3. 循环读数字：<code>num = num*10 + (c - '0')</code></p>
+<p class="code-step">4. 每步判断 <code>sign*num</code> 是否 &le; INT_MIN 或 &ge; INT_MAX，越界返回边界</p>
+<p class="code-step">5. 返回 <code>sign * num</code></p>
+                </div>
+            </section>
 
             <!-- 代码实现 -->
             <section class="section">
@@ -177,20 +142,101 @@
                 <div class="code-panel active" id="tab-python">
                     <pre><code class="language-python">class Solution:
     def myAtoi(self, s: str) -&gt; int:
-        </code></pre>
+        INT_MIN, INT_MAX = -2**31, 2**31 - 1
+        i, n = 0, len(s)
+        while i &lt; n and s[i] == ' ':      # 1. 跳过前导空格
+            i += 1
+        sign = 1
+        if i &lt; n and s[i] in '+-':        # 2. 处理符号
+            sign = -1 if s[i] == '-' else 1
+            i += 1
+        num = 0
+        while i &lt; n and s[i].isdigit():   # 3. 逐位累积
+            num = num * 10 + int(s[i])
+            i += 1
+            if sign * num &lt;= INT_MIN:     # 4. 提前判溢出并截断
+                return INT_MIN
+            if sign * num &gt;= INT_MAX:
+                return INT_MAX
+        return sign * num</code></pre>
                 </div>
                 <div class="code-panel" id="tab-cpp">
                     <pre><code class="language-cpp">class Solution {
 public:
     int myAtoi(string s) {
-        
+        int i = 0, n = s.size();
+        while (i &lt; n &amp;&amp; s[i] == ' ') i++;        // 1. 跳过空格
+        int sign = 1;
+        if (i &lt; n &amp;&amp; (s[i] == '+' || s[i] == '-')) {
+            sign = (s[i] == '-') ? -1 : 1;       // 2. 符号
+            i++;
+        }
+        long num = 0;                            // 用 long 累积防溢出
+        while (i &lt; n &amp;&amp; isdigit(s[i])) {
+            num = num * 10 + (s[i] - '0');       // 3. 累积
+            i++;
+            if (sign * num &lt;= INT_MIN) return INT_MIN;   // 4. 截断
+            if (sign * num &gt;= INT_MAX) return INT_MAX;
+        }
+        return (int)(sign * num);
     }
-};</code></pre>
+};
+// 时间 O(n)，空间 O(1)</code></pre>
                 </div>
             </section>
 
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(1)</code>
+                    </div>
+                </div>
+            </section>
 
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 前导空格只在最开头跳；数字中间或之后的空格意味着结束。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 符号最多一个，"+-2" 这类第二个符号即非法，停止读取。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边累积边判溢出并截断到 INT_MIN/INT_MAX，不要等全部读完再判。</p>
+                </div>
+            </section>
 
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：仅空格</div>
+    <code>s = "   " → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：正溢出</div>
+    <code>s = "91283472332" → 2147483647</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：符号后无数字</div>
+    <code>s = "+" → 0</code>
+</div>
+                </div>
+            </section>
         </article>
     </main>
 
@@ -211,6 +257,18 @@ public:
         document.getElementById('tab-' + lang).classList.add('active');
     }
     
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
     </script>
 </body>
 </html>

@@ -26,7 +26,7 @@
             <header class="problem-header">
                 <div class="problem-meta">
                     <span class="problem-id">#2</span>
-                    <span class="problem-type tag-other">递归</span>
+                    <span class="problem-type tag-linked-list">链表指针</span>
                     <span class="problem-difficulty difficulty-medium">中等</span>
                 </div>
                 <h1 class="problem-title">两数相加</h1>
@@ -63,52 +63,61 @@
                     题目描述
                 </h2>
                 <div class="problem-description">
-                    <p>给你两个&nbsp;<strong>非空</strong> 的链表，表示两个非负的整数。它们每位数字都是按照&nbsp;<strong>逆序</strong>&nbsp;的方式存储的，并且每个节点只能存储&nbsp;<strong>一位</strong>&nbsp;数字。</p>
-
-<p>请你将两个数相加，并以相同形式返回一个表示和的链表。</p>
-
-<p>你可以假设除了数字 0 之外，这两个数都不会以 0&nbsp;开头。</p>
-
-<p>&nbsp;</p>
-
-<p><strong class="example">示例 1：</strong></p>
-<img alt="" src="https://assets.leetcode.cn/aliyun-lc-upload/uploads/2021/01/02/addtwonumber1.jpg" style="width: 483px; height: 342px;" />
-<pre>
-<strong>输入：</strong>l1 = [2,4,3], l2 = [5,6,4]
-<strong>输出：</strong>[7,0,8]
-<strong>解释：</strong>342 + 465 = 807.
-</pre>
-
-<p><strong class="example">示例 2：</strong></p>
-
-<pre>
-<strong>输入：</strong>l1 = [0], l2 = [0]
-<strong>输出：</strong>[0]
-</pre>
-
-<p><strong class="example">示例 3：</strong></p>
-
-<pre>
-<strong>输入：</strong>l1 = [9,9,9,9,9,9,9], l2 = [9,9,9,9]
-<strong>输出：</strong>[8,9,9,9,0,0,0,1]
-</pre>
-
-<p>&nbsp;</p>
-
-<p><strong>提示：</strong></p>
-
-<ul>
-	<li>每个链表中的节点数在范围 <code>[1, 100]</code> 内</li>
-	<li><code>0 &lt;= Node.val &lt;= 9</code></li>
-	<li>题目数据保证列表表示的数字不含前导零</li>
-</ul>
-
+                    <p>给你两个<b>非空</b>的链表，表示两个非负整数。它们每位数字都是按照<b>逆序</b>的方式存储的，并且每个节点只能存储一位数字。请你将两个数相加，并以相同形式返回一个表示和的链表。</p>
                 </div>
-                
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：l1 = [2,4,3], l2 = [5,6,4]（即 342 + 465）</div>
+    <div class="example-output">输出：[7,0,8]（即 807）</div>
+</div>
             </section>
 
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 逆序存储正好模拟竖式加法：从个位开始逐位相加。</p>
+<p class="thinking-step">2. 每位的和 = l1 当前位 + l2 当前位 + 进位；结果位是和对 10 取余，新进位是和整除 10。</p>
+<p class="thinking-step">3. 用哑结点简化头节点的处理，避免单独判断第一个节点。</p>
+<p class="thinking-step">4. 循环条件要包含 carry：两链表都走完但还有进位时（如 5+5）也要再建一个节点。</p>
+                </div>
+            </section>
 
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哑结点，其 next 永远指向结果链表真正的头<br><b>维护</b>：不变，最后返回 dummy.next<br><b>更新</b>：不更新</td></tr>
+    <tr><td><code>cur</code></td><td>ListNode*</td><td><b>定义</b>：结果链表的尾指针<br><b>维护</b>：始终指向已建好部分的最后一个节点<br><b>更新</b>：每接一个新节点后 cur = cur.next</td></tr>
+    <tr><td><code>carry</code></td><td>int</td><td><b>定义</b>：进位（0 或 1）<br><b>维护</b>：等于上一位相加结果整除 10<br><b>更新</b>：carry = 当前位和 // 10</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
 
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 建哑结点 <code>dummy</code>，<code>cur = dummy</code>，<code>carry = 0</code></p>
+<p class="code-step">2. 当 <code>l1</code> 或 <code>l2</code> 或 <code>carry</code> 非空时循环</p>
+<p class="code-step">3. 求和 <code>s = carry + (l1?) + (l2?)</code>，同时后移 l1/l2</p>
+<p class="code-step">4. <code>carry, digit = divmod(s, 10)</code>，新建节点接到 cur 后，cur 前移</p>
+<p class="code-step">5. 返回 <code>dummy.next</code></p>
+                </div>
+            </section>
 
             <!-- 代码实现 -->
             <section class="section">
@@ -121,37 +130,99 @@
                     <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
                 </div>
                 <div class="code-panel active" id="tab-python">
-                    <pre><code class="language-python"># Definition for singly-linked list.
-# class ListNode:
+                    <pre><code class="language-python"># class ListNode:
 #     def __init__(self, val=0, next=None):
 #         self.val = val
 #         self.next = next
+
 class Solution:
-    def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -&gt; Optional[ListNode]:
-        </code></pre>
+    def addTwoNumbers(self, l1: ListNode, l2: ListNode) -&gt; ListNode:
+        dummy = ListNode()   # 哑结点，dummy.next 是结果头
+        cur = dummy          # 结果链表尾指针
+        carry = 0            # 进位
+        while l1 or l2 or carry:
+            s = carry
+            if l1:
+                s += l1.val
+                l1 = l1.next
+            if l2:
+                s += l2.val
+                l2 = l2.next
+            carry, digit = divmod(s, 10)
+            cur.next = ListNode(digit)
+            cur = cur.next
+        return dummy.next</code></pre>
                 </div>
                 <div class="code-panel" id="tab-cpp">
-                    <pre><code class="language-cpp">/**
- * Definition for singly-linked list.
- * struct ListNode {
- *     int val;
- *     ListNode *next;
- *     ListNode() : val(0), next(nullptr) {}
- *     ListNode(int x) : val(x), next(nullptr) {}
- *     ListNode(int x, ListNode *next) : val(x), next(next) {}
- * };
- */
-class Solution {
+                    <pre><code class="language-cpp">class Solution {
 public:
     ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
-        
+        ListNode dummy;          // 哑结点
+        ListNode* cur = &amp;dummy;  // 结果链表尾指针
+        int carry = 0;           // 进位
+        while (l1 || l2 || carry) {
+            int s = carry;
+            if (l1) { s += l1-&gt;val; l1 = l1-&gt;next; }
+            if (l2) { s += l2-&gt;val; l2 = l2-&gt;next; }
+            carry = s / 10;
+            cur-&gt;next = new ListNode(s % 10);
+            cur = cur-&gt;next;
+        }
+        return dummy.next;
     }
-};</code></pre>
+};
+// 时间 O(max(m,n))，空间 O(max(m,n))</code></pre>
                 </div>
             </section>
 
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(max(m,n))</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(max(m,n))</code>
+                    </div>
+                </div>
+            </section>
 
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环条件别忘了 <code>carry</code>：最高位相加产生进位时还要补一个节点。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 两链表长度可能不同，取值前要判空。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用哑结点避免「结果头节点」的特殊处理，最后返回 dummy.next 而不是 dummy。</p>
+                </div>
+            </section>
 
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：进位到新位</div>
+    <code>l1 = [5], l2 = [5] → [0,1]（5+5=10）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：长度不等</div>
+    <code>l1 = [9,9,9], l2 = [1] → [0,0,0,1]</code>
+</div>
+                </div>
+            </section>
         </article>
     </main>
 

@@ -26,7 +26,7 @@
             <header class="problem-header">
                 <div class="problem-meta">
                     <span class="problem-id">#1</span>
-                    <span class="problem-type tag-other">数组</span>
+                    <span class="problem-type tag-hash">哈希表</span>
                     <span class="problem-difficulty difficulty-easy">简单</span>
                 </div>
                 <h1 class="problem-title">两数之和</h1>
@@ -63,57 +63,64 @@
                     题目描述
                 </h2>
                 <div class="problem-description">
-                    <p>给定一个整数数组 <code>nums</code>&nbsp;和一个整数目标值 <code>target</code>，请你在该数组中找出 <strong>和为目标值 </strong><em><code>target</code></em>&nbsp; 的那&nbsp;<strong>两个</strong>&nbsp;整数，并返回它们的数组下标。</p>
-
-<p>你可以假设每种输入只会对应一个答案，并且你不能使用两次相同的元素。</p>
-
-<p>你可以按任意顺序返回答案。</p>
-
-<p>&nbsp;</p>
-
-<p><strong class="example">示例 1：</strong></p>
-
-<pre>
-<strong>输入：</strong>nums = [2,7,11,15], target = 9
-<strong>输出：</strong>[0,1]
-<strong>解释：</strong>因为 nums[0] + nums[1] == 9 ，返回 [0, 1] 。
-</pre>
-
-<p><strong class="example">示例 2：</strong></p>
-
-<pre>
-<strong>输入：</strong>nums = [3,2,4], target = 6
-<strong>输出：</strong>[1,2]
-</pre>
-
-<p><strong class="example">示例 3：</strong></p>
-
-<pre>
-<strong>输入：</strong>nums = [3,3], target = 6
-<strong>输出：</strong>[0,1]
-</pre>
-
-<p>&nbsp;</p>
-
-<p><strong>提示：</strong></p>
-
-<ul>
-	<li><code>2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
-	<li><code>-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
-	<li><code>-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
-	<li><strong>只会存在一个有效答案</strong></li>
-</ul>
-
-<p>&nbsp;</p>
-
-<p><strong>进阶：</strong>你可以想出一个时间复杂度小于 <code>O(n<sup>2</sup>)</code> 的算法吗？</p>
-
+                    <p>给定一个整数数组 <code>nums</code> 和一个整数目标值 <code>target</code>，请你在该数组中找出<b>和为目标值</b> <code>target</code> 的那<b>两个</b>整数，并返回它们的数组下标。你可以假设每种输入只会对应一个答案，且同一个元素不能使用两遍。</p>
                 </div>
-                
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [2,7,11,15], target = 9</div>
+    <div class="example-output">输出：[0,1]（因为 nums[0] + nums[1] == 9）</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [3,2,4], target = 6</div>
+    <div class="example-output">输出：[1,2]</div>
+</div>
             </section>
 
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力：双重循环枚举所有 (i, j) 看和是否为 target，O(n²)。</p>
+<p class="thinking-step">2. 重复在哪？对每个 x 都在「重新遍历」找 target - x，其实只要知道它之前是否出现过。</p>
+<p class="thinking-step">3. 把「找另一半」变成查表：用哈希表存已扫过的值到下标，查找变 O(1)。</p>
+<p class="thinking-step">4. 边扫边存：先查 target - x 是否在表里，再把 x 存入，保证不会用到自己。</p>
+                </div>
+            </section>
 
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>seen</code></td><td>map&lt;int,int&gt;</td><td><b>定义</b>：已扫描过的「值 → 下标」映射<br><b>维护</b>：每轮结束后，seen 里存着 nums[0..i] 每个值最后出现的下标<br><b>更新</b>：处理完 nums[i] 后 seen[nums[i]] = i</td></tr>
+    <tr><td><code>target - x</code></td><td>int</td><td><b>定义</b>：当前元素 x 需要的「另一半」<br><b>维护</b>：随 x 变化<br><b>更新</b>：每轮用它去 seen 里查是否出现过</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
 
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 初始化空哈希表 <code>seen</code></p>
+<p class="code-step">2. 遍历数组，对每个 <code>x = nums[i]</code>：先查 <code>target - x</code> 是否在 seen 中</p>
+<p class="code-step">3. 若在，返回 <code>[seen[target-x], i]</code></p>
+<p class="code-step">4. 否则把 <code>seen[x] = i</code> 记入历史</p>
+                </div>
+            </section>
 
             <!-- 代码实现 -->
             <section class="section">
@@ -127,21 +134,79 @@
                 </div>
                 <div class="code-panel active" id="tab-python">
                     <pre><code class="language-python">class Solution:
-    def twoSum(self, nums: List[int], target: int) -&gt; List[int]:
-        </code></pre>
+    def twoSum(self, nums: list[int], target: int) -&gt; list[int]:
+        seen = {}  # 值 -&gt; 下标
+        for i, x in enumerate(nums):
+            if target - x in seen:
+                return [seen[target - x], i]
+            seen[x] = i
+        return []</code></pre>
                 </div>
                 <div class="code-panel" id="tab-cpp">
                     <pre><code class="language-cpp">class Solution {
 public:
     vector&lt;int&gt; twoSum(vector&lt;int&gt;&amp; nums, int target) {
-        
+        unordered_map&lt;int, int&gt; seen;  // 值 -&gt; 下标
+        for (int i = 0; i &lt; nums.size(); i++) {
+            auto it = seen.find(target - nums[i]);
+            if (it != seen.end()) return {it-&gt;second, i};
+            seen[nums[i]] = i;
+        }
+        return {};
     }
-};</code></pre>
+};
+// 时间 O(n)，空间 O(n)</code></pre>
                 </div>
             </section>
 
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                </div>
+            </section>
 
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 必须「先查后存」：如果先把 x 存进表再查，可能会把自己当成另一半（当 target = 2*x 时）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回的是下标不是值；题目保证恰有一个答案，无需继续遍历。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 有重复值时哈希表会覆盖旧下标，但因为答案唯一，不影响正确性。</p>
+                </div>
+            </section>
 
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：包含负数</div>
+    <code>nums = [-3,4,3,90], target = 0 → [0,2]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两个相同值</div>
+    <code>nums = [3,3], target = 6 → [0,1]</code>
+</div>
+                </div>
+            </section>
         </article>
     </main>
 
