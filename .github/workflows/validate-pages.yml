@@ -1,0 +1,20 @@
+name: 校验题解完整性
+
+# 保证发布到 GitHub Pages 的每一个题目页都是完整的「变量语义法」精讲，
+# 任何缺精讲的占位页都会让检查失败，从而在 PR / push 时被拦下。
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 校验所有归档页均为完整变量语义法精讲
+        run: python3 scripts/check_pages.py

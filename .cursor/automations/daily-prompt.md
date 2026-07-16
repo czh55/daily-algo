@@ -46,11 +46,24 @@ pip install -r requirements.txt
 - `docs/audio/YYYY-MM-DD.mp3` — 当日语音讲解（网页可直接播放）
 - `data/history.json` — 推荐历史已追加
 
+### 2.5 提交前强制校验（必须通过才能提交）
+
+运行完整性校验，确认所有已发布页都是完整「变量语义法」精讲（不是缺精讲的占位页）：
+
+```bash
+cd ~/Projects/daily-algo && python3 scripts/check_pages.py
+```
+
+- 退出码为 0（打印「✓ 校验通过」）才允许进入下一步提交。
+- 若失败（列出某天缺「变量语义三句法 / 模拟答题者思考 / 落码步骤」），说明该天是占位页：**回到步骤 1**，为对应题目补齐 `VAR_SEMANTICS_DATA` 精讲并 `--slug ... --force` 重新生成，直到校验通过。**校验不通过绝不提交。**
+
 ### 3. 提交并推送到 GitHub
 
 ```bash
-cd ~/Projects/daily-algo && git add -A && git commit -m "daily: $(date +%Y-%m-%d) 算法推荐" && git push origin main
+cd ~/Projects/daily-algo && python3 scripts/check_pages.py && git add -A && git commit -m "daily: $(date +%Y-%m-%d) 算法推荐" && git push origin main
 ```
+
+（`check_pages.py` 作为提交前置条件：校验失败时 `&&` 会中断，不会误提交占位页。CI 也会在 push/PR 时再校验一次作为兜底。）
 
 ### 4. 验证部署
 
