@@ -130,5 +130,11 @@
     "slug": "palindrome-number",
     "title": "回文数",
     "type": "数学模拟"
+  },
+  {
+    "date": "2026-07-16",
+    "slug": "regular-expression-matching",
+    "title": "正则表达式匹配",
+    "type": "二维DP"
   }
 ]

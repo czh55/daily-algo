@@ -52,7 +52,7 @@ TYPE_CLASS_MAP = {
     "数学模拟": "math-sim",
 }
 
-# ─── Variable Semantics Data for 13 Core Problem Types ───
+# ─── Variable Semantics Data for Core Problem Types ───
 # Each entry follows COACH-VAR-SEMANTICS.md structure
 
 VAR_SEMANTICS_DATA = {
@@ -2074,6 +2074,122 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 3：末位为 0</div>
     <code>x = 10 → false</code>
+</div>""",
+    },
+
+    "regular-expression-matching": {
+        "type": "二维DP",
+        "difficulty": "困难",
+        "frontend_id": "10",
+        "title": "正则表达式匹配",
+        "time_complexity": "O(mn)",
+        "space_complexity": "O(mn) / O(n)",
+        "description": """<p>给你一个字符串 <code>s</code> 和一个字符规律 <code>p</code>，请你来实现一个支持 <code>'.'</code> 和 <code>'*'</code> 的正则表达式匹配。</p>
+<ul>
+<li><code>'.'</code> 匹配任意单个字符</li>
+<li><code>'*'</code> 匹配零个或多个前面的那一个元素</li>
+</ul>
+<p>返回一个布尔值，表示匹配是否覆盖整个输入字符串（而非部分）。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "aa", p = "a"</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">"a" 无法匹配 "aa" 整个字符串。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "aa", p = "a*"</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">因为 '*' 代表可以匹配零个或多个前面的那一个元素，在这里前面的元素就是 'a'。因此，字符串 "aa" 可被视为 'a' 重复了一次。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "ab", p = ".*"</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">".*" 表示可匹配零个或多个（'*'）任意字符（'.'）。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i][j]</code></td><td>bool[][]</td><td><b>定义</b>：<code>s</code> 的前 <code>i</code> 个字符能否被 <code>p</code> 的前 <code>j</code> 个字符<b>完整</b>匹配<br><b>维护</b>：只依赖更小的子问题 <code>dp[i-1][j-1]</code>、<code>dp[i][j-2]</code>、<code>dp[i-1][j]</code><br><b>更新</b>：若 <code>p[j-1]</code> 是普通字符或 <code>'.'</code>，看当前位能否对上并继承 <code>dp[i-1][j-1]</code>；若是 <code>'*'</code>，先尝试「匹配 0 次」(<code>dp[i][j-2]</code>)，再尝试「多匹配 1 个」(<code>dp[i-1][j]</code>)</td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：分别表示已消耗的 <code>s</code> 前缀长度、<code>p</code> 前缀长度<br><b>维护</b>：<code>i</code> 从 0 到 <code>m</code>，<code>j</code> 从 0 到 <code>n</code> 递增填表<br><b>更新</b>：答案在 <code>dp[m][n]</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：遇到 <code>'*'</code> 就递归枚举「匹配 0 次 / 1 次 / 2 次…」，指数级回溯，<code>s=20, p=20</code> 也会超时。</p>
+<p class="thinking-step">2. 重复在哪里？同样的 <code>(i, j)</code>（还剩多少 <code>s</code>、还剩多少 <code>p</code>）会被反复访问——典型重叠子问题。</p>
+<p class="thinking-step">3. 子问题定义：「<code>s</code> 的前 <code>i</code> 个能否被 <code>p</code> 的前 <code>j</code> 个完整匹配？」自然落到二维 DP。</p>
+<p class="thinking-step">4. 难点在 <code>'*'</code>：它永远跟在「前一个字符」后面，可以吃掉 0 个（直接看 <code>dp[i][j-2]</code>），也可以再多吃 1 个当前字符（看 <code>dp[i-1][j]</code> 且 <code>s[i-1]</code> 与 <code>p[j-2]</code> 能匹配）。</p>
+<p class="thinking-step">5. 边界：<code>dp[0][0]=true</code>；空串匹配 <code>a*b*c*</code> 这类模式时，只有遇到 <code>'*'</code> 才能跳过一对字符：<code>dp[0][j] = dp[0][j-2]</code>。</p>""",
+        "code_steps": """<p class="code-step">1. 建表 <code>dp[(m+1)][(n+1)]</code>，<code>dp[0][0]=true</code></p>
+<p class="code-step">2. 初始化第 0 行：若 <code>p[j-1]=='*'</code>，则 <code>dp[0][j] = dp[0][j-2]</code>（空串吃掉 <code>x*</code>）</p>
+<p class="code-step">3. 双重循环填表：若 <code>p[j-1]=='*'</code>，先 <code>dp[i][j]=dp[i][j-2]</code>，再若 <code>s[i-1]</code> 与 <code>p[j-2]</code> 匹配则 <code>dp[i][j] |= dp[i-1][j]</code></p>
+<p class="code-step">4. 否则若当前字符能匹配，<code>dp[i][j] = dp[i-1][j-1]</code></p>
+<p class="code-step">5. 返回 <code>dp[m][n]</code></p>""",
+        "code_python": """class Solution:
+    def isMatch(self, s: str, p: str) -> bool:
+        m, n = len(s), len(p)
+        # dp[i][j]：s 前 i 个字符能否被 p 前 j 个完整匹配
+        dp = [[False] * (n + 1) for _ in range(m + 1)]
+        dp[0][0] = True
+
+        # 空串匹配 a*b*、.* 等：只有 '*' 能跳过前一个字符
+        for j in range(2, n + 1):
+            if p[j - 1] == '*':
+                dp[0][j] = dp[0][j - 2]
+
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if p[j - 1] == '*':
+                    # 匹配 0 次：直接跳过 "x*"
+                    dp[i][j] = dp[i][j - 2]
+                    # 多匹配 1 个：s[i-1] 与 p[j-2] 能对上
+                    if p[j - 2] == '.' or s[i - 1] == p[j - 2]:
+                        dp[i][j] = dp[i][j] or dp[i - 1][j]
+                elif p[j - 1] == '.' or s[i - 1] == p[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1]
+
+        return dp[m][n]""",
+        "code_cpp": """class Solution {
+public:
+    bool isMatch(string s, string p) {
+        int m = s.size(), n = p.size();
+        vector<vector<bool>> dp(m + 1, vector<bool>(n + 1, false));
+        dp[0][0] = true;
+
+        for (int j = 2; j <= n; j++) {
+            if (p[j - 1] == '*')
+                dp[0][j] = dp[0][j - 2];
+        }
+
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (p[j - 1] == '*') {
+                    dp[i][j] = dp[i][j - 2];
+                    if (p[j - 2] == '.' || s[i - 1] == p[j - 2])
+                        dp[i][j] = dp[i][j] || dp[i - 1][j];
+                } else if (p[j - 1] == '.' || s[i - 1] == p[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                }
+            }
+        }
+        return dp[m][n];
+    }
+};
+// 时间 O(mn)，空间 O(mn)，可滚动数组优化到 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>'*'</code> 永远绑定它<b>前面</b>的那个字符，转移时看的是 <code>p[j-2]</code>，不是 <code>p[j-1]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 遇到 <code>'*'</code> 要先处理「匹配 0 次」(<code>dp[i][j-2]</code>)，再考虑「多吃一个」；顺序写反容易漏状态。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空串行初始化不能漏：像 <code>"a*b*"</code>、<code>".*"</code> 对空串也应为 true，只有 <code>p[j-1]=='*'</code> 时才能 <code>dp[0][j]=dp[0][j-2]</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：模式比串长</div>
+    <code>s = "a", p = "aa" → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：.* 通吃</div>
+    <code>s = "mississippi", p = "mis*is*p*." → false（* 不能跨字符乱配）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：空串 + 纯星号模式</div>
+    <code>s = "", p = "a*b*" → true</code>
 </div>""",
     },
 }

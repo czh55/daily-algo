@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正则表达式匹配 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+                <span class="logo-text">每日算法</span>
+            </a>
+            <span class="header-date">2026-07-16</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#10</span>
+                    <span class="problem-type tag-dp">二维DP</span>
+                    <span class="problem-difficulty difficulty-hard">困难</span>
+                </div>
+                <h1 class="problem-title">正则表达式匹配</h1>
+                <a href="https://leetcode.cn/problems/regular-expression-matching/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-07-16">
+                        <source src="../audio/2026-07-16.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-16', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-07-16', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-16', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-16', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你一个字符串 <code>s</code> 和一个字符规律 <code>p</code>，请你来实现一个支持 <code>'.'</code> 和 <code>'*'</code> 的正则表达式匹配。</p>
+<ul>
+<li><code>'.'</code> 匹配任意单个字符</li>
+<li><code>'*'</code> 匹配零个或多个前面的那一个元素</li>
+</ul>
+<p>返回一个布尔值，表示匹配是否覆盖整个输入字符串（而非部分）。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "aa", p = "a"</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">"a" 无法匹配 "aa" 整个字符串。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "aa", p = "a*"</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">因为 '*' 代表可以匹配零个或多个前面的那一个元素，在这里前面的元素就是 'a'。因此，字符串 "aa" 可被视为 'a' 重复了一次。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "ab", p = ".*"</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">".*" 表示可匹配零个或多个（'*'）任意字符（'.'）。</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 最直接：遇到 <code>'*'</code> 就递归枚举「匹配 0 次 / 1 次 / 2 次…」，指数级回溯，<code>s=20, p=20</code> 也会超时。</p>
+<p class="thinking-step">2. 重复在哪里？同样的 <code>(i, j)</code>（还剩多少 <code>s</code>、还剩多少 <code>p</code>）会被反复访问——典型重叠子问题。</p>
+<p class="thinking-step">3. 子问题定义：「<code>s</code> 的前 <code>i</code> 个能否被 <code>p</code> 的前 <code>j</code> 个完整匹配？」自然落到二维 DP。</p>
+<p class="thinking-step">4. 难点在 <code>'*'</code>：它永远跟在「前一个字符」后面，可以吃掉 0 个（直接看 <code>dp[i][j-2]</code>），也可以再多吃 1 个当前字符（看 <code>dp[i-1][j]</code> 且 <code>s[i-1]</code> 与 <code>p[j-2]</code> 能匹配）。</p>
+<p class="thinking-step">5. 边界：<code>dp[0][0]=true</code>；空串匹配 <code>a*b*c*</code> 这类模式时，只有遇到 <code>'*'</code> 才能跳过一对字符：<code>dp[0][j] = dp[0][j-2]</code>。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i][j]</code></td><td>bool[][]</td><td><b>定义</b>：<code>s</code> 的前 <code>i</code> 个字符能否被 <code>p</code> 的前 <code>j</code> 个字符<b>完整</b>匹配<br><b>维护</b>：只依赖更小的子问题 <code>dp[i-1][j-1]</code>、<code>dp[i][j-2]</code>、<code>dp[i-1][j]</code><br><b>更新</b>：若 <code>p[j-1]</code> 是普通字符或 <code>'.'</code>，看当前位能否对上并继承 <code>dp[i-1][j-1]</code>；若是 <code>'*'</code>，先尝试「匹配 0 次」(<code>dp[i][j-2]</code>)，再尝试「多匹配 1 个」(<code>dp[i-1][j]</code>)</td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：分别表示已消耗的 <code>s</code> 前缀长度、<code>p</code> 前缀长度<br><b>维护</b>：<code>i</code> 从 0 到 <code>m</code>，<code>j</code> 从 0 到 <code>n</code> 递增填表<br><b>更新</b>：答案在 <code>dp[m][n]</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 建表 <code>dp[(m+1)][(n+1)]</code>，<code>dp[0][0]=true</code></p>
+<p class="code-step">2. 初始化第 0 行：若 <code>p[j-1]=='*'</code>，则 <code>dp[0][j] = dp[0][j-2]</code>（空串吃掉 <code>x*</code>）</p>
+<p class="code-step">3. 双重循环填表：若 <code>p[j-1]=='*'</code>，先 <code>dp[i][j]=dp[i][j-2]</code>，再若 <code>s[i-1]</code> 与 <code>p[j-2]</code> 匹配则 <code>dp[i][j] |= dp[i-1][j]</code></p>
+<p class="code-step">4. 否则若当前字符能匹配，<code>dp[i][j] = dp[i-1][j-1]</code></p>
+<p class="code-step">5. 返回 <code>dp[m][n]</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def isMatch(self, s: str, p: str) -&gt; bool:
+        m, n = len(s), len(p)
+        # dp[i][j]：s 前 i 个字符能否被 p 前 j 个完整匹配
+        dp = [[False] * (n + 1) for _ in range(m + 1)]
+        dp[0][0] = True
+
+        # 空串匹配 a*b*、.* 等：只有 '*' 能跳过前一个字符
+        for j in range(2, n + 1):
+            if p[j - 1] == '*':
+                dp[0][j] = dp[0][j - 2]
+
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if p[j - 1] == '*':
+                    # 匹配 0 次：直接跳过 "x*"
+                    dp[i][j] = dp[i][j - 2]
+                    # 多匹配 1 个：s[i-1] 与 p[j-2] 能对上
+                    if p[j - 2] == '.' or s[i - 1] == p[j - 2]:
+                        dp[i][j] = dp[i][j] or dp[i - 1][j]
+                elif p[j - 1] == '.' or s[i - 1] == p[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1]
+
+        return dp[m][n]</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    bool isMatch(string s, string p) {
+        int m = s.size(), n = p.size();
+        vector&lt;vector&lt;bool&gt;&gt; dp(m + 1, vector&lt;bool&gt;(n + 1, false));
+        dp[0][0] = true;
+
+        for (int j = 2; j &lt;= n; j++) {
+            if (p[j - 1] == '*')
+                dp[0][j] = dp[0][j - 2];
+        }
+
+        for (int i = 1; i &lt;= m; i++) {
+            for (int j = 1; j &lt;= n; j++) {
+                if (p[j - 1] == '*') {
+                    dp[i][j] = dp[i][j - 2];
+                    if (p[j - 2] == '.' || s[i - 1] == p[j - 2])
+                        dp[i][j] = dp[i][j] || dp[i - 1][j];
+                } else if (p[j - 1] == '.' || s[i - 1] == p[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                }
+            }
+        }
+        return dp[m][n];
+    }
+};
+// 时间 O(mn)，空间 O(mn)，可滚动数组优化到 O(n)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(mn)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(mn) / O(n)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>'*'</code> 永远绑定它<b>前面</b>的那个字符，转移时看的是 <code>p[j-2]</code>，不是 <code>p[j-1]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 遇到 <code>'*'</code> 要先处理「匹配 0 次」(<code>dp[i][j-2]</code>)，再考虑「多吃一个」；顺序写反容易漏状态。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空串行初始化不能漏：像 <code>"a*b*"</code>、<code>".*"</code> 对空串也应为 true，只有 <code>p[j-1]=='*'</code> 时才能 <code>dp[0][j]=dp[0][j-2]</code>。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：模式比串长</div>
+    <code>s = "a", p = "aa" → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：.* 通吃</div>
+    <code>s = "mississippi", p = "mis*is*p*." → false（* 不能跨字符乱配）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：空串 + 纯星号模式</div>
+    <code>s = "", p = "a*b*" → true</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>
