@@ -1995,6 +1995,87 @@ public:
     <code>s = "+" → 0</code>
 </div>""",
     },
+
+    "palindrome-number": {
+        "type": "数学模拟",
+        "difficulty": "简单",
+        "frontend_id": "9",
+        "title": "回文数",
+        "time_complexity": "O(log₁₀ n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个整数 <code>x</code>，如果 <code>x</code> 是一个<b>回文整数</b>，返回 <code>true</code>；否则返回 <code>false</code>。回文数是指正序（从左向右）和倒序（从右向左）读都一样的整数。例如 <code>121</code> 是回文，而 <code>123</code> 不是。<b>进阶：能不能把整数转为字符串来解决？</b></p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：x = 121</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：x = -121</div>
+    <div class="example-output">输出：false（从右往左读是 121-，不是回文）</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：x = 10</div>
+    <div class="example-output">输出：false（从右往左读是 01）</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>reverted</code></td><td>int</td><td><b>定义</b>：数字<b>后半部分</b>反转后的值<br><b>维护</b>：每轮把 x 的当前末位接到 reverted 末尾<br><b>更新</b>：reverted = reverted * 10 + x % 10</td></tr>
+    <tr><td><code>x</code></td><td>int</td><td><b>定义</b>：尚未处理的<b>前半部分</b><br><b>维护</b>：每轮去掉一个末位<br><b>更新</b>：x //= 10，当 x &le; reverted 时循环停止（已过半）</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：把整数转成字符串，判断是否与其反转相等——但进阶要求不借助字符串。</p>
+<p class="thinking-step">2. 反转整个数字再比较？可能溢出。观察到：只需反转「后半部分」，再和「前半部分」比即可。</p>
+<p class="thinking-step">3. 负数一定不是回文；末位是 0 且本身非 0 的数（如 10、100）也不是（首位不能是 0）。</p>
+<p class="thinking-step">4. 一边砍掉 x 的末位、一边拼到 reverted，当 reverted 追上或超过 x 时正好过半，停止。</p>""",
+        "code_steps": """<p class="code-step">1. 特判：<code>x &lt; 0</code> 或 <code>(x % 10 == 0 且 x != 0)</code> 直接返回 false</p>
+<p class="code-step">2. 循环 <code>while x &gt; reverted</code>：<code>reverted = reverted*10 + x%10</code>，<code>x //= 10</code></p>
+<p class="code-step">3. 偶数位：<code>x == reverted</code>；奇数位：中间位在 reverted 上，用 <code>x == reverted // 10</code> 去掉它</p>
+<p class="code-step">4. 两者任一成立即为回文</p>""",
+        "code_python": """class Solution:
+    def isPalindrome(self, x: int) -> bool:
+        # 负数，或末位为 0 但本身非 0（如 10），都不是回文
+        if x < 0 or (x % 10 == 0 and x != 0):
+            return False
+        reverted = 0  # 后半部分反转值
+        while x > reverted:
+            reverted = reverted * 10 + x % 10
+            x //= 10
+        # 偶数位长度 x == reverted；奇数位长度去掉中间位 reverted // 10
+        return x == reverted or x == reverted // 10""",
+        "code_cpp": """class Solution {
+public:
+    bool isPalindrome(int x) {
+        // 负数，或末位为 0 但本身非 0，都不是回文
+        if (x < 0 || (x % 10 == 0 && x != 0)) return false;
+        int reverted = 0;  // 后半部分反转值
+        while (x > reverted) {
+            reverted = reverted * 10 + x % 10;
+            x /= 10;
+        }
+        // 偶数位 x == reverted；奇数位去掉中间位 reverted / 10
+        return x == reverted || x == reverted / 10;
+    }
+};
+// 时间 O(log₁₀ n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 负数不是回文；末位为 0 且非 0 的数（10、120）也不是，必须先特判。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只反转一半可避免整型溢出，比反转整个数字更稳。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 奇数位时中间那位落在 reverted 上，比较时要用 <code>reverted // 10</code> 去掉。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单个数字</div>
+    <code>x = 0 → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：奇数位回文</div>
+    <code>x = 12321 → true（reverted=123，x=12，12==123//10）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：末位为 0</div>
+    <code>x = 10 → false</code>
+</div>""",
+    },
 }
 
 
@@ -2443,8 +2524,14 @@ def add_to_history(slug: str, semantics: dict, date_str: str = None, force: bool
 
 def generate_today(dry_run: bool = False, use_api: bool = False, use_bank: bool = True,
                    force_slug: str = None, target_date: str = None, force: bool = False,
-                   skip_audio: bool = False) -> bool:
-    """生成今日题目页面"""
+                   skip_audio: bool = False, allow_auto: bool = False) -> bool:
+    """生成今日题目页面。
+
+    方案 A：候选题库是前 200 题，但每天必须输出完整「变量语义法」精讲。
+    若选中的题目在 VAR_SEMANTICS_DATA 中没有精讲，默认**不出页**，而是提示
+    Agent 先补充精讲（避免静默发布只有题面+代码的不完整页面）。
+    仅当显式传入 allow_auto=True 时，才用 LeetCode 官方题面临时占位出页。
+    """
     today_date = target_date or date.today().isoformat()
 
     if force_slug:
@@ -2460,13 +2547,24 @@ def generate_today(dry_run: bool = False, use_api: bool = False, use_bank: bool 
 
     semantics = get_problem_semantics(slug)
     if not semantics:
-        # 候选题库里没有精讲的题目：实时拉取 LeetCode 官方中文题面 + 代码自动出页
-        semantics = build_semantics_from_leetcode(slug)
-        if semantics:
-            source = f"{source}+leetcode"
+        # 缺精讲：先拉 LeetCode 官方素材（供 Agent 撰写精讲参考 / 占位出页用）
+        material = build_semantics_from_leetcode(slug)
+        if allow_auto and material:
+            # 仅在显式允许时才用官方题面临时占位（不含变量语义法精讲）
+            semantics = material
+            source = f"{source}+leetcode(自动占位/精讲缺失)"
         else:
-            print(f"题目 {slug} 无精讲数据且 LeetCode 拉取失败，跳过。")
-            print("可让 Agent 手动补充讲解，或检查网络后重试。")
+            fid = material.get("frontend_id", "?") if material else "?"
+            title = material.get("title", slug) if material else slug
+            diff = material.get("difficulty", "?") if material else "?"
+            print(f"⚠ 题目「{title}」(#{fid}, {slug}) 尚无「变量语义法」精讲，已跳过、未出页。")
+            print("  【方案 A】请先按 COACH-VAR-SEMANTICS.md 为该题在 scripts/generate.py 的")
+            print("  VAR_SEMANTICS_DATA 中补充一条完整精讲（题型/难度/描述/示例/变量语义三句法/")
+            print("  模拟思考/落码步骤/Python+C++ 代码/复杂度/常见坑/边界 Case），然后重新运行：")
+            print(f"    python3 scripts/generate.py --slug={slug} --date={today_date} --force")
+            if material:
+                print(f"  参考：难度 {diff}；可用 scripts.leetcode_api.fetch_problem_detail('{slug}') 拉官方题面与代码。")
+            print("  （仅在确需临时占位时可加 --allow-auto 生成「官方题面版」，但那样不含精讲。）")
             return False
 
     print(f"今日题目：{semantics['title']} (#{semantics['frontend_id']})")
@@ -2517,6 +2615,8 @@ def main():
     parser.add_argument("--force", action="store_true", help="覆盖已有日期的记录")
     parser.add_argument("--list", action="store_true", help="列出题库中所有题目")
     parser.add_argument("--skip-audio", action="store_true", help="跳过语音讲解生成")
+    parser.add_argument("--allow-auto", action="store_true",
+                        help="缺精讲时用 LeetCode 官方题面临时占位出页（默认关闭，避免发布不完整页）")
     args = parser.parse_args()
 
     if args.list:
@@ -2525,7 +2625,7 @@ def main():
         print("--- 其中已内置精讲的题目（共 {} 道）---".format(len(VAR_SEMANTICS_DATA)))
         for slug, data in VAR_SEMANTICS_DATA.items():
             print(f"  #{data['frontend_id']:>4s} {data['title']:<20s} [{data['type']}] {data['difficulty']}")
-        print("--- 其余题目会在被选中时实时拉取 LeetCode 官方题面自动出页 ---")
+        print("--- 其余题目被选中时需由 Agent 先补「变量语义法」精讲再出页（方案 A）---")
         return
 
     generate_today(
@@ -2536,6 +2636,7 @@ def main():
         target_date=args.date,
         force=args.force,
         skip_audio=args.skip_audio,
+        allow_auto=args.allow_auto,
     )
 
 
