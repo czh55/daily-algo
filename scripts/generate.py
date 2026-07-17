@@ -44,6 +44,7 @@ TYPE_CLASS_MAP = {
     "网格搜索": "grid",
     "拓扑排序": "topo",
     "排序+双指针": "two-pointer",
+    "双指针": "two-pointer",
     "BST验证": "bst",
     "哈希表": "hash",
     "二分查找": "binary-search",
@@ -2190,6 +2191,92 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 3：空串 + 纯星号模式</div>
     <code>s = "", p = "a*b*" → true</code>
+</div>""",
+    },
+    "container-with-most-water": {
+        "type": "双指针",
+        "difficulty": "中等",
+        "frontend_id": "11",
+        "title": "盛最多水的容器",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给定一个长度为 <code>n</code> 的整数数组 <code>height</code>。有 <code>n</code> 条垂线，第 <code>i</code> 条线的两个端点是 <code>(i, 0)</code> 和 <code>(i, height[i])</code>。</p>
+<p>找出其中的两条线，使得它们与 <code>x</code> 轴共同构成的容器可以容纳最多的水。</p>
+<p>返回容器可以储存的最大水量。</p>
+<p><strong>说明：</strong>你不能倾斜容器。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：height = [1,8,6,2,5,4,8,3,7]</div>
+    <div class="example-output">输出：49</div>
+    <div class="example-explain">垂直线代表输入数组 [1,8,6,2,5,4,8,3,7]。在此情况下，容器能够容纳水（表示为蓝色部分）的最大值为 49（索引 1 和 8 之间，min(8,7)×7=49）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：height = [1,1]</div>
+    <div class="example-output">输出：1</div>
+    <div class="example-explain">两条线高度均为 1，宽度为 1，面积为 1。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>l, r</code></td><td>int</td><td><b>定义</b>：左右两条候选垂线的下标，当前考虑的容器边界<br><b>维护</b>：初始 <code>l=0, r=n-1</code>，每次向内移动<b>较短</b>一侧的指针<br><b>更新</b>：当 <code>height[l] &lt;= height[r]</code> 时 <code>l++</code>，否则 <code>r--</code></td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：遍历过程中见过的最大容器面积<br><b>维护</b>：每轮用当前 <code>(l, r)</code> 计算面积并与 <code>ans</code> 取 max<br><b>更新</b>：<code>ans = max(ans, min(height[l], height[r]) * (r - l))</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：枚举所有线对 <code>(i, j)</code>，面积 <code>min(height[i], height[j]) × (j-i)</code>，双重循环 O(n²)，<code>n=10⁵</code> 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？固定 <code>l</code> 时从右往左扫 <code>r</code>，和固定 <code>r</code> 从左往右扫 <code>l</code> 本质一样——都在暴力枚举宽度。</p>
+<p class="thinking-step">3. 双指针：从两端出发，宽度最大；要尝试更大面积只能缩宽度，所以每次必须移动一侧指针。</p>
+<p class="thinking-step">4. 贪心关键：移动<b>较短</b>的那一侧。较短边是当前容器的「短板」，留着它面积不可能变大（宽度还变小了）；移走短板才有机会遇到更高的线。</p>
+<p class="thinking-step">5. 正确性直觉：若移走较长边，宽度 -1 且高度仍受短板限制，面积一定不比现在大，可以安全丢弃这一侧的所有配对。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>l=0, r=n-1, ans=0</code></p>
+<p class="code-step">2. 当 <code>l &lt; r</code>：计算 <code>area = min(height[l], height[r]) * (r - l)</code>，更新 <code>ans</code></p>
+<p class="code-step">3. 若 <code>height[l] &lt;= height[r]</code>，<code>l++</code>；否则 <code>r--</code></p>
+<p class="code-step">4. 循环结束返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def maxArea(self, height: List[int]) -> int:
+        l, r = 0, len(height) - 1
+        ans = 0
+        while l < r:
+            # 当前容器面积：短板高度 × 宽度
+            h = min(height[l], height[r])
+            ans = max(ans, h * (r - l))
+            # 移动较短一侧，才可能找到更大面积
+            if height[l] <= height[r]:
+                l += 1
+            else:
+                r -= 1
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int l = 0, r = height.size() - 1;
+        int ans = 0;
+        while (l < r) {
+            int h = min(height[l], height[r]);
+            ans = max(ans, h * (r - l));
+            if (height[l] <= height[r])
+                l++;
+            else
+                r--;
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 面积公式是 <code>min(左高, 右高) × 宽度</code>，不是 <code>max</code> 或两高之和。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 移动指针时应移<b>较短</b>一侧（相等时移哪边都行，习惯 <code>l++</code>）；移较长一侧会漏掉更优解。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环条件是 <code>l &lt; r</code> 而非 <code>l &lt;= r</code>，至少两条线才能构成容器。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：最短数组</div>
+    <code>height = [1, 1] → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单调递增</div>
+    <code>height = [1, 2, 3, 4, 5] → 6</code>（首尾 min(1,5)×4=4，但中间 2 和 5 可得 6）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：含零高度</div>
+    <code>height = [0, 2, 0] → 0</code>（与 0 高度线构成的容器面积为 0）
 </div>""",
     },
 }
