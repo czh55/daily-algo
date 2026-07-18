@@ -142,5 +142,11 @@
     "slug": "container-with-most-water",
     "title": "盛最多水的容器",
     "type": "双指针"
+  },
+  {
+    "date": "2026-07-18",
+    "slug": "integer-to-roman",
+    "title": "整数转罗马数字",
+    "type": "数学模拟"
   }
 ]
