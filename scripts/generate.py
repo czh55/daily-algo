@@ -2279,6 +2279,115 @@ public:
     <code>height = [0, 2, 0] → 0</code>（与 0 高度线构成的容器面积为 0）
 </div>""",
     },
+
+    "integer-to-roman": {
+        "type": "数学模拟",
+        "difficulty": "中等",
+        "frontend_id": "12",
+        "title": "整数转罗马数字",
+        "time_complexity": "O(1)",
+        "space_complexity": "O(1)",
+        "description": """<p>七个不同的符号代表罗马数字，其值如下：</p>
+<table>
+<thead><tr><th>符号</th><th>值</th></tr></thead>
+<tbody>
+<tr><td>I</td><td>1</td></tr>
+<tr><td>V</td><td>5</td></tr>
+<tr><td>X</td><td>10</td></tr>
+<tr><td>L</td><td>50</td></tr>
+<tr><td>C</td><td>100</td></tr>
+<tr><td>D</td><td>500</td></tr>
+<tr><td>M</td><td>1000</td></tr>
+</tbody>
+</table>
+<p>罗马数字通过从最高到最低的小数位值转换形成。规则如下：</p>
+<ul>
+<li>若该值不是以 4 或 9 开头，选择可从输入中减去的最大符号，附加到结果并减去其值。</li>
+<li>若该值以 4 或 9 开头，使用减法形式（如 4=IV，9=IX，40=XL，90=XC，400=CD，900=CM）。</li>
+<li>符号 I、X、C、M 最多连续出现 3 次；V、L、D 不能连续出现。</li>
+</ul>
+<p>给定一个整数，将其转换为罗马数字。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：num = 3749</div>
+    <div class="example-output">输出："MMMDCCXLIX"</div>
+    <div class="example-explain">3000=MMM，700=DCC，40=XL，9=IX。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：num = 58</div>
+    <div class="example-output">输出："LVIII"</div>
+    <div class="example-explain">50=L，8=VIII。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：num = 1994</div>
+    <div class="example-output">输出："MCMXCIV"</div>
+    <div class="example-explain">1000=M，900=CM，90=XC，4=IV。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>vals, syms</code></td><td>int[], string[]</td><td><b>定义</b>：预置的「数值-符号」对，按从大到小排列，含减法形式（900=CM 等）<br><b>维护</b>：固定不变，覆盖 1~3999 所有合法片段<br><b>更新</b>：无需更新，遍历时按下标 <code>i</code> 依次尝试</td></tr>
+    <tr><td><code>num</code></td><td>int</td><td><b>定义</b>：待转换的剩余整数值<br><b>维护</b>：每拼出一个符号就从 <code>num</code> 中减去对应数值<br><b>更新</b>：<code>num -= vals[i]</code>，直到 <code>num == 0</code></td></tr>
+    <tr><td><code>res</code></td><td>string</td><td><b>定义</b>：已拼接的罗马数字结果<br><b>维护</b>：每次确定一个符号后追加到末尾<br><b>更新</b>：<code>res += syms[i]</code></td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前尝试的「数值-符号」对下标<br><b>维护</b>：从 0 遍历到末尾；同一 <code>i</code> 可重复使用（如 3000 拼三次 M）<br><b>更新</b>：当 <code>num &lt; vals[i]</code> 时 <code>i++</code> 尝试更小的值</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：把 1~3999 每个数都预转成罗马串存哈希表，查询 O(1)——可行但毫无算法味，也学不到转换规则。</p>
+<p class="thinking-step">2. 按位拆分？个位、十位、百位、千位分别映射——可以，但要手写 4×10 种情况（含 4、9 的减法形式），代码冗长易错。</p>
+<p class="thinking-step">3. 关键观察：罗马数字是<b>贪心</b>的——每次取不超过当前 <code>num</code> 的最大「合法片段」（1000/900/500/400/.../1），拼上对应符号，减去该值，重复直到 <code>num=0</code>。</p>
+<p class="thinking-step">4. 为什么贪心正确？合法片段集合固定且有序，每次取最大片段等价于从高位到低位逐段分解，与手工转换一致。</p>
+<p class="thinking-step">5. 实现技巧：把减法形式（900、400、90、40、9、4）也放进值数组，这样内层只需 <code>while num &gt;= vals[i]</code> 循环，无需特判 4 和 9。</p>""",
+        "code_steps": """<p class="code-step">1. 预置 <code>vals = [1000,900,500,400,100,90,50,40,10,9,5,4,1]</code> 和对应 <code>syms</code></p>
+<p class="code-step">2. 初始化空字符串 <code>res</code>，<code>i = 0</code></p>
+<p class="code-step">3. 当 <code>num &gt; 0</code>：若 <code>num &gt;= vals[i]</code>，则 <code>res += syms[i]</code>，<code>num -= vals[i]</code>；否则 <code>i++</code></p>
+<p class="code-step">4. <code>num == 0</code> 时返回 <code>res</code></p>""",
+        "code_python": """class Solution:
+    def intToRoman(self, num: int) -> str:
+        vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+        syms = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"]
+        res = []
+        i = 0
+        while num > 0:
+            # 当前值能拼就拼，同一符号可重复（如 3000 → MMM）
+            while num >= vals[i]:
+                res.append(syms[i])
+                num -= vals[i]
+            i += 1
+        return "".join(res)""",
+        "code_cpp": """class Solution {
+public:
+    string intToRoman(int num) {
+        vector<int> vals = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+        vector<string> syms = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+        string res;
+        for (int i = 0; num > 0; ++i) {
+            while (num >= vals[i]) {
+                res += syms[i];
+                num -= vals[i];
+            }
+        }
+        return res;
+    }
+};
+// 时间 O(1)（最多 15 次外层 + 常数次内层），空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 值数组必须包含减法形式（900、400、90、40、9、4），否则 4 和 9 无法正确表示。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 内层用 <code>while num &gt;= vals[i]</code> 而非 <code>if</code>，否则 3000 只能拼一个 M。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 值数组必须从大到小排列；从小到大会导致先拼 I 再拼 V，结果错误。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：最小值</div>
+    <code>num = 1 → "I"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：减法形式 4 和 9</div>
+    <code>num = 4 → "IV"</code>，<code>num = 9 → "IX"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：最大值</div>
+    <code>num = 3999 → "MMMCMXCIX"</code>（含 900、90、9 三种减法形式）
+</div>""",
+    },
 }
 
 
