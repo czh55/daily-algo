@@ -2388,6 +2388,122 @@ public:
     <code>num = 3999 → "MMMCMXCIX"</code>（含 900、90、9 三种减法形式）
 </div>""",
     },
+
+    "roman-to-integer": {
+        "type": "数学模拟",
+        "difficulty": "简单",
+        "frontend_id": "13",
+        "title": "罗马数字转整数",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>罗马数字包含以下七种字符：<code>I</code>、<code>V</code>、<code>X</code>、<code>L</code>、<code>C</code>、<code>D</code> 和 <code>M</code>。</p>
+<table>
+<thead><tr><th>字符</th><th>数值</th></tr></thead>
+<tbody>
+<tr><td>I</td><td>1</td></tr>
+<tr><td>V</td><td>5</td></tr>
+<tr><td>X</td><td>10</td></tr>
+<tr><td>L</td><td>50</td></tr>
+<tr><td>C</td><td>100</td></tr>
+<tr><td>D</td><td>500</td></tr>
+<tr><td>M</td><td>1000</td></tr>
+</tbody>
+</table>
+<p>通常情况下，小的数字在大的数字右边；但若小的数字在大的数字左边，则表示减去该值（如 <code>IV</code>=4，<code>IX</code>=9）。该减法规则仅适用于六种情况：<code>I</code> 在 <code>V/X</code> 前、<code>X</code> 在 <code>L/C</code> 前、<code>C</code> 在 <code>D/M</code> 前。</p>
+<p>给定一个罗马数字，将其转换成整数。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "III"</div>
+    <div class="example-output">输出：3</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "IV"</div>
+    <div class="example-output">输出：4</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "IX"</div>
+    <div class="example-output">输出：9</div>
+</div>
+<div class="example-block">
+    <h4>示例 4</h4>
+    <div class="example-input">输入：s = "LVIII"</div>
+    <div class="example-output">输出：58</div>
+    <div class="example-explain">L = 50，V = 5，III = 3。</div>
+</div>
+<div class="example-block">
+    <h4>示例 5</h4>
+    <div class="example-input">输入：s = "MCMXCIV"</div>
+    <div class="example-output">输出：1994</div>
+    <div class="example-explain">M = 1000，CM = 900，XC = 90，IV = 4。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>roman</code></td><td>dict</td><td><b>定义</b>：字符到数值的映射表（I→1, V→5, …, M→1000）<br><b>维护</b>：固定不变，覆盖全部 7 种符号<br><b>更新</b>：无需更新，查询 <code>roman[s[i]]</code> 即可</td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：从左到右扫描后累计的整数值<br><b>维护</b>：每处理一个字符，按「加或减」规则更新<br><b>更新</b>：若当前字符值 &lt; 下一字符值则 <code>ans -= val</code>，否则 <code>ans += val</code></td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前扫描到的字符下标<br><b>维护</b>：从 0 遍历到 <code>len(s)-1</code>，每次右移一位<br><b>更新</b>：<code>i++</code>；判断减法时需偷看 <code>s[i+1]</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：把每个字符的值查表直接相加——<code>IV</code> 会变成 1+5=6，显然错了。</p>
+<p class="thinking-step">2. 找重复：减法形式都是「小字符在大字符左边」，如 <code>I</code> 在 <code>V</code> 前表示 5-1=4。只需处理这 6 种特例？可以，但要写一堆 <code>if s[i:i+2] in ...</code>，冗长且难维护。</p>
+<p class="thinking-step">3. 统一规则：从左到右扫，若 <code>roman[s[i]] &lt; roman[s[i+1]]</code>，说明当前位被「借走」做减法，<code>ans -= roman[s[i]]</code>；否则正常累加。这样 <code>IV</code>、<code>IX</code>、<code>CM</code> 等全部自动处理。</p>
+<p class="thinking-step">4. 另一种等价写法是从右往左扫：若当前值 &lt; 已处理的右边值就减，否则加——思路相同，选一种写顺手的即可。</p>
+<p class="thinking-step">5. 复杂度：字符串最长 15，一次线性扫描 O(n)，哈希表 O(1) 空间，足够高效。</p>""",
+        "code_steps": """<p class="code-step">1. 建立 <code>roman</code> 字符→数值映射表</p>
+<p class="code-step">2. 初始化 <code>ans = 0</code>，从左到右遍历下标 <code>i</code></p>
+<p class="code-step">3. 取 <code>val = roman[s[i]]</code>；若 <code>i+1 &lt; len(s)</code> 且 <code>val &lt; roman[s[i+1]]</code>，则 <code>ans -= val</code>，否则 <code>ans += val</code></p>
+<p class="code-step">4. 遍历结束返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def romanToInt(self, s: str) -> int:
+        roman = {"I": 1, "V": 5, "X": 10, "L": 50,
+                 "C": 100, "D": 500, "M": 1000}
+        ans = 0
+        for i in range(len(s)):
+            val = roman[s[i]]
+            # 当前位比右边小 → 减法形式（如 I 在 V 前）
+            if i + 1 < len(s) and val < roman[s[i + 1]]:
+                ans -= val
+            else:
+                ans += val
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int romanToInt(string s) {
+        unordered_map<char, int> roman = {
+            {'I', 1}, {'V', 5}, {'X', 10}, {'L', 50},
+            {'C', 100}, {'D', 500}, {'M', 1000}
+        };
+        int ans = 0;
+        for (int i = 0; i < (int)s.size(); ++i) {
+            int val = roman[s[i]];
+            if (i + 1 < (int)s.size() && val < roman[s[i + 1]]) {
+                ans -= val;
+            } else {
+                ans += val;
+            }
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 不能对所有字符直接求和，否则 <code>IV</code> 会得到 6 而非 4。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 判断减法时要比较<b>数值</b>而非字符 ASCII（虽然本题数据下碰巧一致，但语义上应查表比较）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 遍历时注意边界：最后一位没有「下一字符」，永远做加法。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：纯加法</div>
+    <code>s = "III" → 3</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单位减法</div>
+    <code>s = "IV" → 4</code>，<code>s = "IX" → 9</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：复合串</div>
+    <code>s = "MCMXCIV" → 1994</code>（同时含 CM、XC、IV 三种减法形式）
+</div>""",
+    },
 }
 
 

@@ -148,5 +148,11 @@
     "slug": "integer-to-roman",
     "title": "整数转罗马数字",
     "type": "数学模拟"
+  },
+  {
+    "date": "2026-07-19",
+    "slug": "roman-to-integer",
+    "title": "罗马数字转整数",
+    "type": "数学模拟"
   }
 ]
