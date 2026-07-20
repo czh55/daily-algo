@@ -2879,7 +2879,6 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
         <div class="container">
             <a href="index.html" class="logo">
                 <span class="logo-icon">&#x25B3;</span>
-                <span class="logo-text">每日算法</span>
             </a>
             <span class="header-date">{featured_date}</span>
         </div>
