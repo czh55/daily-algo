@@ -154,5 +154,11 @@
     "slug": "roman-to-integer",
     "title": "罗马数字转整数",
     "type": "数学模拟"
+  },
+  {
+    "date": "2026-07-20",
+    "slug": "longest-common-prefix",
+    "title": "最长公共前缀",
+    "type": "字符串模拟"
   }
 ]

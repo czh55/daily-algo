@@ -2504,6 +2504,89 @@ public:
     <code>s = "MCMXCIV" → 1994</code>（同时含 CM、XC、IV 三种减法形式）
 </div>""",
     },
+
+    "longest-common-prefix": {
+        "type": "字符串模拟",
+        "difficulty": "简单",
+        "frontend_id": "14",
+        "title": "最长公共前缀",
+        "time_complexity": "O(S)",
+        "space_complexity": "O(1)",
+        "description": """<p>编写一个函数来查找字符串数组中的最长公共前缀。</p>
+<p>如果不存在公共前缀，返回空字符串 <code>""</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：strs = ["flower","flow","flight"]</div>
+    <div class="example-output">输出："fl"</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：strs = ["dog","racecar","car"]</div>
+    <div class="example-output">输出：""</div>
+    <div class="example-explain">输入不存在公共前缀。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>prefix</code></td><td>str</td><td><b>定义</b>：当前已确认、所有已处理字符串共同拥有的前缀<br><b>维护</b>：初始为 <code>strs[0]</code>，每引入一个新串就按需缩短<br><b>更新</b>：若 <code>s</code> 不以 <code>prefix</code> 开头，则 <code>prefix = prefix[:-1]</code> 直到匹配或为空</td></tr>
+    <tr><td><code>s</code></td><td>str</td><td><b>定义</b>：当前正在与 <code>prefix</code> 比对的字符串<br><b>维护</b>：按顺序遍历 <code>strs[1:]</code><br><b>更新</b>：每轮取下一个字符串；若 <code>prefix</code> 已空可提前结束</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>（纵向扫描写法）：当前比对的字符列下标<br><b>维护</b>：从 0 开始，以 <code>strs[0][i]</code> 为基准字符<br><b>更新</b>：所有串在位置 <code>i</code> 字符一致则 <code>i++</code>，否则停止；答案为 <code>strs[0][:i]</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举所有可能的前缀长度，对每个长度检查是否每个字符串都以该前缀开头——能过，但重复比较很多。</p>
+<p class="thinking-step">2. 找重复：公共前缀就是「所有串开头相同的最长一段」，每多一个串，只需看当前候选前缀还能不能匹配。</p>
+<p class="thinking-step">3. 横向扫描：用 <code>strs[0]</code> 当初始 <code>prefix</code>，依次与后面每个串比对；不匹配就不断砍掉 <code>prefix</code> 最后一位，直到匹配或变空。</p>
+<p class="thinking-step">4. 另一种等价思路是纵向扫描：固定列下标 <code>i</code>，看所有串第 <code>i</code> 个字符是否都与 <code>strs[0][i]</code> 相同，一旦某串更短或字符不同就停。</p>
+<p class="thinking-step">5. 还可排序后只比首尾串，或建字典树；本题数据规模下横向/纵向扫描 O(S)（S 为所有字符总数）最直观。</p>""",
+        "code_steps": """<p class="code-step">1. 特判空数组；令 <code>prefix = strs[0]</code></p>
+<p class="code-step">2. 遍历 <code>strs[1:]</code> 中每个字符串 <code>s</code></p>
+<p class="code-step">3. 当 <code>prefix</code> 非空且 <code>s</code> 不以 <code>prefix</code> 开头时，<code>prefix = prefix[:-1]</code></p>
+<p class="code-step">4. 若 <code>prefix</code> 已空，提前返回 <code>""</code></p>
+<p class="code-step">5. 全部比对完毕，返回 <code>prefix</code></p>""",
+        "code_python": """class Solution:
+    def longestCommonPrefix(self, strs: List[str]) -> str:
+        if not strs:
+            return ""
+        prefix = strs[0]          # 当前公共前缀候选
+        for s in strs[1:]:
+            # 不匹配就缩短前缀，直到 s 以 prefix 开头或 prefix 为空
+            while prefix and not s.startswith(prefix):
+                prefix = prefix[:-1]
+            if not prefix:
+                return ""
+        return prefix""",
+        "code_cpp": """class Solution {
+public:
+    string longestCommonPrefix(vector<string>& strs) {
+        if (strs.empty()) return "";
+        string prefix = strs[0];
+        for (int k = 1; k < (int)strs.size(); ++k) {
+            const string& s = strs[k];
+            while (!prefix.empty() && s.compare(0, prefix.size(), prefix) != 0) {
+                prefix.pop_back();
+            }
+            if (prefix.empty()) return "";
+        }
+        return prefix;
+    }
+};
+// 时间 O(S)，空间 O(1)（不计输入）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 不能用 <code>min(len(strs))</code> 直接当答案长度——还要保证每个位置字符都相同，不能只比长度。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 纵向扫描时注意某串长度不足时 <code>i</code> 会越界，应先判断 <code>i &lt; len(s)</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空数组要返回 <code>""</code>；单元素数组应返回该元素本身（即整个字符串）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：有公共前缀</div>
+    <code>["flower","flow","flight"] → "fl"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：无公共前缀</div>
+    <code>["dog","racecar","car"] → ""</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单元素 / 空前缀</div>
+    <code>["a"] → "a"</code>；<code>["ab","a"] → "a"</code>（较短串决定上限）
+</div>""",
+    },
 }
 
 
