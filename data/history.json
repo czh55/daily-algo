@@ -160,5 +160,11 @@
     "slug": "longest-common-prefix",
     "title": "最长公共前缀",
     "type": "字符串模拟"
+  },
+  {
+    "date": "2026-07-21",
+    "slug": "3sum-closest",
+    "title": "最接近的三数之和",
+    "type": "排序+双指针"
   }
 ]

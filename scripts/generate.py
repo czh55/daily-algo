@@ -1250,6 +1250,107 @@ public:
 </div>""",
     },
 
+    "3sum-closest": {
+        "type": "排序+双指针",
+        "difficulty": "中等",
+        "frontend_id": "16",
+        "title": "最接近的三数之和",
+        "time_complexity": "O(n²)",
+        "space_complexity": "O(1)（不计排序）",
+        "description": """<p>给你一个长度为 <code>n</code> 的整数数组 <code>nums</code> 和一个目标值 <code>target</code>。请你从 <code>nums</code> 中选出三个在<b>不同下标位置</b>的整数，使它们的和与 <code>target</code> 最接近。</p>
+<p>返回这三个数的和。</p>
+<p>假定每组输入只存在恰好一个解。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [-1,2,1,-4], target = 1</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">与 target 最接近的和是 2（-1 + 2 + 1 = 2）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [0,0,0], target = 1</div>
+    <div class="example-output">输出：0</div>
+    <div class="example-explain">与 target 最接近的和是 0（0 + 0 + 0 = 0）。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：固定三元组中第一个数的位置（排序后作为最小候选）<br><b>维护</b>：外层枚举，每轮锁定 <code>nums[i]</code> 后在内层找最优的 (l,r)<br><b>更新</b>：<code>for i in range(n-2)</code>，每轮结束后 <code>i++</code></td></tr>
+    <tr><td><code>l</code></td><td>int</td><td><b>定义</b>：在 i 右侧区间内指向较小候选值的左指针<br><b>维护</b>：当前三数和偏小则右移，以增大总和<br><b>更新</b>：初始 <code>l=i+1</code>；当 <code>s &lt; target</code> 时 <code>l++</code></td></tr>
+    <tr><td><code>r</code></td><td>int</td><td><b>定义</b>：在 i 右侧区间内指向较大候选值的右指针<br><b>维护</b>：当前三数和偏大则左移，以减小总和<br><b>更新</b>：初始 <code>r=n-1</code>；当 <code>s &gt; target</code> 时 <code>r--</code></td></tr>
+    <tr><td><code>best</code></td><td>int</td><td><b>定义</b>：截至目前与 <code>target</code> 最接近的三数之和<br><b>维护</b>：每算出一组 <code>s</code>，若 <code>|s-target|</code> 更小则刷新<br><b>更新</b>：初始可用前三项之和；遍历中 <code>if abs(s-target) &lt; abs(best-target): best=s</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写暴力：三重循环枚举三个不同下标，计算和与 target 的差，取最小——O(n³)，能过但太慢。</p>
+<p class="thinking-step">2. 重复在哪里？固定第一个数 <code>nums[i]</code> 后，问题变成「在剩余数组里找两数，使三数之和尽量接近 target」。</p>
+<p class="thinking-step">3. 排序后，两数之和可以用双指针：和小了 <code>l++</code>，和大了 <code>r--</code>，每步都在缩小与 target 的差距方向移动。</p>
+<p class="thinking-step">4. 与 #15 三数之和不同：本题只要一个最接近的和，不需要收集全部三元组，也<b>不必做 i/l/r 去重</b>（题目保证唯一解）。</p>
+<p class="thinking-step">5. 若某次 <code>s == target</code>，已不可能更优，可直接返回 <code>s</code>；否则遍历完所有 i 后返回 <code>best</code>。</p>""",
+        "code_steps": """<p class="code-step">1. 对 <code>nums</code> 升序排序</p>
+<p class="code-step">2. 初始化 <code>best = nums[0]+nums[1]+nums[2]</code>（或第一个合法三数和）</p>
+<p class="code-step">3. 外层 <code>for i in range(n-2)</code>，设 <code>l=i+1, r=n-1</code></p>
+<p class="code-step">4. 当 <code>l&lt;r</code>：计算 <code>s=nums[i]+nums[l]+nums[r]</code>，用 <code>|s-target|</code> 更新 <code>best</code></p>
+<p class="code-step">5. <code>s==target</code> 直接返回；<code>s&lt;target</code> 则 <code>l++</code>，否则 <code>r--</code></p>
+<p class="code-step">6. 全部 i 枚举完毕，返回 <code>best</code></p>""",
+        "code_python": """class Solution:
+    def threeSumClosest(self, nums: list[int], target: int) -> int:
+        nums.sort()
+        n = len(nums)
+        best = nums[0] + nums[1] + nums[2]
+
+        for i in range(n - 2):
+            l, r = i + 1, n - 1
+            while l < r:
+                s = nums[i] + nums[l] + nums[r]
+                if abs(s - target) < abs(best - target):
+                    best = s
+                if s == target:
+                    return s
+                elif s < target:
+                    l += 1
+                else:
+                    r -= 1
+
+        return best""",
+        "code_cpp": """class Solution {
+public:
+    int threeSumClosest(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        int n = nums.size();
+        int best = nums[0] + nums[1] + nums[2];
+
+        for (int i = 0; i < n - 2; i++) {
+            int l = i + 1, r = n - 1;
+            while (l < r) {
+                int s = nums[i] + nums[l] + nums[r];
+                if (abs(s - target) < abs(best - target))
+                    best = s;
+                if (s == target) return s;
+                else if (s < target) l++;
+                else r--;
+            }
+        }
+        return best;
+    }
+};
+// 时间 O(n²)，空间 O(1)（不计排序）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记排序：不排序就无法保证双指针单调移动，可能漏掉最优解。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 照搬三数之和的去重逻辑：本题只返回一个最接近的和，且保证唯一解，<b>不需要</b>跳过重复的 i/l/r。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>s==target</code> 时仍继续循环：已命中最优，应立刻返回，否则浪费时间。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：恰好命中 target</div>
+    <code>nums = [1,2,3], target = 6 → 6（1+2+3）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全零</div>
+    <code>nums = [0,0,0], target = 1 → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：最小长度 n=3</div>
+    <code>nums = [-1,2,1], target = 1 → 2（只有一组三元组）</code>
+</div>""",
+    },
+
     "validate-binary-search-tree": {
         "type": "BST验证",
         "difficulty": "中等",
