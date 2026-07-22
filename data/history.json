@@ -166,5 +166,11 @@
     "slug": "3sum-closest",
     "title": "最接近的三数之和",
     "type": "排序+双指针"
+  },
+  {
+    "date": "2026-07-22",
+    "slug": "letter-combinations-of-a-phone-number",
+    "title": "电话号码的字母组合",
+    "type": "回溯"
   }
 ]

@@ -264,6 +264,7 @@ a:hover { text-decoration: underline; }
 .tag-center-expand { background: rgba(63, 185, 80, 0.08); color: var(--accent-green); border: 1px solid rgba(63, 185, 80, 0.3); }
 .tag-string-sim { background: rgba(57, 197, 207, 0.08); color: var(--accent-cyan); border: 1px solid rgba(57, 197, 207, 0.3); }
 .tag-math-sim { background: rgba(210, 153, 34, 0.08); color: var(--accent-orange); border: 1px solid rgba(210, 153, 34, 0.3); }
+.tag-backtrack { background: rgba(163, 113, 247, 0.08); color: var(--accent-purple); border: 1px solid rgba(163, 113, 247, 0.3); }
 .tag-other { background: var(--bg-secondary); color: var(--text-tertiary); border: 1px solid var(--border); }
 
 .tag-daily { background: rgba(63, 185, 80, 0.1); color: var(--accent-green); border: 1px solid rgba(63, 185, 80, 0.3); }

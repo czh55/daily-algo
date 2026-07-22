@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电话号码的字母组合 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-07-22</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#17</span>
+                    <span class="problem-type tag-backtrack">回溯</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">电话号码的字母组合</h1>
+                <a href="https://leetcode.cn/problems/letter-combinations-of-a-phone-number/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-07-22">
+                        <source src="../audio/2026-07-22.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-22', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-07-22', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-22', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-22', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给定一个仅包含数字 <code>2-9</code> 的字符串，返回所有它能表示的字母组合。答案可以按 <b>任意顺序</b> 返回。</p>
+<p>给出数字到字母的映射如下（与电话按键相同）。注意 1 不对应任何字母。</p>
+<ul>
+<li><code>2</code> → <code>abc</code></li>
+<li><code>3</code> → <code>def</code></li>
+<li><code>4</code> → <code>ghi</code></li>
+<li><code>5</code> → <code>jkl</code></li>
+<li><code>6</code> → <code>mno</code></li>
+<li><code>7</code> → <code>pqrs</code></li>
+<li><code>8</code> → <code>tuv</code></li>
+<li><code>9</code> → <code>wxyz</code></li>
+</ul>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：digits = "23"</div>
+    <div class="example-output">输出：["ad","ae","af","bd","be","bf","cd","ce","cf"]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：digits = "2"</div>
+    <div class="example-output">输出：["a","b","c"]</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 我先想暴力：对每一位数字，枚举它映射里的每个字母，笛卡尔积式地拼出所有串——思路对，但要写出「逐位扩展」的结构。</p>
+<p class="thinking-step">2. 重复在哪里？每多处理一位，就是在已有前缀后面接一个新字母；子问题变成「从第 idx 位开始，把剩余位数补全」。</p>
+<p class="thinking-step">3. 优化成回溯：固定 <code>path</code> 表示当前前缀，<code>idx</code> 表示处理到第几位；对 <code>digits[idx]</code> 的每个候选字母递归下一层。</p>
+<p class="thinking-step">4. 终止条件：<code>idx == len(digits)</code> 时 <code>path</code> 已是完整组合，加入 <code>ans</code>；否则枚举当前位字母，选、递归、撤销。</p>
+<p class="thinking-step">5. 特判 <code>digits == ""</code> 应返回空列表；最多 4 位、每位最多 4 个字母，回溯深度 ≤ 4，非常安全。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>path</code></td><td>str / list</td><td><b>定义</b>：当前已选字母拼成的部分组合（前缀）<br><b>维护</b>：每处理一位数字，从映射中选一个字母追加到末尾<br><b>更新</b>：递归前 <code>path += ch</code>；回溯时撤销（<code>pop</code> 或切片还原）</td></tr>
+    <tr><td><code>idx</code></td><td>int</td><td><b>定义</b>：当前要处理 <code>digits</code> 中的第几位（下标）<br><b>维护</b>：每选定一个字母并递归返回后，进入下一位<br><b>更新</b>：初始为 0；每轮枚举完当前位所有字母后 <code>idx++</code>（由递归参数传递）</td></tr>
+    <tr><td><code>mapping</code></td><td>dict / array</td><td><b>定义</b>：数字键到对应字母串的固定映射表<br><b>维护</b>：程序启动时一次性建好，全程只读<br><b>更新</b>：不更新；用 <code>digits[idx]</code> 查表得到候选字母集合</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;str&gt;</td><td><b>定义</b>：所有长度等于 <code>len(digits)</code> 的合法组合<br><b>维护</b>：当 <code>idx == len(digits)</code> 时，将当前 <code>path</code> 的副本加入<br><b>更新</b>：每到达叶子层追加一次；不在中途追加半成品</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 建立 <code>2-9</code> 到字母串的映射表 <code>mapping</code></p>
+<p class="code-step">2. 若 <code>digits</code> 为空，直接返回 <code>[]</code></p>
+<p class="code-step">3. 定义 DFS <code>backtrack(idx, path)</code>：若 <code>idx == len(digits)</code>，将 <code>path</code> 加入 <code>ans</code> 并返回</p>
+<p class="code-step">4. 取 <code>letters = mapping[digits[idx]]</code>，对每个字母 <code>ch</code>：追加到 <code>path</code>，递归 <code>backtrack(idx+1, path)</code>，再撤销追加</p>
+<p class="code-step">5. 从 <code>backtrack(0, "")</code> 启动，返回 <code>ans</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def letterCombinations(self, digits: str) -&gt; list[str]:
+        if not digits:
+            return []
+
+        mapping = {
+            "2": "abc", "3": "def", "4": "ghi", "5": "jkl",
+            "6": "mno", "7": "pqrs", "8": "tuv", "9": "wxyz",
+        }
+        ans: list[str] = []
+
+        def backtrack(idx: int, path: list[str]) -&gt; None:
+            if idx == len(digits):
+                ans.append("".join(path))
+                return
+            for ch in mapping[digits[idx]]:
+                path.append(ch)
+                backtrack(idx + 1, path)
+                path.pop()
+
+        backtrack(0, [])
+        return ans</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    vector&lt;string&gt; letterCombinations(string digits) {
+        if (digits.empty()) return {};
+
+        static const vector&lt;string&gt; mapping = {
+            "", "", "abc", "def", "ghi", "jkl",
+            "mno", "pqrs", "tuv", "wxyz"
+        };
+        vector&lt;string&gt; ans;
+        string path;
+
+        function&lt;void(int)&gt; dfs = [&amp;](int idx) {
+            if (idx == (int)digits.size()) {
+                ans.push_back(path);
+                return;
+            }
+            int d = digits[idx] - '0';
+            for (char ch : mapping[d]) {
+                path.push_back(ch);
+                dfs(idx + 1);
+                path.pop_back();
+            }
+        };
+
+        dfs(0);
+        return ans;
+    }
+};
+// 时间 O(4^n · n)，空间 O(n)（递归栈，不计输出）</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(4^n · n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(n)（递归栈，不计输出）</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记空串特判：<code>digits = ""</code> 时必须返回 <code>[]</code>，不能返回 <code>[""]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 回溯不撤销：选完字母递归后必须 <code>pop</code>，否则 <code>path</code> 会越积越长，污染兄弟分支。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把数字当数组下标直接用：<code>'2'</code> 的 ASCII 是 50，应使用 <code>digits[idx] - '0'</code> 或映射字典查表。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：空输入</div>
+    <code>digits = "" → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单个数字</div>
+    <code>digits = "2" → ["a","b","c"]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：四位全满（每位 4 字母）</div>
+    <code>digits = "79" → 16 种组合（7 有 4 个字母，9 有 4 个字母）</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

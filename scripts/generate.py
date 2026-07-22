@@ -51,6 +51,7 @@ TYPE_CLASS_MAP = {
     "中心扩展": "center-expand",
     "字符串模拟": "string-sim",
     "数学模拟": "math-sim",
+    "回溯": "backtrack",
 }
 
 # ─── Variable Semantics Data for Core Problem Types ───
@@ -2686,6 +2687,123 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 3：单元素 / 空前缀</div>
     <code>["a"] → "a"</code>；<code>["ab","a"] → "a"</code>（较短串决定上限）
+</div>""",
+    },
+
+    "letter-combinations-of-a-phone-number": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "17",
+        "title": "电话号码的字母组合",
+        "time_complexity": "O(4^n · n)",
+        "space_complexity": "O(n)（递归栈，不计输出）",
+        "description": """<p>给定一个仅包含数字 <code>2-9</code> 的字符串，返回所有它能表示的字母组合。答案可以按 <b>任意顺序</b> 返回。</p>
+<p>给出数字到字母的映射如下（与电话按键相同）。注意 1 不对应任何字母。</p>
+<ul>
+<li><code>2</code> → <code>abc</code></li>
+<li><code>3</code> → <code>def</code></li>
+<li><code>4</code> → <code>ghi</code></li>
+<li><code>5</code> → <code>jkl</code></li>
+<li><code>6</code> → <code>mno</code></li>
+<li><code>7</code> → <code>pqrs</code></li>
+<li><code>8</code> → <code>tuv</code></li>
+<li><code>9</code> → <code>wxyz</code></li>
+</ul>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：digits = "23"</div>
+    <div class="example-output">输出：["ad","ae","af","bd","be","bf","cd","ce","cf"]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：digits = "2"</div>
+    <div class="example-output">输出：["a","b","c"]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>path</code></td><td>str / list</td><td><b>定义</b>：当前已选字母拼成的部分组合（前缀）<br><b>维护</b>：每处理一位数字，从映射中选一个字母追加到末尾<br><b>更新</b>：递归前 <code>path += ch</code>；回溯时撤销（<code>pop</code> 或切片还原）</td></tr>
+    <tr><td><code>idx</code></td><td>int</td><td><b>定义</b>：当前要处理 <code>digits</code> 中的第几位（下标）<br><b>维护</b>：每选定一个字母并递归返回后，进入下一位<br><b>更新</b>：初始为 0；每轮枚举完当前位所有字母后 <code>idx++</code>（由递归参数传递）</td></tr>
+    <tr><td><code>mapping</code></td><td>dict / array</td><td><b>定义</b>：数字键到对应字母串的固定映射表<br><b>维护</b>：程序启动时一次性建好，全程只读<br><b>更新</b>：不更新；用 <code>digits[idx]</code> 查表得到候选字母集合</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;str&gt;</td><td><b>定义</b>：所有长度等于 <code>len(digits)</code> 的合法组合<br><b>维护</b>：当 <code>idx == len(digits)</code> 时，将当前 <code>path</code> 的副本加入<br><b>更新</b>：每到达叶子层追加一次；不在中途追加半成品</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：对每一位数字，枚举它映射里的每个字母，笛卡尔积式地拼出所有串——思路对，但要写出「逐位扩展」的结构。</p>
+<p class="thinking-step">2. 重复在哪里？每多处理一位，就是在已有前缀后面接一个新字母；子问题变成「从第 idx 位开始，把剩余位数补全」。</p>
+<p class="thinking-step">3. 优化成回溯：固定 <code>path</code> 表示当前前缀，<code>idx</code> 表示处理到第几位；对 <code>digits[idx]</code> 的每个候选字母递归下一层。</p>
+<p class="thinking-step">4. 终止条件：<code>idx == len(digits)</code> 时 <code>path</code> 已是完整组合，加入 <code>ans</code>；否则枚举当前位字母，选、递归、撤销。</p>
+<p class="thinking-step">5. 特判 <code>digits == ""</code> 应返回空列表；最多 4 位、每位最多 4 个字母，回溯深度 ≤ 4，非常安全。</p>""",
+        "code_steps": """<p class="code-step">1. 建立 <code>2-9</code> 到字母串的映射表 <code>mapping</code></p>
+<p class="code-step">2. 若 <code>digits</code> 为空，直接返回 <code>[]</code></p>
+<p class="code-step">3. 定义 DFS <code>backtrack(idx, path)</code>：若 <code>idx == len(digits)</code>，将 <code>path</code> 加入 <code>ans</code> 并返回</p>
+<p class="code-step">4. 取 <code>letters = mapping[digits[idx]]</code>，对每个字母 <code>ch</code>：追加到 <code>path</code>，递归 <code>backtrack(idx+1, path)</code>，再撤销追加</p>
+<p class="code-step">5. 从 <code>backtrack(0, "")</code> 启动，返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def letterCombinations(self, digits: str) -> list[str]:
+        if not digits:
+            return []
+
+        mapping = {
+            "2": "abc", "3": "def", "4": "ghi", "5": "jkl",
+            "6": "mno", "7": "pqrs", "8": "tuv", "9": "wxyz",
+        }
+        ans: list[str] = []
+
+        def backtrack(idx: int, path: list[str]) -> None:
+            if idx == len(digits):
+                ans.append("".join(path))
+                return
+            for ch in mapping[digits[idx]]:
+                path.append(ch)
+                backtrack(idx + 1, path)
+                path.pop()
+
+        backtrack(0, [])
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<string> letterCombinations(string digits) {
+        if (digits.empty()) return {};
+
+        static const vector<string> mapping = {
+            "", "", "abc", "def", "ghi", "jkl",
+            "mno", "pqrs", "tuv", "wxyz"
+        };
+        vector<string> ans;
+        string path;
+
+        function<void(int)> dfs = [&](int idx) {
+            if (idx == (int)digits.size()) {
+                ans.push_back(path);
+                return;
+            }
+            int d = digits[idx] - '0';
+            for (char ch : mapping[d]) {
+                path.push_back(ch);
+                dfs(idx + 1);
+                path.pop_back();
+            }
+        };
+
+        dfs(0);
+        return ans;
+    }
+};
+// 时间 O(4^n · n)，空间 O(n)（递归栈，不计输出）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记空串特判：<code>digits = ""</code> 时必须返回 <code>[]</code>，不能返回 <code>[""]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 回溯不撤销：选完字母递归后必须 <code>pop</code>，否则 <code>path</code> 会越积越长，污染兄弟分支。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把数字当数组下标直接用：<code>'2'</code> 的 ASCII 是 50，应使用 <code>digits[idx] - '0'</code> 或映射字典查表。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空输入</div>
+    <code>digits = "" → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单个数字</div>
+    <code>digits = "2" → ["a","b","c"]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：四位全满（每位 4 字母）</div>
+    <code>digits = "79" → 16 种组合（7 有 4 个字母，9 有 4 个字母）</code>
 </div>""",
     },
 }
