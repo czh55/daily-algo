@@ -2806,6 +2806,137 @@ public:
     <code>digits = "79" → 16 种组合（7 有 4 个字母，9 有 4 个字母）</code>
 </div>""",
     },
+
+    "4sum": {
+        "type": "排序+双指针",
+        "difficulty": "中等",
+        "frontend_id": "18",
+        "title": "四数之和",
+        "time_complexity": "O(n³)",
+        "space_complexity": "O(1)（不计排序）",
+        "description": """<p>给你一个由 <code>n</code> 个整数组成的数组 <code>nums</code>，和一个目标值 <code>target</code>。请你找出并返回满足下述全部条件且<b>不重复</b>的四元组 <code>[nums[a], nums[b], nums[c], nums[d]]</code>（若两个四元组元素一一对应，则认为两个四元组重复）：</p>
+<ul>
+<li><code>0 &lt;= a, b, c, d &lt; n</code></li>
+<li><code>a</code>、<code>b</code>、<code>c</code> 和 <code>d</code> <b>互不相同</b></li>
+<li><code>nums[a] + nums[b] + nums[c] + nums[d] == target</code></li>
+</ul>
+<p>你可以按 <b>任意顺序</b> 返回答案。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,0,-1,0,-2,2], target = 0</div>
+    <div class="example-output">输出：[[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]</div>
+    <div class="example-explain">四元组之和均为 0，且每组四个数下标互不相同；排序去重后得到上述三组不重复答案。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [2,2,2,2], target = 8</div>
+    <div class="example-output">输出：[[2,2,2,2]]</div>
+    <div class="example-explain">四个 2 恰好凑成 target=8，只输出一组。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：四元组中第一个固定数在排序数组中的下标（最小候选）<br><b>维护</b>：外层枚举，每轮锁定 <code>nums[i]</code> 后在内层继续找 (j,l,r)<br><b>更新</b>：<code>for i in range(n-3)</code>；若 <code>nums[i]==nums[i-1]</code> 则 continue 去重</td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：四元组中第二个固定数在 <code>i</code> 右侧的下标<br><b>维护</b>：在 <code>(i, n-2]</code> 区间枚举，与 <code>i</code> 一起把问题降为「两数之和 = target-nums[i]-nums[j]」<br><b>更新</b>：<code>for j in range(i+1, n-2)</code>；若 <code>j&gt;i+1</code> 且 <code>nums[j]==nums[j-1]</code> 则 continue 去重</td></tr>
+    <tr><td><code>l</code></td><td>int</td><td><b>定义</b>：在 <code>j</code> 右侧区间内指向较小候选值的左指针<br><b>维护</b>：当前四数和偏小则右移，命中后跳过重复值<br><b>更新</b>：初始 <code>l=j+1</code>；<code>s&lt;target</code> 时 <code>l++</code>；命中后 while 跳过相同 <code>nums[l]</code></td></tr>
+    <tr><td><code>r</code></td><td>int</td><td><b>定义</b>：在 <code>j</code> 右侧区间内指向较大候选值的右指针<br><b>维护</b>：当前四数和偏大则左移，命中后跳过重复值<br><b>更新</b>：初始 <code>r=n-1</code>；<code>s&gt;target</code> 时 <code>r--</code>；命中后 while 跳过相同 <code>nums[r]</code></td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&gt;</td><td><b>定义</b>：所有不重复的四元组答案<br><b>维护</b>：每当 <code>nums[i]+nums[j]+nums[l]+nums[r]==target</code> 时追加一组<br><b>更新</b>：命中后 <code>l、r</code> 同时内缩并各自跳过重复，避免死循环与重复答案</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写暴力：四重循环枚举 (i,j,l,r)，判断四数之和是否等于 target——O(n⁴)，还要额外去重，肯定超时。</p>
+<p class="thinking-step">2. 重复在哪里？固定前两个数 <code>nums[i]</code>、<code>nums[j]</code> 后，问题变成「在剩余数组里找两数，使四数之和等于 target」，即两数之和 = <code>target - nums[i] - nums[j]</code>。</p>
+<p class="thinking-step">3. 这和 #15 三数之和一脉相承：排序后，两数之和可用双指针——和小了 <code>l++</code>，和大了 <code>r--</code>，O(n)。</p>
+<p class="thinking-step">4. 整体结构：排序 → 外层固定 <code>i</code> → 中层固定 <code>j</code> → 内层双指针找 complement，复杂度 O(n³)。</p>
+<p class="thinking-step">5. 去重关键：排序后 <code>i、j、l、r</code> 四个位置都要跳过与前一个相同的值；另外 C++ 里求和要用 <code>long long</code> 防溢出。</p>""",
+        "code_steps": """<p class="code-step">1. 对 <code>nums</code> 升序排序；若 <code>n&lt;4</code> 直接返回空列表</p>
+<p class="code-step">2. 外层 <code>for i in range(n-3)</code>，若 <code>nums[i]==nums[i-1]</code> 则跳过（i 去重）</p>
+<p class="code-step">3. 中层 <code>for j in range(i+1, n-2)</code>，若 <code>nums[j]==nums[j-1]</code> 且 <code>j&gt;i+1</code> 则跳过（j 去重）</p>
+<p class="code-step">4. 设 <code>l=j+1, r=n-1</code>，当 <code>l&lt;r</code> 时计算 <code>s=nums[i]+nums[j]+nums[l]+nums[r]</code></p>
+<p class="code-step">5. <code>s&lt;target</code> 则 <code>l++</code>；<code>s&gt;target</code> 则 <code>r--</code>；<code>s==target</code> 则记录答案，l、r 内缩并各自跳过重复</p>
+<p class="code-step">6. 返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def fourSum(self, nums: list[int], target: int) -> list[list[int]]:
+        nums.sort()
+        n = len(nums)
+        ans = []
+
+        for i in range(n - 3):
+            # 固定第一个数，跳过重复
+            if i > 0 and nums[i] == nums[i - 1]:
+                continue
+
+            for j in range(i + 1, n - 2):
+                # 固定第二个数，跳过重复
+                if j > i + 1 and nums[j] == nums[j - 1]:
+                    continue
+
+                l, r = j + 1, n - 1
+                while l < r:
+                    s = nums[i] + nums[j] + nums[l] + nums[r]
+                    if s < target:
+                        l += 1
+                    elif s > target:
+                        r -= 1
+                    else:
+                        ans.append([nums[i], nums[j], nums[l], nums[r]])
+                        l += 1
+                        r -= 1
+                        while l < r and nums[l] == nums[l - 1]:
+                            l += 1
+                        while l < r and nums[r] == nums[r + 1]:
+                            r -= 1
+
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> fourSum(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        int n = nums.size();
+        vector<vector<int>> ans;
+        long long t = target;
+
+        for (int i = 0; i < n - 3; i++) {
+            // 固定第一个数，跳过重复
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+
+            for (int j = i + 1; j < n - 2; j++) {
+                // 固定第二个数，跳过重复
+                if (j > i + 1 && nums[j] == nums[j - 1]) continue;
+
+                int l = j + 1, r = n - 1;
+                while (l < r) {
+                    long long s = (long long)nums[i] + nums[j] + nums[l] + nums[r];
+                    if (s < t) l++;
+                    else if (s > t) r--;
+                    else {
+                        ans.push_back({nums[i], nums[j], nums[l], nums[r]});
+                        l++; r--;
+                        while (l < r && nums[l] == nums[l - 1]) l++;
+                        while (l < r && nums[r] == nums[r + 1]) r--;
+                    }
+                }
+            }
+        }
+        return ans;
+    }
+};
+// 时间 O(n³)，空间 O(1)（不计排序）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只做 i 去重、忘记 j 去重：第二个固定数相同会产出重复四元组，<code>j</code> 处也要 <code>continue</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> C++ 用 <code>int</code> 直接相加：四个数各可达 10⁹，和会溢出，求和应转 <code>long long</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 命中后忘记移动 <code>l、r</code>：找到一组答案后必须双指针内缩并跳过重复，否则会死循环或重复收集。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：元素不足四个</div>
+    <code>nums = [1,2], target = 3 → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：四个相同数恰好命中</div>
+    <code>nums = [2,2,2,2], target = 8 → [[2,2,2,2]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：大量重复值</div>
+    <code>nums = [1,0,-1,0,-2,2], target = 0 → 三组不重复四元组（见示例 1）</code>
+</div>""",
+    },
 }
 
 
