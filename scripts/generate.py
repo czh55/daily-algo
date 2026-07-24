@@ -2937,6 +2937,105 @@ public:
     <code>nums = [1,0,-1,0,-2,2], target = 0 → 三组不重复四元组（见示例 1）</code>
 </div>""",
     },
+
+    "remove-nth-node-from-end-of-list": {
+        "type": "链表指针",
+        "difficulty": "中等",
+        "frontend_id": "19",
+        "title": "删除链表的倒数第 N 个结点",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个链表，删除链表的倒数第 <code>n</code> 个结点，并且返回链表的头结点。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,2,3,4,5], n = 2</div>
+    <div class="example-output">输出：[1,2,3,5]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [1], n = 1</div>
+    <div class="example-output">输出：[]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：head = [1,2], n = 1</div>
+    <div class="example-output">输出：[1]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵头节点，<code>dummy.next = head</code><br><b>维护</b>：始终位于真实头节点之前，统一处理「删掉头节点」的边界<br><b>更新</b>：创建后不再移动，最终返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>fast</code></td><td>ListNode*</td><td><b>定义</b>：快指针，先向前走 <code>n</code> 步<br><b>维护</b>：与 <code>slow</code> 保持「快指针比慢指针超前 n 个节点」的间距<br><b>更新</b>：先单独走 n 步，再与 slow 同步每次 <code>fast = fast.next</code></td></tr>
+    <tr><td><code>slow</code></td><td>ListNode*</td><td><b>定义</b>：慢指针，从 dummy 出发<br><b>维护</b>：当 fast 到达链表末尾时，slow 恰好停在「待删节点的前驱」<br><b>更新</b>：与 fast 同步每次 <code>slow = slow.next</code>，最后执行 <code>slow.next = slow.next.next</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写暴力：第一遍遍历数出链表长度 <code>L</code>，第二遍找到正数第 <code>L - n</code> 个节点的前驱并删除——能过，但要扫两遍。</p>
+<p class="thinking-step">2. 重复在哪里？两遍扫描本质都是在「定位待删节点的前驱」；如果能让两个指针保持固定间距 n，一遍就能同时完成定位。</p>
+<p class="thinking-step">3. 快指针先走 n 步，再和慢指针同步前进：当 fast 走到最后一个节点时，slow 正好在倒数第 n+1 个节点（即待删节点的前驱）。</p>
+<p class="thinking-step">4. 边界：若 n 等于链表长度，删的是头节点——没有前驱可改。加 <code>dummy</code> 哨兵后，slow 会停在 dummy，统一用 <code>slow.next = slow.next.next</code> 删除。</p>
+<p class="thinking-step">5. 循环条件是 <code>while fast.next</code> 而非 <code>while fast</code>：保证 fast 停在最后一个节点，slow 才恰好落在前驱位置。</p>""",
+        "code_steps": """<p class="code-step">1. 创建哨兵 <code>dummy = ListNode(0, head)</code>，<code>fast = slow = dummy</code></p>
+<p class="code-step">2. 快指针先走 n 步：<code>for _ in range(n): fast = fast.next</code></p>
+<p class="code-step">3. 双指针同步前进：<code>while fast.next: fast = fast.next; slow = slow.next</code></p>
+<p class="code-step">4. 删除节点：<code>slow.next = slow.next.next</code></p>
+<p class="code-step">5. 返回 <code>dummy.next</code>（新头节点）</p>""",
+        "code_python": """# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def removeNthFromEnd(self, head: Optional[ListNode], n: int) -> Optional[ListNode]:
+        dummy = ListNode(0, head)  # 哨兵，统一处理删头节点
+        fast = slow = dummy
+
+        for _ in range(n):           # 快指针先走 n 步
+            fast = fast.next
+
+        while fast.next:            # 同步前进，fast 到末尾时 slow 在前驱
+            fast = fast.next
+            slow = slow.next
+
+        slow.next = slow.next.next  # 跳过待删节点
+        return dummy.next""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        ListNode dummy(0, head);  // 哨兵，统一处理删头节点
+        ListNode* fast = &dummy;
+        ListNode* slow = &dummy;
+
+        for (int i = 0; i < n; i++)  // 快指针先走 n 步
+            fast = fast->next;
+
+        while (fast->next) {         // 同步前进，fast 到末尾时 slow 在前驱
+            fast = fast->next;
+            slow = slow->next;
+        }
+
+        slow->next = slow->next->next;  // 跳过待删节点
+        return dummy.next;
+    }
+};
+// 时间 O(n)，空间 O(1)
+// 两遍法：先数长度 L，再走到第 L-n 个节点的前驱删除""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>dummy</code> 哨兵：当 <code>n == 链表长度</code> 时要删头节点，没有前驱可改 <code>next</code>，必须用哨兵统一处理。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环条件写成 <code>while fast</code>：fast 会走出链表，slow 停在错误位置；应是 <code>while fast.next</code>，让 fast 停在最后一个节点。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 快指针少走或多走一步：先走恰好 n 步（不是 n-1 也不是 n+1），间距错了 slow 就对不准前驱。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：删除头节点（n 等于链表长度）</div>
+    <code>head = [1], n = 1 → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：删除尾节点</div>
+    <code>head = [1,2], n = 1 → [1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单节点中间删除</div>
+    <code>head = [1,2,3,4,5], n = 2 → [1,2,3,5]（删倒数第 2 个即 4）</code>
+</div>""",
+    },
 }
 
 
