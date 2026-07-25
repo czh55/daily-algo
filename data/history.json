@@ -184,5 +184,11 @@
     "slug": "remove-nth-node-from-end-of-list",
     "title": "删除链表的倒数第 N 个结点",
     "type": "链表指针"
+  },
+  {
+    "date": "2026-07-25",
+    "slug": "valid-parentheses",
+    "title": "有效的括号",
+    "type": "栈"
   }
 ]

@@ -52,6 +52,7 @@ TYPE_CLASS_MAP = {
     "字符串模拟": "string-sim",
     "数学模拟": "math-sim",
     "回溯": "backtrack",
+    "栈": "stack",
 }
 
 # ─── Variable Semantics Data for Core Problem Types ───
@@ -3034,6 +3035,111 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 3：单节点中间删除</div>
     <code>head = [1,2,3,4,5], n = 2 → [1,2,3,5]（删倒数第 2 个即 4）</code>
+</div>""",
+    },
+    "valid-parentheses": {
+        "type": "栈",
+        "difficulty": "简单",
+        "frontend_id": "20",
+        "title": "有效的括号",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "description": """<p>给定一个只包括 <code>'('</code>、<code>')'</code>、<code>'{'</code>、<code>'}'</code>、<code>'['</code>、<code>']'</code> 的字符串 <code>s</code>，判断字符串是否有效。</p>
+<p>有效字符串需满足：</p>
+<ol>
+<li>左括号必须用相同类型的右括号闭合。</li>
+<li>左括号必须以正确的顺序闭合。</li>
+<li>每个右括号都有一个对应的相同类型的左括号。</li>
+</ol>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "()"</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "()[]{}"</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "(]"</div>
+    <div class="example-output">输出：false</div>
+</div>
+<div class="example-block">
+    <h4>示例 4</h4>
+    <div class="example-input">输入：s = "([])"</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 5</h4>
+    <div class="example-input">输入：s = "([)]"</div>
+    <div class="example-output">输出：false</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>stk</code></td><td>list / stack</td><td><b>定义</b>：存放尚未被匹配的左括号<br><b>维护</b>：栈底到栈顶对应「从外到内、尚未闭合」的左括号序列<br><b>更新</b>：遇左括号 <code>push</code>；遇右括号且匹配成功则 <code>pop</code>，否则直接判无效</td></tr>
+    <tr><td><code>pairs</code></td><td>dict</td><td><b>定义</b>：右括号到左括号的映射（<code>')'→'('</code> 等）<br><b>维护</b>：固定不变，覆盖三种括号对<br><b>更新</b>：无需更新，用 <code>pairs[c]</code> 查期望的栈顶左括号</td></tr>
+    <tr><td><code>c</code></td><td>char</td><td><b>定义</b>：当前扫描到的字符<br><b>维护</b>：从左到右依次处理每个括号<br><b>更新</b>：每轮循环取下一个字符，按左/右分支更新栈或提前返回 <code>False</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写暴力：对每个右括号，向前找最近一个未匹配的左括号，看类型是否一致——能判断，但要反复扫描、标记已用字符，实现又慢又乱。</p>
+<p class="thinking-step">2. 重复在哪里？每次匹配的都是「离当前右括号最近、且尚未闭合」的左括号——这正是后进先出（LIFO）的结构。</p>
+<p class="thinking-step">3. 用栈：遇左括号压栈；遇右括号看栈顶是否是与之配对的左括号，是则弹出，否则无效。扫完后栈空才有效。</p>
+<p class="thinking-step">4. 细节：右括号来时栈不能为空；类型必须严格匹配，<code>(]</code>、<code>([)]</code> 都会在匹配阶段失败。</p>
+<p class="thinking-step">5. 复杂度：每个字符最多入栈出栈各一次，时间 O(n)；最坏全是左括号时栈长 O(n)。</p>""",
+        "code_steps": """<p class="code-step">1. 建立右→左括号映射 <code>pairs = {')':'(', ']':'[', '}':'{'}</code></p>
+<p class="code-step">2. 初始化空栈 <code>stk = []</code>，从左到右遍历每个字符 <code>c</code></p>
+<p class="code-step">3. 若 <code>c</code> 是左括号（不在 pairs 的 key 中），<code>stk.append(c)</code></p>
+<p class="code-step">4. 若 <code>c</code> 是右括号：栈空或 <code>stk[-1] != pairs[c]</code> 则返回 <code>False</code>，否则 <code>stk.pop()</code></p>
+<p class="code-step">5. 遍历结束，返回 <code>len(stk) == 0</code></p>""",
+        "code_python": """class Solution:
+    def isValid(self, s: str) -> bool:
+        pairs = {')': '(', ']': '[', '}': '{'}
+        stk = []
+        for c in s:
+            if c not in pairs:          # 左括号，等待匹配
+                stk.append(c)
+            elif not stk or stk[-1] != pairs[c]:  # 右括号无法配对
+                return False
+            else:
+                stk.pop()
+        return not stk""",
+        "code_cpp": """class Solution {
+public:
+    bool isValid(string s) {
+        unordered_map<char, char> pairs = {
+            {')', '('}, {']', '['}, {'}', '{'}
+        };
+        vector<char> stk;
+        for (char c : s) {
+            if (!pairs.count(c)) {       // 左括号，等待匹配
+                stk.push_back(c);
+            } else if (stk.empty() || stk.back() != pairs[c]) {
+                return false;            // 右括号无法配对
+            } else {
+                stk.pop_back();
+            }
+        }
+        return stk.empty();
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 右括号来时忘记检查栈空：如 <code>")"</code>、<code>"]"</code> 会直接访问空栈顶导致错误。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只判断「栈非空」不判断类型：<code>(]</code> 栈顶是 <code>(</code> 却遇到 <code>]</code>，必须返回 <code>False</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 遍历结束后忘记检查栈是否为空：<code>"("</code>、<code>"([("</code> 等左括号未闭合应判无效。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单个左括号未闭合</div>
+    <code>s = "(" → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单个右括号无匹配</div>
+    <code>s = ")" → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：嵌套与交叉</div>
+    <code>s = "([])" → true；s = "([)]" → false</code>
 </div>""",
     },
 }
