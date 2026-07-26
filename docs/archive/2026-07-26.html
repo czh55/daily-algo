@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合并两个有序链表 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-07-26</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#21</span>
+                    <span class="problem-type tag-linked-list">链表指针</span>
+                    <span class="problem-difficulty difficulty-easy">简单</span>
+                </div>
+                <h1 class="problem-title">合并两个有序链表</h1>
+                <a href="https://leetcode.cn/problems/merge-two-sorted-lists/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-07-26">
+                        <source src="../audio/2026-07-26.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-26', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-07-26', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-26', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-26', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>将两个升序链表合并为一个新的 <strong>升序</strong> 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：l1 = [1,2,4], l2 = [1,3,4]</div>
+    <div class="example-output">输出：[1,1,2,3,4,4]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：l1 = [], l2 = []</div>
+    <div class="example-output">输出：[]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：l1 = [], l2 = [0]</div>
+    <div class="example-output">输出：[0]</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 我先写暴力：把两条链表所有节点值收集到数组，排序后再逐个新建节点串起来——能过，但白白丢弃了「已有序」这一条件，还多用了 O(m+n) 额外空间。</p>
+<p class="thinking-step">2. 重复在哪里？每次只需要在两条链表的「当前头节点」里取较小者接到结果尾部，然后该链表的指针前移——这和合并两个有序数组的双指针一模一样，只是用指针代替下标。</p>
+<p class="thinking-step">3. 用哨兵 <code>dummy</code> + 尾指针 <code>curr</code>：比较 <code>l1.val</code> 与 <code>l2.val</code>，较小者挂到 <code>curr.next</code>，对应指针后移，<code>curr</code> 跟进。</p>
+<p class="thinking-step">4. 当其中一条链表耗尽，另一条剩余部分已经有序，直接 <code>curr.next = l1 or l2</code> 一次性接上，无需再逐个比较。</p>
+<p class="thinking-step">5. 复杂度：每个节点恰好被访问一次，时间 O(m+n)；只用到常数个指针，空间 O(1)（不计返回链表本身）。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵头节点，不存放有效值<br><b>维护</b>：始终位于合并结果链表的最前端，统一处理「结果为空」等边界<br><b>更新</b>：创建后不再移动，最终返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>curr</code></td><td>ListNode*</td><td><b>定义</b>：合并结果链表的尾指针<br><b>维护</b>：指向已拼接部分的最后一个节点，新节点总是接在 <code>curr.next</code><br><b>更新</b>：每选中一个较小节点后 <code>curr = curr.next</code>，尾指针前移</td></tr>
+    <tr><td><code>l1 / l2</code></td><td>ListNode*</td><td><b>定义</b>：两条输入链表当前待比较的节点<br><b>维护</b>：各自沿 next 前进，始终指向「尚未接入结果」的最小候选<br><b>更新</b>：谁被接入结果谁就 <code>l1 = l1.next</code> 或 <code>l2 = l2.next</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 创建哨兵 <code>dummy = ListNode(0)</code>，<code>curr = dummy</code></p>
+<p class="code-step">2. 当 <code>l1</code> 和 <code>l2</code> 均非空：比较值，较小者挂到 <code>curr.next</code>，对应指针后移，<code>curr = curr.next</code></p>
+<p class="code-step">3. 一条链表耗尽后，将另一条剩余部分直接接到 <code>curr.next</code></p>
+<p class="code-step">4. 返回 <code>dummy.next</code>（合并后的真实头节点）</p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python"># Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -&gt; Optional[ListNode]:
+        dummy = ListNode(0)   # 哨兵，简化头节点处理
+        curr = dummy          # 结果链表的尾指针
+        l1, l2 = list1, list2
+
+        while l1 and l2:
+            if l1.val &lt;= l2.val:
+                curr.next = l1
+                l1 = l1.next
+            else:
+                curr.next = l2
+                l2 = l2.next
+            curr = curr.next
+
+        curr.next = l1 or l2    # 接上剩余有序段
+        return dummy.next</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+        ListNode dummy(0);        // 哨兵，简化头节点处理
+        ListNode* curr = &amp;dummy;  // 结果链表的尾指针
+
+        while (list1 &amp;&amp; list2) {
+            if (list1-&gt;val &lt;= list2-&gt;val) {
+                curr-&gt;next = list1;
+                list1 = list1-&gt;next;
+            } else {
+                curr-&gt;next = list2;
+                list2 = list2-&gt;next;
+            }
+            curr = curr-&gt;next;
+        }
+        curr-&gt;next = list1 ? list1 : list2;  // 接上剩余有序段
+        return dummy.next;
+    }
+};
+// 时间 O(m+n)，空间 O(1)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(m + n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(1)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记移动 <code>curr</code>：只改了 <code>curr.next</code> 却不 <code>curr = curr.next</code>，会导致所有节点叠在同一位置、链表成环或断裂。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 一条链表耗尽后仍继续 while 比较：剩余段已经有序，应直接 <code>curr.next = l1 ? l1 : l2</code>，否则多余循环且可能访问空指针。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回 <code>dummy</code> 而非 <code>dummy.next</code>：哨兵节点不应出现在最终结果中。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：两条链表均为空</div>
+    <code>l1 = [], l2 = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：其中一条为空</div>
+    <code>l1 = [], l2 = [0] → [0]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：等值节点交叉出现</div>
+    <code>l1 = [1,2,4], l2 = [1,3,4] → [1,1,2,3,4,4]（相等时取 l1 即可）</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

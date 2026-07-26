@@ -190,5 +190,11 @@
     "slug": "valid-parentheses",
     "title": "有效的括号",
     "type": "栈"
+  },
+  {
+    "date": "2026-07-26",
+    "slug": "merge-two-sorted-lists",
+    "title": "合并两个有序链表",
+    "type": "链表指针"
   }
 ]

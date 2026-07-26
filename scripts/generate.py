@@ -3142,6 +3142,106 @@ public:
     <code>s = "([])" → true；s = "([)]" → false</code>
 </div>""",
     },
+    "merge-two-sorted-lists": {
+        "type": "链表指针",
+        "difficulty": "简单",
+        "frontend_id": "21",
+        "title": "合并两个有序链表",
+        "time_complexity": "O(m + n)",
+        "space_complexity": "O(1)",
+        "description": """<p>将两个升序链表合并为一个新的 <strong>升序</strong> 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：l1 = [1,2,4], l2 = [1,3,4]</div>
+    <div class="example-output">输出：[1,1,2,3,4,4]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：l1 = [], l2 = []</div>
+    <div class="example-output">输出：[]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：l1 = [], l2 = [0]</div>
+    <div class="example-output">输出：[0]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵头节点，不存放有效值<br><b>维护</b>：始终位于合并结果链表的最前端，统一处理「结果为空」等边界<br><b>更新</b>：创建后不再移动，最终返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>curr</code></td><td>ListNode*</td><td><b>定义</b>：合并结果链表的尾指针<br><b>维护</b>：指向已拼接部分的最后一个节点，新节点总是接在 <code>curr.next</code><br><b>更新</b>：每选中一个较小节点后 <code>curr = curr.next</code>，尾指针前移</td></tr>
+    <tr><td><code>l1 / l2</code></td><td>ListNode*</td><td><b>定义</b>：两条输入链表当前待比较的节点<br><b>维护</b>：各自沿 next 前进，始终指向「尚未接入结果」的最小候选<br><b>更新</b>：谁被接入结果谁就 <code>l1 = l1.next</code> 或 <code>l2 = l2.next</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写暴力：把两条链表所有节点值收集到数组，排序后再逐个新建节点串起来——能过，但白白丢弃了「已有序」这一条件，还多用了 O(m+n) 额外空间。</p>
+<p class="thinking-step">2. 重复在哪里？每次只需要在两条链表的「当前头节点」里取较小者接到结果尾部，然后该链表的指针前移——这和合并两个有序数组的双指针一模一样，只是用指针代替下标。</p>
+<p class="thinking-step">3. 用哨兵 <code>dummy</code> + 尾指针 <code>curr</code>：比较 <code>l1.val</code> 与 <code>l2.val</code>，较小者挂到 <code>curr.next</code>，对应指针后移，<code>curr</code> 跟进。</p>
+<p class="thinking-step">4. 当其中一条链表耗尽，另一条剩余部分已经有序，直接 <code>curr.next = l1 or l2</code> 一次性接上，无需再逐个比较。</p>
+<p class="thinking-step">5. 复杂度：每个节点恰好被访问一次，时间 O(m+n)；只用到常数个指针，空间 O(1)（不计返回链表本身）。</p>""",
+        "code_steps": """<p class="code-step">1. 创建哨兵 <code>dummy = ListNode(0)</code>，<code>curr = dummy</code></p>
+<p class="code-step">2. 当 <code>l1</code> 和 <code>l2</code> 均非空：比较值，较小者挂到 <code>curr.next</code>，对应指针后移，<code>curr = curr.next</code></p>
+<p class="code-step">3. 一条链表耗尽后，将另一条剩余部分直接接到 <code>curr.next</code></p>
+<p class="code-step">4. 返回 <code>dummy.next</code>（合并后的真实头节点）</p>""",
+        "code_python": """# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def mergeTwoLists(self, list1: Optional[ListNode], list2: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode(0)   # 哨兵，简化头节点处理
+        curr = dummy          # 结果链表的尾指针
+        l1, l2 = list1, list2
+
+        while l1 and l2:
+            if l1.val <= l2.val:
+                curr.next = l1
+                l1 = l1.next
+            else:
+                curr.next = l2
+                l2 = l2.next
+            curr = curr.next
+
+        curr.next = l1 or l2    # 接上剩余有序段
+        return dummy.next""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+        ListNode dummy(0);        // 哨兵，简化头节点处理
+        ListNode* curr = &dummy;  // 结果链表的尾指针
+
+        while (list1 && list2) {
+            if (list1->val <= list2->val) {
+                curr->next = list1;
+                list1 = list1->next;
+            } else {
+                curr->next = list2;
+                list2 = list2->next;
+            }
+            curr = curr->next;
+        }
+        curr->next = list1 ? list1 : list2;  // 接上剩余有序段
+        return dummy.next;
+    }
+};
+// 时间 O(m+n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记移动 <code>curr</code>：只改了 <code>curr.next</code> 却不 <code>curr = curr.next</code>，会导致所有节点叠在同一位置、链表成环或断裂。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 一条链表耗尽后仍继续 while 比较：剩余段已经有序，应直接 <code>curr.next = l1 ? l1 : l2</code>，否则多余循环且可能访问空指针。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回 <code>dummy</code> 而非 <code>dummy.next</code>：哨兵节点不应出现在最终结果中。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：两条链表均为空</div>
+    <code>l1 = [], l2 = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：其中一条为空</div>
+    <code>l1 = [], l2 = [0] → [0]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：等值节点交叉出现</div>
+    <code>l1 = [1,2,4], l2 = [1,3,4] → [1,1,2,3,4,4]（相等时取 l1 即可）</code>
+</div>""",
+    },
 }
 
 
