@@ -196,5 +196,11 @@
     "slug": "merge-two-sorted-lists",
     "title": "合并两个有序链表",
     "type": "链表指针"
+  },
+  {
+    "date": "2026-07-27",
+    "slug": "generate-parentheses",
+    "title": "括号生成",
+    "type": "回溯"
   }
 ]

@@ -3242,6 +3242,107 @@ public:
     <code>l1 = [1,2,4], l2 = [1,3,4] → [1,1,2,3,4,4]（相等时取 l1 即可）</code>
 </div>""",
     },
+
+    "generate-parentheses": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "22",
+        "title": "括号生成",
+        "time_complexity": "O(4^n / √n)",
+        "space_complexity": "O(n)（递归栈，不计输出）",
+        "description": """<p>数字 <code>n</code> 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 <strong>有效的</strong> 括号组合。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 3</div>
+    <div class="example-output">输出：["((()))","(()())","(())()","()(())","()()()"]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 1</div>
+    <div class="example-output">输出：["()"]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>path</code></td><td>str / list</td><td><b>定义</b>：当前已拼接的括号前缀<br><b>维护</b>：每次递归尝试在末尾追加 <code>'('</code> 或 <code>')'</code><br><b>更新</b>：选左括号时追加并递归；回溯时撤销（<code>pop</code> 或切片还原）</td></tr>
+    <tr><td><code>open</code></td><td>int</td><td><b>定义</b>：<code>path</code> 中已使用的左括号 <code>'('</code> 个数<br><b>维护</b>：只有 <code>open &lt; n</code> 时才允许再追加左括号<br><b>更新</b>：追加 <code>'('</code> 时 <code>open++</code>；回溯返回后恢复</td></tr>
+    <tr><td><code>close</code></td><td>int</td><td><b>定义</b>：<code>path</code> 中已使用的右括号 <code>')'</code> 个数<br><b>维护</b>：只有 <code>close &lt; open</code> 时才允许追加右括号（保证任意前缀合法）<br><b>更新</b>：追加 <code>')'</code> 时 <code>close++</code>；回溯返回后恢复</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;str&gt;</td><td><b>定义</b>：所有长度为 <code>2n</code> 的合法括号串<br><b>维护</b>：当 <code>len(path) == 2n</code> 时，将当前 <code>path</code> 的副本加入<br><b>更新</b>：每到达叶子层追加一次；中途不收集半成品</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：枚举所有长度为 <code>2n</code> 的 <code>'('</code>/<code>')'</code> 组合，再逐个用栈判断是否合法——思路对，但组合数高达 <code>2^{2n}</code>，大量无效串被白白生成。</p>
+<p class="thinking-step">2. 重复在哪里？每多放一个括号，子问题变成「在已有前缀上继续补全剩余括号」；无效分支的共同特征是：某一时刻右括号比左括号多，或左括号已经用完却还在放左括号。</p>
+<p class="thinking-step">3. 优化成回溯剪枝：用 <code>open</code>、<code>close</code> 记录已用括号数；能放 <code>'('</code> 当且仅当 <code>open &lt; n</code>，能放 <code>')'</code> 当且仅当 <code>close &lt; open</code>。</p>
+<p class="thinking-step">4. 终止条件：<code>len(path) == 2n</code> 时得到一棵完整合法串，加入 <code>ans</code>；否则按「先尝试左、再尝试右」递归，每次选择后撤销。</p>
+<p class="thinking-step">5. <code>n = 1</code> 只有 <code>"()"</code>；<code>n</code> 最大为 8，回溯深度 ≤ 16，剪枝后实际访问节点远少于全枚举。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化结果列表 <code>ans</code>，定义 DFS <code>backtrack(path, open, close)</code></p>
+<p class="code-step">2. 若 <code>len(path) == 2 * n</code>，将 <code>path</code> 加入 <code>ans</code> 并返回</p>
+<p class="code-step">3. 若 <code>open &lt; n</code>：追加 <code>'('</code>，递归 <code>backtrack(..., open+1, close)</code>，再撤销</p>
+<p class="code-step">4. 若 <code>close &lt; open</code>：追加 <code>')'</code>，递归 <code>backtrack(..., open, close+1)</code>，再撤销</p>
+<p class="code-step">5. 从 <code>backtrack([], 0, 0)</code> 启动，返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def generateParenthesis(self, n: int) -> list[str]:
+        ans: list[str] = []
+
+        def backtrack(path: list[str], open_cnt: int, close_cnt: int) -> None:
+            if len(path) == 2 * n:
+                ans.append("".join(path))
+                return
+            if open_cnt < n:
+                path.append("(")
+                backtrack(path, open_cnt + 1, close_cnt)
+                path.pop()
+            if close_cnt < open_cnt:
+                path.append(")")
+                backtrack(path, open_cnt, close_cnt + 1)
+                path.pop()
+
+        backtrack([], 0, 0)
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<string> generateParenthesis(int n) {
+        vector<string> ans;
+        string path;
+
+        function<void(int, int)> dfs = [&](int open, int close) {
+            if ((int)path.size() == 2 * n) {
+                ans.push_back(path);
+                return;
+            }
+            if (open < n) {
+                path.push_back('(');
+                dfs(open + 1, close);
+                path.pop_back();
+            }
+            if (close < open) {
+                path.push_back(')');
+                dfs(open, close + 1);
+                path.pop_back();
+            }
+        };
+
+        dfs(0, 0);
+        return ans;
+    }
+};
+// 时间 O(4^n / √n)，空间 O(n)（递归栈，不计输出）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 右括号放太早：必须满足 <code>close &lt; open</code> 才能追加 <code>')'</code>，否则会出现 <code>")("</code> 这类非法前缀。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 回溯不撤销：追加括号后递归返回，必须 <code>pop</code>，否则 <code>path</code> 会污染兄弟分支。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 终止条件写错：应判断 <code>len(path) == 2*n</code>（或 <code>open == close == n</code>），不能只判断 <code>open == n</code> 就收集——那时右括号还没补全。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：n = 1</div>
+    <code>n = 1 → ["()"]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：n = 2</div>
+    <code>n = 2 → ["(())","()()"]</code>（共 2 种）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：n = 3</div>
+    <code>n = 3 → 5 种合法串</code>（卡特兰数 C₃ = 5）
+</div>""",
+    },
 }
 
 
