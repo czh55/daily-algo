@@ -53,6 +53,7 @@ TYPE_CLASS_MAP = {
     "数学模拟": "math-sim",
     "回溯": "backtrack",
     "栈": "stack",
+    "堆（优先队列）": "heap",
 }
 
 # ─── Variable Semantics Data for Core Problem Types ───
@@ -3341,6 +3342,125 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 3：n = 3</div>
     <code>n = 3 → 5 种合法串</code>（卡特兰数 C₃ = 5）
+</div>""",
+    },
+
+    "merge-k-sorted-lists": {
+        "type": "堆（优先队列）",
+        "difficulty": "困难",
+        "frontend_id": "23",
+        "title": "合并 K 个升序链表",
+        "time_complexity": "O(N log k)",
+        "space_complexity": "O(k)（堆大小）",
+        "description": """<p>给你一个链表数组，每个链表都已经按升序排列。</p>
+<p>请你将所有链表合并到一个升序链表中，返回合并后的链表。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：lists = [[1,4,5],[1,3,4],[2,6]]</div>
+    <div class="example-output">输出：[1,1,2,3,4,4,5,6]</div>
+    <div class="example-explain">链表数组如下：
+[
+  1-&gt;4-&gt;5,
+  1-&gt;3-&gt;4,
+  2-&gt;6
+]
+将它们合并到一个有序链表中得到 1-&gt;1-&gt;2-&gt;3-&gt;4-&gt;4-&gt;5-&gt;6。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：lists = []</div>
+    <div class="example-output">输出：[]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：lists = [[]]</div>
+    <div class="example-output">输出：[]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵头节点，不存放有效值<br><b>维护</b>：始终位于合并结果链表的最前端，统一处理「结果为空」等边界<br><b>更新</b>：创建后不再移动，最终返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>curr</code></td><td>ListNode*</td><td><b>定义</b>：合并结果链表的尾指针<br><b>维护</b>：指向已拼接部分的最后一个节点，新节点总是接在 <code>curr.next</code><br><b>更新</b>：每从堆中取出节点并接入后 <code>curr = curr.next</code></td></tr>
+    <tr><td><code>heap</code></td><td>min-heap</td><td><b>定义</b>：存放各链表当前头节点的最小堆，堆顶始终是全局最小值<br><b>维护</b>：初始化时把每条非空链表的头节点入堆；每弹出一个节点后，若该节点还有后继则把后继入堆<br><b>更新</b>：<code>heappop</code> 取出最小节点；<code>heappush(node.next)</code> 补充下一位候选</td></tr>
+    <tr><td><code>(val, i, node)</code></td><td>tuple</td><td><b>定义</b>：堆元素的排序键——节点值、链表编号、节点指针<br><b>维护</b>：值相等时用编号 <code>i</code> 打破平局，避免 Python 比较两个 <code>ListNode</code> 对象<br><b>更新</b>：每次入堆时按当前头节点的三元组构造</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：把所有节点值收集到数组里排序，再逐个新建节点串起来——能过，但完全没用「每条链表已有序」这一条件，时间 O(N log N)、额外空间 O(N)。</p>
+<p class="thinking-step">2. 重复在哪里？每次只需要在 k 条链表的「当前头节点」里找全局最小者接到结果尾部，然后该链表指针前移——这和合并两个有序链表一样，只是候选从 2 个变成 k 个。</p>
+<p class="thinking-step">3. 朴素做法：依次把 lists[0] 与 lists[1] 合并、再与 lists[2] 合并……复用 #21 的双指针合并，最坏时间 O(kN)（N 为总节点数），k 很大时偏慢。</p>
+<p class="thinking-step">4. 优化成最小堆：把 k 个头节点放入堆，每次弹出堆顶（全局最小）接到 <code>curr.next</code>，若该节点有后继则把后继入堆——每个节点恰好入堆、出堆一次，时间 O(N log k)。</p>
+<p class="thinking-step">5. 另一种 O(N log k) 是分治：两两归并像归并排序，但堆解法更直观，且 k 条链表头随时变化时堆天然适配。</p>""",
+        "code_steps": """<p class="code-step">1. 创建哨兵 <code>dummy</code>，<code>curr = dummy</code>；初始化空堆 <code>heap</code></p>
+<p class="code-step">2. 遍历 <code>lists</code>：对每条非空链表，将 <code>(node.val, i, node)</code> 入堆</p>
+<p class="code-step">3. 当堆非空：弹出最小元 <code>(val, i, node)</code>，挂到 <code>curr.next</code>，<code>curr = curr.next</code></p>
+<p class="code-step">4. 若 <code>node.next</code> 非空，将 <code>(node.next.val, i, node.next)</code> 入堆</p>
+<p class="code-step">5. 返回 <code>dummy.next</code></p>""",
+        "code_python": """import heapq
+from typing import List, Optional
+
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+        dummy = ListNode(0)   # 哨兵，简化头节点处理
+        curr = dummy          # 结果链表的尾指针
+        heap: list[tuple[int, int, ListNode]] = []
+
+        for i, node in enumerate(lists):
+            if node:
+                heapq.heappush(heap, (node.val, i, node))
+
+        while heap:
+            _, i, node = heapq.heappop(heap)
+            curr.next = node
+            curr = curr.next
+            nxt = node.next
+            if nxt:
+                heapq.heappush(heap, (nxt.val, i, nxt))
+
+        return dummy.next""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* mergeKLists(vector<ListNode*>& lists) {
+        auto cmp = [](ListNode* a, ListNode* b) { return a->val > b->val; };
+        priority_queue<ListNode*, vector<ListNode*>, decltype(cmp)> pq(cmp);
+
+        for (ListNode* head : lists) {
+            if (head) pq.push(head);
+        }
+
+        ListNode dummy(0);
+        ListNode* curr = &dummy;
+
+        while (!pq.empty()) {
+            ListNode* node = pq.top();
+            pq.pop();
+            curr->next = node;
+            curr = curr->next;
+            if (node->next) pq.push(node->next);
+        }
+        return dummy.next;
+    }
+};
+// 时间 O(N log k)，空间 O(k)（堆大小）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> Python 堆直接存 <code>ListNode</code>：值相等时会比较两个节点对象并报错——必须用 <code>(val, i, node)</code> 元组，用编号 <code>i</code> 打破平局。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记移动 <code>curr</code>：只设置 <code>curr.next</code> 却不 <code>curr = curr.next</code>，会导致节点叠在同一位置或成环。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空链表未过滤：初始化时须跳过 <code>null</code> 头节点，否则堆中混入空指针；<code>lists = []</code> 或 <code>[[]]</code> 应直接返回空链表。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：lists 为空数组</div>
+    <code>lists = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：仅含空链表</div>
+    <code>lists = [[]] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：多条链表等值头节点</div>
+    <code>lists = [[1,4,5],[1,3,4],[2,6]] → [1,1,2,3,4,4,5,6]</code>（堆须正确处理值相等）
 </div>""",
     },
 }

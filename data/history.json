@@ -202,5 +202,11 @@
     "slug": "generate-parentheses",
     "title": "括号生成",
     "type": "回溯"
+  },
+  {
+    "date": "2026-07-28",
+    "slug": "merge-k-sorted-lists",
+    "title": "合并 K 个升序链表",
+    "type": "堆（优先队列）"
   }
 ]
