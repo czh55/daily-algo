@@ -3463,6 +3463,112 @@ public:
     <code>lists = [[1,4,5],[1,3,4],[2,6]] → [1,1,2,3,4,4,5,6]</code>（堆须正确处理值相等）
 </div>""",
     },
+
+    "swap-nodes-in-pairs": {
+        "type": "链表指针",
+        "difficulty": "中等",
+        "frontend_id": "24",
+        "title": "两两交换链表中的节点",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个链表，两两交换其中相邻的节点，并返回交换后链表的头节点。你必须在不修改节点内部的值的情况下完成本题（即，只能进行节点交换）。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,2,3,4]</div>
+    <div class="example-output">输出：[2,1,4,3]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = []</div>
+    <div class="example-output">输出：[]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：head = [1]</div>
+    <div class="example-output">输出：[1]</div>
+</div>
+<div class="example-block">
+    <h4>示例 4</h4>
+    <div class="example-input">输入：head = [1,2,3]</div>
+    <div class="example-output">输出：[2,1,3]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵头节点，<code>dummy.next = head</code><br><b>维护</b>：始终位于真实头节点之前，统一处理「第一对交换后新头节点」的边界<br><b>更新</b>：创建后不再移动，最终返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>prev</code></td><td>ListNode*</td><td><b>定义</b>：待交换相邻两节点的前驱指针<br><b>维护</b>：每轮交换完成后，<code>prev</code> 应停在「刚交换完的那一对」的第二个节点（即原 first）<br><b>更新</b>：交换一对后 <code>prev = first</code>，下一轮从 <code>prev.next</code> 继续</td></tr>
+    <tr><td><code>first</code></td><td>ListNode*</td><td><b>定义</b>：当前待交换对中的第一个节点（<code>prev.next</code>）<br><b>维护</b>：与 <code>second</code> 构成相邻一对；交换后 <code>first</code> 成为该对的尾节点<br><b>更新</b>：每轮从 <code>prev.next</code> 读取；交换后通过 <code>prev = first</code> 进入下一对</td></tr>
+    <tr><td><code>second</code></td><td>ListNode*</td><td><b>定义</b>：当前待交换对中的第二个节点（<code>first.next</code>）<br><b>维护</b>：交换后 <code>second</code> 成为该对的新头，并接到 <code>prev.next</code><br><b>更新</b>：每轮从 <code>first.next</code> 读取；若不存在则不足一对，循环结束</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：把节点值复制到数组，两两交换数组元素再重建链表——能过，但题目要求「只能进行节点交换」，且多用了 O(n) 额外空间。</p>
+<p class="thinking-step">2. 重复在哪里？每次操作都是「把相邻两个节点的指针关系翻转」；下一对的前驱，恰好是「上一对交换后的尾节点」。</p>
+<p class="thinking-step">3. 设前驱 <code>prev</code>、待换对 <code>first</code>、<code>second</code>：三步翻转——<code>prev.next = second</code>，<code>first.next = second.next</code>，<code>second.next = first</code>；然后 <code>prev = first</code> 处理下一对。</p>
+<p class="thinking-step">4. 边界：链表为空或只有一个节点时无需交换；奇数个节点时最后一对只有 <code>first</code>，当 <code>first.next</code> 为空应直接退出。</p>
+<p class="thinking-step">5. 第一对交换会改变头节点——加 <code>dummy</code> 哨兵后，<code>prev</code> 从 <code>dummy</code> 出发，与删头节点、合并链表等题同一套路。</p>""",
+        "code_steps": """<p class="code-step">1. 创建哨兵 <code>dummy = ListNode(0, head)</code>，<code>prev = dummy</code></p>
+<p class="code-step">2. 当 <code>prev.next</code> 与 <code>prev.next.next</code> 均非空时进入循环（保证有一对可换）</p>
+<p class="code-step">3. 令 <code>first = prev.next</code>，<code>second = first.next</code></p>
+<p class="code-step">4. 翻转这一对：<code>prev.next = second</code>；<code>first.next = second.next</code>；<code>second.next = first</code></p>
+<p class="code-step">5. 更新 <code>prev = first</code>，继续下一对；返回 <code>dummy.next</code></p>""",
+        "code_python": """# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def swapPairs(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode(0, head)   # 哨兵，统一处理头节点交换
+        prev = dummy
+
+        while prev.next and prev.next.next:
+            first = prev.next
+            second = first.next
+
+            prev.next = second          # 前驱接到新头 second
+            first.next = second.next    # first 接到后续链表
+            second.next = first         # second 指向 first，完成翻转
+
+            prev = first                # prev 移到本对尾节点，准备下一对
+
+        return dummy.next""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* swapPairs(ListNode* head) {
+        ListNode dummy(0, head);  // 哨兵，统一处理头节点交换
+        ListNode* prev = &dummy;
+
+        while (prev->next && prev->next->next) {
+            ListNode* first = prev->next;
+            ListNode* second = first->next;
+
+            prev->next = second;         // 前驱接到新头 second
+            first->next = second->next;  // first 接到后续链表
+            second->next = first;        // second 指向 first，完成翻转
+
+            prev = first;                // prev 移到本对尾节点，准备下一对
+        }
+        return dummy.next;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>dummy</code> 哨兵：第一对 <code>1↔2</code> 交换后新头是 2，没有哨兵时很难统一修改「头指针的前驱」。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 翻转顺序写错：必须先让 <code>prev.next = second</code>，再改 <code>first.next</code>，最后 <code>second.next = first</code>；若先改 <code>first.next</code> 可能丢失 <code>second</code> 的引用。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环后忘记 <code>prev = first</code>：否则 <code>prev</code> 仍指向已处理节点，会反复交换同一对或成环。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空链表</div>
+    <code>head = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>head = [1] → [1]</code>（不足一对，原样返回）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：奇数个节点</div>
+    <code>head = [1,2,3] → [2,1,3]</code>（最后一对只有 3，不参与交换）
+</div>""",
+    },
 }
 
 
