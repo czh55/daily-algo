@@ -208,5 +208,11 @@
     "slug": "merge-k-sorted-lists",
     "title": "合并 K 个升序链表",
     "type": "堆（优先队列）"
+  },
+  {
+    "date": "2026-07-29",
+    "slug": "swap-nodes-in-pairs",
+    "title": "两两交换链表中的节点",
+    "type": "链表指针"
   }
 ]

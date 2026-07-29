@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>两两交换链表中的节点 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-07-29</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#24</span>
+                    <span class="problem-type tag-linked-list">链表指针</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">两两交换链表中的节点</h1>
+                <a href="https://leetcode.cn/problems/swap-nodes-in-pairs/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-07-29">
+                        <source src="../audio/2026-07-29.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-29', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-07-29', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-29', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-07-29', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你一个链表，两两交换其中相邻的节点，并返回交换后链表的头节点。你必须在不修改节点内部的值的情况下完成本题（即，只能进行节点交换）。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,2,3,4]</div>
+    <div class="example-output">输出：[2,1,4,3]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = []</div>
+    <div class="example-output">输出：[]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：head = [1]</div>
+    <div class="example-output">输出：[1]</div>
+</div>
+<div class="example-block">
+    <h4>示例 4</h4>
+    <div class="example-input">输入：head = [1,2,3]</div>
+    <div class="example-output">输出：[2,1,3]</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 我先想暴力：把节点值复制到数组，两两交换数组元素再重建链表——能过，但题目要求「只能进行节点交换」，且多用了 O(n) 额外空间。</p>
+<p class="thinking-step">2. 重复在哪里？每次操作都是「把相邻两个节点的指针关系翻转」；下一对的前驱，恰好是「上一对交换后的尾节点」。</p>
+<p class="thinking-step">3. 设前驱 <code>prev</code>、待换对 <code>first</code>、<code>second</code>：三步翻转——<code>prev.next = second</code>，<code>first.next = second.next</code>，<code>second.next = first</code>；然后 <code>prev = first</code> 处理下一对。</p>
+<p class="thinking-step">4. 边界：链表为空或只有一个节点时无需交换；奇数个节点时最后一对只有 <code>first</code>，当 <code>first.next</code> 为空应直接退出。</p>
+<p class="thinking-step">5. 第一对交换会改变头节点——加 <code>dummy</code> 哨兵后，<code>prev</code> 从 <code>dummy</code> 出发，与删头节点、合并链表等题同一套路。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵头节点，<code>dummy.next = head</code><br><b>维护</b>：始终位于真实头节点之前，统一处理「第一对交换后新头节点」的边界<br><b>更新</b>：创建后不再移动，最终返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>prev</code></td><td>ListNode*</td><td><b>定义</b>：待交换相邻两节点的前驱指针<br><b>维护</b>：每轮交换完成后，<code>prev</code> 应停在「刚交换完的那一对」的第二个节点（即原 first）<br><b>更新</b>：交换一对后 <code>prev = first</code>，下一轮从 <code>prev.next</code> 继续</td></tr>
+    <tr><td><code>first</code></td><td>ListNode*</td><td><b>定义</b>：当前待交换对中的第一个节点（<code>prev.next</code>）<br><b>维护</b>：与 <code>second</code> 构成相邻一对；交换后 <code>first</code> 成为该对的尾节点<br><b>更新</b>：每轮从 <code>prev.next</code> 读取；交换后通过 <code>prev = first</code> 进入下一对</td></tr>
+    <tr><td><code>second</code></td><td>ListNode*</td><td><b>定义</b>：当前待交换对中的第二个节点（<code>first.next</code>）<br><b>维护</b>：交换后 <code>second</code> 成为该对的新头，并接到 <code>prev.next</code><br><b>更新</b>：每轮从 <code>first.next</code> 读取；若不存在则不足一对，循环结束</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 创建哨兵 <code>dummy = ListNode(0, head)</code>，<code>prev = dummy</code></p>
+<p class="code-step">2. 当 <code>prev.next</code> 与 <code>prev.next.next</code> 均非空时进入循环（保证有一对可换）</p>
+<p class="code-step">3. 令 <code>first = prev.next</code>，<code>second = first.next</code></p>
+<p class="code-step">4. 翻转这一对：<code>prev.next = second</code>；<code>first.next = second.next</code>；<code>second.next = first</code></p>
+<p class="code-step">5. 更新 <code>prev = first</code>，继续下一对；返回 <code>dummy.next</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python"># Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def swapPairs(self, head: Optional[ListNode]) -&gt; Optional[ListNode]:
+        dummy = ListNode(0, head)   # 哨兵，统一处理头节点交换
+        prev = dummy
+
+        while prev.next and prev.next.next:
+            first = prev.next
+            second = first.next
+
+            prev.next = second          # 前驱接到新头 second
+            first.next = second.next    # first 接到后续链表
+            second.next = first         # second 指向 first，完成翻转
+
+            prev = first                # prev 移到本对尾节点，准备下一对
+
+        return dummy.next</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    ListNode* swapPairs(ListNode* head) {
+        ListNode dummy(0, head);  // 哨兵，统一处理头节点交换
+        ListNode* prev = &amp;dummy;
+
+        while (prev-&gt;next &amp;&amp; prev-&gt;next-&gt;next) {
+            ListNode* first = prev-&gt;next;
+            ListNode* second = first-&gt;next;
+
+            prev-&gt;next = second;         // 前驱接到新头 second
+            first-&gt;next = second-&gt;next;  // first 接到后续链表
+            second-&gt;next = first;        // second 指向 first，完成翻转
+
+            prev = first;                // prev 移到本对尾节点，准备下一对
+        }
+        return dummy.next;
+    }
+};
+// 时间 O(n)，空间 O(1)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(1)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>dummy</code> 哨兵：第一对 <code>1↔2</code> 交换后新头是 2，没有哨兵时很难统一修改「头指针的前驱」。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 翻转顺序写错：必须先让 <code>prev.next = second</code>，再改 <code>first.next</code>，最后 <code>second.next = first</code>；若先改 <code>first.next</code> 可能丢失 <code>second</code> 的引用。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环后忘记 <code>prev = first</code>：否则 <code>prev</code> 仍指向已处理节点，会反复交换同一对或成环。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：空链表</div>
+    <code>head = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>head = [1] → [1]</code>（不足一对，原样返回）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：奇数个节点</div>
+    <code>head = [1,2,3] → [2,1,3]</code>（最后一对只有 3，不参与交换）
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>
