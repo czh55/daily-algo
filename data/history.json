@@ -214,5 +214,11 @@
     "slug": "swap-nodes-in-pairs",
     "title": "两两交换链表中的节点",
     "type": "链表指针"
+  },
+  {
+    "date": "2026-07-31",
+    "slug": "reverse-nodes-in-k-group",
+    "title": "K 个一组翻转链表",
+    "type": "链表指针"
   }
 ]
