@@ -3569,6 +3569,143 @@ public:
     <code>head = [1,2,3] → [2,1,3]</code>（最后一对只有 3，不参与交换）
 </div>""",
     },
+    "reverse-nodes-in-k-group": {
+        "type": "链表指针",
+        "difficulty": "困难",
+        "frontend_id": "25",
+        "title": "K 个一组翻转链表",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你链表的头节点 <code>head</code>，每 <code>k</code> 个节点一组进行翻转，请你返回修改后的链表。</p>
+<p><code>k</code> 是一个正整数，它的值小于或等于链表的长度。如果节点总数不是 <code>k</code> 的整数倍，那么请将最后剩余的节点保持原有顺序。</p>
+<p>你不能只是单纯的改变节点内部的值，而是需要实际进行节点交换。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,2,3,4,5], k = 2</div>
+    <div class="example-output">输出：[2,1,4,3,5]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [1,2,3,4,5], k = 3</div>
+    <div class="example-output">输出：[3,2,1,4,5]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：head = [1], k = 1</div>
+    <div class="example-output">输出：[1]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵头节点，<code>dummy.next = head</code><br><b>维护</b>：始终位于真实头节点之前，统一处理「第一组翻转后新头节点」的边界<br><b>更新</b>：创建后不再移动，最终返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>group_prev</code></td><td>ListNode*</td><td><b>定义</b>：当前待翻转 <code>k</code> 组的前驱指针<br><b>维护</b>：每组翻转完成后，<code>group_prev</code> 应停在「刚翻转完的那一组的尾节点」（即翻转前的组头）<br><b>更新</b>：翻转一组后 <code>group_prev = group_start</code>（原组头变尾），下一轮从 <code>group_prev.next</code> 继续</td></tr>
+    <tr><td><code>kth</code></td><td>ListNode*</td><td><b>定义</b>：从 <code>group_prev</code> 出发向后走 <code>k</code> 步得到的节点，即当前组的尾节点<br><b>维护</b>：若 <code>kth</code> 为 <code>null</code>，说明剩余不足 <code>k</code> 个节点，整题结束<br><b>更新</b>：每轮用 <code>getKth(group_prev, k)</code> 重新计算</td></tr>
+    <tr><td><code>group_next</code></td><td>ListNode*</td><td><b>定义</b>：当前组尾节点 <code>kth</code> 的下一个节点，即下一组的起点<br><b>维护</b>：翻转时作为内层反转循环的终止边界（<code>curr != group_next</code>）<br><b>更新</b>：每轮在确认 <code>kth</code> 存在后令 <code>group_next = kth.next</code></td></tr>
+    <tr><td><code>prev / curr</code></td><td>ListNode*</td><td><b>定义</b>：组内局部反转的双指针，<code>prev</code> 初始为 <code>group_next</code>，<code>curr</code> 初始为 <code>group_prev.next</code><br><b>维护</b>：标准单链表反转：保存 <code>tmp = curr.next</code>，<code>curr.next = prev</code>，前移 <code>prev</code> 与 <code>curr</code><br><b>更新</b>：当 <code>curr == group_next</code> 时本组反转完成；此时 <code>kth</code> 成为新组头，<code>group_start</code> 成为新组尾</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：把节点值复制到数组，按每 <code>k</code> 个一组反转数组片段再重建链表——能过，但题目要求「实际进行节点交换」，且多用了 O(n) 额外空间。</p>
+<p class="thinking-step">2. 重复在哪里？#24 两两交换是 <code>k=2</code> 的特例；核心仍是「确定一组边界 → 局部反转 → 把反转后的组接回主链 → 前驱移到本组尾节点」。</p>
+<p class="thinking-step">3. 难点是边界：剩余节点不足 <code>k</code> 个时不翻转。因此每轮先从 <code>group_prev</code> 走 <code>k</code> 步找 <code>kth</code>；找不到就直接结束。</p>
+<p class="thinking-step">4. 找到 <code>kth</code> 后，在 <code>[group_prev.next, kth]</code> 闭区间内做标准链表反转，反转边界是 <code>group_next = kth.next</code>。反转完把 <code>group_prev.next</code> 指向新头 <code>kth</code>，再令 <code>group_prev = 原组头</code> 处理下一组。</p>
+<p class="thinking-step">5. 第一组翻转会改变头节点——加 <code>dummy</code> 哨兵后，<code>group_prev</code> 从 <code>dummy</code> 出发，与 #24、合并链表等题同一套路；整体时间 O(n)，每个节点最多被访问常数次。</p>""",
+        "code_steps": """<p class="code-step">1. 创建哨兵 <code>dummy = ListNode(0, head)</code>，<code>group_prev = dummy</code></p>
+<p class="code-step">2. 循环：调用 <code>getKth(group_prev, k)</code> 找当前组尾 <code>kth</code>；若为 <code>null</code> 则剩余不足 <code>k</code> 个，跳出循环</p>
+<p class="code-step">3. 记录 <code>group_next = kth.next</code>，<code>group_start = group_prev.next</code>（翻转后将变成本组尾）</p>
+<p class="code-step">4. 在 <code>[group_start, kth]</code> 内局部反转：<code>prev = group_next</code>，<code>curr = group_start</code>，标准三指针翻转直到 <code>curr == group_next</code></p>
+<p class="code-step">5. 接回主链：<code>group_prev.next = kth</code>（新组头），<code>group_prev = group_start</code>（新组尾作下轮前驱）；返回 <code>dummy.next</code></p>""",
+        "code_python": """# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def reverseKGroup(self, head: Optional[ListNode], k: int) -> Optional[ListNode]:
+        dummy = ListNode(0, head)   # 哨兵，统一处理头节点变化
+        group_prev = dummy
+
+        while True:
+            kth = self.getKth(group_prev, k)
+            if not kth:
+                break
+
+            group_next = kth.next
+            group_start = group_prev.next
+
+            # 在 [group_start, kth] 内局部反转，边界为 group_next
+            prev, curr = group_next, group_start
+            while curr != group_next:
+                tmp = curr.next
+                curr.next = prev
+                prev = curr
+                curr = tmp
+
+            group_prev.next = kth          # 前驱接到翻转后的新头
+            group_prev = group_start       # 原组头变尾，作为下一组前驱
+
+        return dummy.next
+
+    def getKth(self, curr: ListNode, k: int) -> Optional[ListNode]:
+        while curr and k > 0:
+            curr = curr.next
+            k -= 1
+        return curr""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* reverseKGroup(ListNode* head, int k) {
+        ListNode dummy(0, head);  // 哨兵，统一处理头节点变化
+        ListNode* group_prev = &dummy;
+
+        while (true) {
+            ListNode* kth = getKth(group_prev, k);
+            if (!kth) break;
+
+            ListNode* group_next = kth->next;
+            ListNode* group_start = group_prev->next;
+
+            // 在 [group_start, kth] 内局部反转，边界为 group_next
+            ListNode* prev = group_next;
+            ListNode* curr = group_start;
+            while (curr != group_next) {
+                ListNode* tmp = curr->next;
+                curr->next = prev;
+                prev = curr;
+                curr = tmp;
+            }
+
+            group_prev->next = kth;       // 前驱接到翻转后的新头
+            group_prev = group_start;     // 原组头变尾，作为下一组前驱
+        }
+        return dummy.next;
+    }
+
+private:
+    ListNode* getKth(ListNode* curr, int k) {
+        while (curr && k > 0) {
+            curr = curr->next;
+            k--;
+        }
+        return curr;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记先检查剩余是否足 <code>k</code> 个：不足时应保持原顺序直接结束，不能强行翻转。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 局部反转边界写错：<code>prev</code> 应初始化为 <code>group_next</code>（不是 <code>null</code>），否则翻转后无法与后续链表正确衔接。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 翻转后忘记更新 <code>group_prev</code>：应移到原组头（现组尾），否则下一轮会从已翻转区域重复操作或断链。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：k = 1</div>
+    <code>head = [1,2,3], k = 1 → [1,2,3]</code>（每组 1 个，等价于不翻转）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：节点数恰为 k 的倍数</div>
+    <code>head = [1,2,3,4], k = 2 → [2,1,4,3]</code>（全部参与翻转）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：尾部不足 k 个</div>
+    <code>head = [1,2,3,4,5], k = 3 → [3,2,1,4,5]</code>（最后 4、5 保持原序）
+</div>""",
+    },
 }
 
 
