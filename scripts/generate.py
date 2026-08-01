@@ -3706,6 +3706,89 @@ private:
     <code>head = [1,2,3,4,5], k = 3 → [3,2,1,4,5]</code>（最后 4、5 保持原序）
 </div>""",
     },
+
+    "remove-duplicates-from-sorted-array": {
+        "type": "双指针",
+        "difficulty": "简单",
+        "frontend_id": "26",
+        "title": "删除有序数组中的重复项",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个 <strong>非严格递增排列</strong> 的数组 <code>nums</code>，请你<strong>原地</strong>删除重复出现的元素，使每个元素 <strong>只出现一次</strong>，返回删除后数组的新长度。元素的 <strong>相对顺序</strong> 应该保持 <strong>一致</strong>。</p>
+<p>考虑 <code>nums</code> 的唯一元素的数量为 <code>k</code>。去重后，返回唯一元素的数量 <code>k</code>。<code>nums</code> 的前 <code>k</code> 个元素应包含排序后的唯一数字，下标 <code>k - 1</code> 之后的剩余元素可以忽略。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,1,2]</div>
+    <div class="example-output">输出：2, nums = [1,2,_]</div>
+    <div class="example-explain">函数应返回新长度 2，原数组前两个元素被修改为 1, 2。不需要考虑超出新长度后面的元素。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [0,0,1,1,1,2,2,3,3,4]</div>
+    <div class="example-output">输出：5, nums = [0,1,2,3,4,_,_,_,_,_]</div>
+    <div class="example-explain">函数应返回新长度 5，原数组前五个元素被修改为 0, 1, 2, 3, 4。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>slow</code></td><td>int</td><td><b>定义</b>：已写入去重结果区的<b>最后一个</b>唯一元素下标，即 <code>nums[0..slow]</code> 为当前已确认的唯一前缀<br><b>维护</b>：初始 <code>slow = 0</code>（第一个元素天然唯一）；每发现新值时先 <code>slow++</code> 再写入<br><b>更新</b>：当 <code>nums[fast] != nums[slow]</code> 时，<code>slow += 1; nums[slow] = nums[fast]</code></td></tr>
+    <tr><td><code>fast</code></td><td>int</td><td><b>定义</b>：扫描指针，从 <code>1</code> 到 <code>n-1</code> 遍历整个数组<br><b>维护</b>：每次只与 <code>nums[slow]</code> 比较（有序数组下重复项必相邻，无需回看更早位置）<br><b>更新</b>：每轮循环末尾 <code>fast++</code>，直到遍历完所有元素</td></tr>
+    <tr><td><code>k</code>（返回值）</td><td>int</td><td><b>定义</b>：去重后唯一元素个数<br><b>维护</b>：等于 <code>slow + 1</code>（下标从 0 起，长度 = 最后下标 + 1）<br><b>更新</b>：循环结束后直接返回，无需额外计数器</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：开一个新数组 <code>res</code>，从左到右扫 <code>nums</code>，遇到与 <code>res</code> 末尾不同的就 <code>append</code>——逻辑对，但用了 O(n) 额外空间，题目要求原地修改。</p>
+<p class="thinking-step">2. 重复在哪里？数组已排序，相同元素一定挨在一起。去重时只需关心「当前已写入的最后一个唯一值」，不必与前面所有元素逐一比较。</p>
+<p class="thinking-step">3. 双指针：用 <code>slow</code> 标记「去重结果区」的末尾，用 <code>fast</code> 从 <code>1</code> 开始扫描。若 <code>nums[fast] != nums[slow]</code>，说明遇到新唯一值，扩展结果区并写入。</p>
+<p class="thinking-step">4. 为什么只比 <code>nums[slow]</code>？有序性保证：若 <code>nums[fast]</code> 与 <code>nums[slow]</code> 相等，则 <code>nums[fast]</code> 一定是重复；若不等，则 <code>nums[fast]</code> 一定大于 <code>nums[slow]</code>，是新唯一值。</p>
+<p class="thinking-step">5. 最终 <code>nums[0..slow]</code> 即为去重结果，返回 <code>slow + 1</code>。每个元素最多被访问一次，时间 O(n)，仅用两个下标，空间 O(1)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>nums</code> 为空，直接返回 0；否则令 <code>slow = 0</code>（<code>nums[0]</code> 作为第一个唯一元素）</p>
+<p class="code-step">2. <code>for fast in range(1, len(nums))</code>：若 <code>nums[fast] != nums[slow]</code>，则 <code>slow += 1</code>，<code>nums[slow] = nums[fast]</code></p>
+<p class="code-step">3. 循环结束，<code>nums[0..slow]</code> 为去重后的唯一前缀</p>
+<p class="code-step">4. 返回 <code>slow + 1</code> 作为唯一元素个数 <code>k</code></p>""",
+        "code_python": """class Solution:
+    def removeDuplicates(self, nums: List[int]) -> int:
+        if not nums:
+            return 0
+
+        slow = 0  # nums[0..slow] 为当前已确认的唯一前缀
+        for fast in range(1, len(nums)):
+            if nums[fast] != nums[slow]:
+                slow += 1
+                nums[slow] = nums[fast]
+
+        return slow + 1""",
+        "code_cpp": """class Solution {
+public:
+    int removeDuplicates(vector<int>& nums) {
+        if (nums.empty()) return 0;
+
+        int slow = 0;  // nums[0..slow] 为当前已确认的唯一前缀
+        for (int fast = 1; fast < nums.size(); fast++) {
+            if (nums[fast] != nums[slow]) {
+                slow++;
+                nums[slow] = nums[fast];
+            }
+        }
+        return slow + 1;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回值是 <code>slow + 1</code> 而不是 <code>slow</code>：下标从 0 开始，长度 = 最后下标 + 1。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 写入顺序错误：应先 <code>slow++</code> 再赋值 <code>nums[slow] = nums[fast]</code>，否则会覆盖尚未保留的唯一元素。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>fast</code> 应从 1 开始而非 0：<code>nums[0]</code> 已作为初始唯一元素，从 0 开始会把自己与自己比较，逻辑冗余且易错。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>nums = [1] → 1, nums = [1]</code>（无需去重，直接返回 1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全部相同</div>
+    <code>nums = [2,2,2,2] → 1, nums = [2,_,_,_]</code>（<code>fast</code> 扫完无新值，<code>slow</code> 始终为 0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：无重复</div>
+    <code>nums = [1,2,3,4] → 4, nums = [1,2,3,4]</code>（每个元素都被写入，<code>slow</code> 最终为 3）
+</div>""",
+    },
 }
 
 

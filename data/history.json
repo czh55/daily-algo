@@ -220,5 +220,11 @@
     "slug": "reverse-nodes-in-k-group",
     "title": "K 个一组翻转链表",
     "type": "链表指针"
+  },
+  {
+    "date": "2026-08-01",
+    "slug": "remove-duplicates-from-sorted-array",
+    "title": "删除有序数组中的重复项",
+    "type": "双指针"
   }
 ]
