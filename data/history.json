@@ -226,5 +226,11 @@
     "slug": "remove-duplicates-from-sorted-array",
     "title": "删除有序数组中的重复项",
     "type": "双指针"
+  },
+  {
+    "date": "2026-08-02",
+    "slug": "remove-element",
+    "title": "移除元素",
+    "type": "双指针"
   }
 ]

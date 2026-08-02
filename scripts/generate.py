@@ -3789,6 +3789,86 @@ public:
     <code>nums = [1,2,3,4] → 4, nums = [1,2,3,4]</code>（每个元素都被写入，<code>slow</code> 最终为 3）
 </div>""",
     },
+    "remove-element": {
+        "type": "双指针",
+        "difficulty": "简单",
+        "frontend_id": "27",
+        "title": "移除元素",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个数组 <code>nums</code> 和一个值 <code>val</code>，你需要 <strong>原地</strong> 移除所有数值等于 <code>val</code> 的元素。元素的顺序可能发生改变。然后返回 <code>nums</code> 中与 <code>val</code> 不同的元素的数量。</p>
+<p>假设 <code>nums</code> 中不等于 <code>val</code> 的元素数量为 <code>k</code>，要通过此题，您需要执行以下操作：</p>
+<ul>
+<li>更改 <code>nums</code> 数组，使 <code>nums</code> 的前 <code>k</code> 个元素包含不等于 <code>val</code> 的元素。<code>nums</code> 的其余元素和 <code>nums</code> 的大小并不重要。</li>
+<li>返回 <code>k</code>。</li>
+</ul>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [3,2,2,3], val = 3</div>
+    <div class="example-output">输出：2, nums = [2,2,_,_]</div>
+    <div class="example-explain">函数应返回 k = 2，并且 nums 中的前两个元素均为 2。返回的 k 个元素之外留下什么并不重要。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [0,1,2,2,3,0,4,2], val = 2</div>
+    <div class="example-output">输出：5, nums = [0,1,4,0,3,_,_,_]</div>
+    <div class="example-explain">函数应返回 k = 5，并且 nums 中的前五个元素为 0,0,1,3,4（顺序可任意）。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>slow</code></td><td>int</td><td><b>定义</b>：下一个「保留元素」应写入的下标，也是当前已保留元素个数<br><b>维护</b>：初始 <code>slow = 0</code>；<code>nums[0..slow-1]</code> 均为不等于 <code>val</code> 的元素<br><b>更新</b>：当 <code>nums[fast] != val</code> 时，执行 <code>nums[slow] = nums[fast]; slow++</code></td></tr>
+    <tr><td><code>fast</code></td><td>int</td><td><b>定义</b>：扫描指针，从 <code>0</code> 到 <code>n-1</code> 遍历整个数组<br><b>维护</b>：每轮检查 <code>nums[fast]</code> 是否等于 <code>val</code>，等于则跳过（不写），不等于则复制到保留区<br><b>更新</b>：每轮循环末尾 <code>fast++</code>，直到遍历完所有元素</td></tr>
+    <tr><td><code>k</code>（返回值）</td><td>int</td><td><b>定义</b>：数组中不等于 <code>val</code> 的元素个数<br><b>维护</b>：等于循环结束后的 <code>slow</code>（每保留一个元素 <code>slow</code> 就 +1）<br><b>更新</b>：循环结束后直接返回 <code>slow</code>，无需额外计数器</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：开一个新数组 <code>res</code>，从左到右扫 <code>nums</code>，遇到不等于 <code>val</code> 的就 <code>append</code>——逻辑对，但用了 O(n) 额外空间，题目要求原地修改。</p>
+<p class="thinking-step">2. 重复在哪里？每个元素只需判断一次「要不要保留」，保留的元素要紧凑写到数组前部。我不需要真正「删除」，只需把要保留的值覆盖到前面即可。</p>
+<p class="thinking-step">3. 双指针：用 <code>slow</code> 标记下一个写入位置（也是已保留个数），用 <code>fast</code> 从 <code>0</code> 开始扫描。若 <code>nums[fast] != val</code>，就把它写到 <code>nums[slow]</code> 并 <code>slow++</code>。</p>
+<p class="thinking-step">4. 为什么可以覆盖？<code>slow</code> 永远 ≤ <code>fast</code>：每遇到一个要移除的元素，<code>slow</code> 不动而 <code>fast</code> 前进，所以写入位置不会越过当前扫描位置，不会覆盖尚未处理的元素。</p>
+<p class="thinking-step">5. 最终 <code>nums[0..slow-1]</code> 即为保留结果，返回 <code>slow</code>。每个元素访问一次，时间 O(n)，仅用两个下标，空间 O(1)。本题不要求保持原顺序，此写法最直观。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>slow = 0</code>，表示保留区下一个写入位置</p>
+<p class="code-step">2. <code>for fast in range(len(nums))</code>：若 <code>nums[fast] != val</code>，则 <code>nums[slow] = nums[fast]</code>，<code>slow += 1</code></p>
+<p class="code-step">3. 循环结束，<code>nums[0..slow-1]</code> 为所有不等于 <code>val</code> 的元素</p>
+<p class="code-step">4. 返回 <code>slow</code> 作为保留元素个数 <code>k</code></p>""",
+        "code_python": """class Solution:
+    def removeElement(self, nums: List[int], val: int) -> int:
+        slow = 0  # nums[0..slow-1] 为已保留的元素
+        for fast in range(len(nums)):
+            if nums[fast] != val:
+                nums[slow] = nums[fast]
+                slow += 1
+        return slow""",
+        "code_cpp": """class Solution {
+public:
+    int removeElement(vector<int>& nums, int val) {
+        int slow = 0;  // nums[0..slow-1] 为已保留的元素
+        for (int fast = 0; fast < nums.size(); fast++) {
+            if (nums[fast] != val) {
+                nums[slow] = nums[fast];
+                slow++;
+            }
+        }
+        return slow;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回值是 <code>slow</code> 而不是 <code>slow - 1</code>：本题 <code>slow</code> 表示「已保留个数」，与 #26 去重题（<code>slow</code> 是最后下标）语义不同。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 写入顺序错误：应先判断 <code>nums[fast] != val</code> 再写入并 <code>slow++</code>，遇到 <code>val</code> 时 <code>slow</code> 不能动。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误以为必须保持原顺序：本题允许打乱顺序，从左到右覆盖即可；若强行保持顺序需更复杂的双指针写法，此处不必。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空数组</div>
+    <code>nums = [], val = 1 → 0</code>（循环不执行，直接返回 0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全部为 val</div>
+    <code>nums = [3,3,3], val = 3 → 0</code>（无元素被保留，<code>slow</code> 始终为 0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：无 val</div>
+    <code>nums = [1,2,3], val = 4 → 3, nums = [1,2,3]</code>（每个元素都被保留，<code>slow</code> 最终为 3）
+</div>""",
+    },
 }
 
 
