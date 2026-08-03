@@ -3869,6 +3869,86 @@ public:
     <code>nums = [1,2,3], val = 4 → 3, nums = [1,2,3]</code>（每个元素都被保留，<code>slow</code> 最终为 3）
 </div>""",
     },
+
+    "find-the-index-of-the-first-occurrence-in-a-string": {
+        "type": "字符串模拟",
+        "difficulty": "简单",
+        "frontend_id": "28",
+        "title": "找出字符串中第一个匹配项的下标",
+        "time_complexity": "O(n·m)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你两个字符串 <code>haystack</code> 和 <code>needle</code>，请你在 <code>haystack</code> 字符串中找出 <code>needle</code> 字符串的第一个匹配项的下标（下标从 0 开始）。如果 <code>needle</code> 不是 <code>haystack</code> 的一部分，则返回 <code>-1</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：haystack = "sadbutsad", needle = "sad"</div>
+    <div class="example-output">输出：0</div>
+    <div class="example-explain">"sad" 在下标 0 和 6 处匹配，第一个匹配项的下标是 0。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：haystack = "leetcode", needle = "leeto"</div>
+    <div class="example-output">输出：-1</div>
+    <div class="example-explain">"leeto" 没有在 "leetcode" 中出现。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：<code>haystack</code> 中尝试作为匹配起点的下标<br><b>维护</b>：从 <code>0</code> 到 <code>n - m</code> 枚举每个可能起点<br><b>更新</b>：每轮外层循环 <code>i++</code>，直到找到匹配或枚举完毕</td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：当前正在比对的 <code>needle</code> 内偏移量<br><b>维护</b>：当 <code>haystack[i+j] == needle[j]</code> 时同步前进，否则本轮起点 <code>i</code> 失败<br><b>更新</b>：匹配成功则 <code>j++</code>；若 <code>j == m</code> 说明整段 <code>needle</code> 匹配完成</td></tr>
+    <tr><td><code>m</code></td><td>int</td><td><b>定义</b>：<code>needle</code> 的长度<br><b>维护</b>：循环中用于判断「从 <code>i</code> 起是否还能放下整段 <code>needle</code>」以及「<code>j</code> 是否已扫完 <code>needle</code>」<br><b>更新</b>：初始化时 <code>m = len(needle)</code>，循环中不变</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：在 <code>haystack</code> 的每个下标 <code>i</code> 尝试把 <code>needle</code> 对齐上去，逐字符比较——逻辑直接，但最坏要试 O(n) 个起点、每次比 O(m) 个字符。</p>
+<p class="thinking-step">2. 重复在哪里？每个起点 <code>i</code> 都在做同一件事：检查 <code>haystack[i..i+m-1]</code> 是否等于 <code>needle</code>。一旦某字符不等就可以立刻放弃当前 <code>i</code>。</p>
+<p class="thinking-step">3. 优化起点范围：若 <code>i + m &gt; n</code>，后面再也放不下整段 <code>needle</code>，所以 <code>i</code> 只需从 <code>0</code> 到 <code>n - m</code>（<code>n</code> 为 <code>haystack</code> 长度）。</p>
+<p class="thinking-step">4. 内层用 <code>j</code> 从 <code>0</code> 到 <code>m-1</code> 比较 <code>haystack[i+j]</code> 与 <code>needle[j]</code>；若全程相等则返回 <code>i</code>，否则继续下一个起点。</p>
+<p class="thinking-step">5. 全部起点都失败则返回 <code>-1</code>。本题数据规模下暴力足够；KMP 等算法可把均摊复杂度降到 O(n+m)，但实现更重，简单题先掌握双下标模拟即可。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>n = len(haystack)</code>，<code>m = len(needle)</code></p>
+<p class="code-step">2. 外层 <code>for i in range(n - m + 1)</code>：以 <code>i</code> 为起点尝试匹配</p>
+<p class="code-step">3. 内层 <code>j</code> 从 <code>0</code> 到 <code>m-1</code>：若 <code>haystack[i+j] != needle[j]</code> 则跳出内层，换下一个 <code>i</code></p>
+<p class="code-step">4. 若内层未提前跳出（<code>j == m</code>），说明匹配成功，返回 <code>i</code></p>
+<p class="code-step">5. 所有起点均失败，返回 <code>-1</code></p>""",
+        "code_python": """class Solution:
+    def strStr(self, haystack: str, needle: str) -> int:
+        n, m = len(haystack), len(needle)
+        for i in range(n - m + 1):          # 枚举每个可能的起点
+            j = 0
+            while j < m and haystack[i + j] == needle[j]:
+                j += 1                      # 逐字符对齐 needle
+            if j == m:                      # 整段 needle 匹配完成
+                return i
+        return -1""",
+        "code_cpp": """class Solution {
+public:
+    int strStr(string haystack, string needle) {
+        int n = haystack.size(), m = needle.size();
+        for (int i = 0; i <= n - m; i++) {  // 枚举每个可能的起点
+            int j = 0;
+            while (j < m && haystack[i + j] == needle[j]) {
+                j++;                         // 逐字符对齐 needle
+            }
+            if (j == m) return i;            // 整段匹配完成
+        }
+        return -1;
+    }
+};
+// 时间 O(n·m)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 外层循环边界是 <code>i &lt;= n - m</code>（即 <code>range(n - m + 1)</code>），漏掉最后一个合法起点会错。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 内层比较要用 <code>haystack[i + j]</code> 而不是 <code>haystack[j]</code>，起点偏移 <code>i</code> 不能丢。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 匹配成功条件是 <code>j == m</code>（扫完整个 needle），不是 <code>j == m - 1</code>；提前 <code>return i</code> 前务必确认内层完整通过。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：needle 比 haystack 长</div>
+    <code>haystack = "a", needle = "aa" → -1</code>（<code>n - m + 1 &lt;= 0</code>，外层不执行）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：完全相等</div>
+    <code>haystack = "abc", needle = "abc" → 0</code>（第一个起点即匹配）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：首字符相同但后续失败</div>
+    <code>haystack = "aaaaa", needle = "aab" → -1</code>（多个起点共享前缀，需在第三位发现不等）
+</div>""",
+    },
 }
 
 

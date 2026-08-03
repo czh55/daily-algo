@@ -232,5 +232,11 @@
     "slug": "remove-element",
     "title": "移除元素",
     "type": "双指针"
+  },
+  {
+    "date": "2026-08-03",
+    "slug": "find-the-index-of-the-first-occurrence-in-a-string",
+    "title": "找出字符串中第一个匹配项的下标",
+    "type": "字符串模拟"
   }
 ]
