@@ -3949,6 +3949,111 @@ public:
     <code>haystack = "aaaaa", needle = "aab" → -1</code>（多个起点共享前缀，需在第三位发现不等）
 </div>""",
     },
+
+    "divide-two-integers": {
+        "type": "数学模拟",
+        "difficulty": "中等",
+        "frontend_id": "29",
+        "title": "两数相除",
+        "time_complexity": "O(log²n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你两个整数，被除数 <code>dividend</code> 和除数 <code>divisor</code>。将两数相除，要求 <strong>不使用</strong> 乘法、除法和取余运算。</p>
+<p>整数除法应该向零截断，也就是截去（<code>truncate</code>）其小数部分。例如，<code>8.345</code> 将被截断为 <code>8</code>，<code>-2.7335</code> 将被截断至 <code>-2</code>。</p>
+<p>返回被除数 <code>dividend</code> 除以除数 <code>divisor</code> 得到的 <strong>商</strong>。</p>
+<p><strong>注意：</strong>假设我们的环境只能存储 <strong>32 位</strong> 有符号整数，其数值范围是 <code>[−2<sup>31</sup>, 2<sup>31</sup> − 1]</code>。本题中，如果商 <strong>严格大于</strong> <code>2<sup>31</sup> − 1</code>，则返回 <code>2<sup>31</sup> − 1</code>；如果商 <strong>严格小于</strong> <code>-2<sup>31</sup></code>，则返回 <code>-2<sup>31</sup></code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：dividend = 10, divisor = 3</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain">10/3 = 3.33333..，向零截断后得到 3。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：dividend = 7, divisor = -3</div>
+    <div class="example-output">输出：-2</div>
+    <div class="example-explain">7/-3 = -2.33333..，向零截断后得到 -2。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>sign</code></td><td>int</td><td><b>定义</b>：最终商的符号，<code>+1</code> 或 <code>-1</code><br><b>维护</b>：由 <code>dividend</code> 与 <code>divisor</code> 异号则为 <code>-1</code>，同号为 <code>+1</code><br><b>更新</b>：在转绝对值之前一次性确定，循环中不变</td></tr>
+    <tr><td><code>a</code></td><td>long</td><td><b>定义</b>：被除数的绝对值，表示「还剩多少没减完」<br><b>维护</b>：每轮外层循环从 <code>a</code> 中减去一块 <code>temp</code>，直到 <code>a &lt; b</code><br><b>更新</b>：初始化 <code>a = abs(dividend)</code>；每轮 <code>a -= temp</code></td></tr>
+    <tr><td><code>b</code></td><td>long</td><td><b>定义</b>：除数的绝对值，作为每次「加倍试探」的基准<br><b>维护</b>：全程不变，用于判断 <code>a</code> 是否还能再减以及内层左移的上界<br><b>更新</b>：初始化 <code>b = abs(divisor)</code>，循环中不变</td></tr>
+    <tr><td><code>temp</code></td><td>long</td><td><b>定义</b>：当前这一轮准备一次性减去的「块」，等于 <code>b × 2<sup>k</sup></code><br><b>维护</b>：内层循环通过左移不断加倍，直到再加倍会超过 <code>a</code><br><b>更新</b>：每轮外层开始时重置为 <code>b</code>，内层满足条件时 <code>temp &lt;&lt;= 1</code></td></tr>
+    <tr><td><code>multiple</code></td><td>long</td><td><b>定义</b>：与 <code>temp</code> 同步的权重，表示本轮减去的块相当于多少个 <code>b</code><br><b>维护</b>：<code>temp</code> 每左移一位，<code>multiple</code> 也左移一位（即 ×2）<br><b>更新</b>：每轮外层重置为 <code>1</code>；减完后 <code>quotient += multiple</code></td></tr>
+    <tr><td><code>quotient</code></td><td>long</td><td><b>定义</b>：累加得到的商（绝对值部分）<br><b>维护</b>：每从 <code>a</code> 减去一块 <code>temp</code>，就把对应权重 <code>multiple</code> 加入商<br><b>更新</b>：初始化 <code>0</code>；每轮 <code>quotient += multiple</code>，最后乘 <code>sign</code> 并裁剪到 32 位范围</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：用 <code>while a &gt;= b</code> 每次 <code>a -= b; quotient++</code>——逻辑对，但 <code>dividend = 2<sup>31</sup>-1, divisor = 1</code> 要循环 20 亿次，必超时。</p>
+<p class="thinking-step">2. 重复在哪里？每次只减一个 <code>b</code> 太碎。其实商的本质是「<code>a</code> 里能装下多少个 <code>b</code>」，可以一次减去 <code>2b、4b、8b…</code> 这样的大块，再把对应倍数加进商。</p>
+<p class="thinking-step">3. 位运算加倍：内层令 <code>temp = b</code>、<code>multiple = 1</code>，只要 <code>a &gt;= temp &lt;&lt; 1</code> 就同时左移 <code>temp</code> 和 <code>multiple</code>（等价于 ×2，不用乘法）。这样一轮能吃掉尽可能大的一块。</p>
+<p class="thinking-step">4. 符号单独处理：先把 <code>dividend、divisor</code> 转绝对值到 <code>a、b</code>，用异或判断 <code>sign</code>；唯一特判 <code>INT_MIN / -1</code> 会溢出，直接返回 <code>INT_MAX</code>。</p>
+<p class="thinking-step">5. 累加完乘 <code>sign</code> 后，用 <code>max(INT_MIN, min(INT_MAX, quotient))</code> 裁剪到 32 位。每轮外层减一块、内层加倍，总复杂度 O(log²n)。</p>""",
+        "code_steps": """<p class="code-step">1. 特判 <code>dividend == INT_MIN and divisor == -1</code>，直接返回 <code>INT_MAX</code></p>
+<p class="code-step">2. 计算 <code>sign</code>，令 <code>a = abs(dividend)</code>、<code>b = abs(divisor)</code>，<code>quotient = 0</code></p>
+<p class="code-step">3. 外层 <code>while a &gt;= b</code>：重置 <code>temp = b</code>、<code>multiple = 1</code></p>
+<p class="code-step">4. 内层 <code>while a &gt;= temp &lt;&lt; 1</code>：<code>temp &lt;&lt;= 1</code>，<code>multiple &lt;&lt;= 1</code>（找到本轮最大可减块）</p>
+<p class="code-step">5. 执行 <code>a -= temp</code>，<code>quotient += multiple</code>，继续外层直到 <code>a &lt; b</code></p>
+<p class="code-step">6. 返回 <code>sign * quotient</code> 裁剪到 <code>[INT_MIN, INT_MAX]</code></p>""",
+        "code_python": """class Solution:
+    def divide(self, dividend: int, divisor: int) -> int:
+        INT_MAX = 2**31 - 1
+        INT_MIN = -2**31
+        if dividend == INT_MIN and divisor == -1:
+            return INT_MAX
+        sign = -1 if (dividend < 0) ^ (divisor < 0) else 1
+        a, b = abs(dividend), abs(divisor)
+        quotient = 0
+        while a >= b:
+            temp, multiple = b, 1
+            while a >= temp << 1:       # 加倍试探，找本轮最大块
+                temp <<= 1
+                multiple <<= 1
+            a -= temp
+            quotient += multiple
+        quotient *= sign
+        return max(INT_MIN, min(INT_MAX, quotient))""",
+        "code_cpp": """class Solution {
+public:
+    int divide(int dividend, int divisor) {
+        const int INT_MAX = 0x7FFFFFFF;
+        const int INT_MIN = 0x80000000;
+        if (dividend == INT_MIN && divisor == -1) return INT_MAX;
+        int sign = (dividend < 0) ^ (divisor < 0) ? -1 : 1;
+        long a = labs((long)dividend), b = labs((long)divisor);
+        long quotient = 0;
+        while (a >= b) {
+            long temp = b, multiple = 1;
+            while (a >= (temp << 1)) {   // 加倍试探，找本轮最大块
+                temp <<= 1;
+                multiple <<= 1;
+            }
+            a -= temp;
+            quotient += multiple;
+        }
+        quotient *= sign;
+        if (quotient > INT_MAX) return INT_MAX;
+        if (quotient < INT_MIN) return INT_MIN;
+        return (int)quotient;
+    }
+};
+// 时间 O(log²n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 溢出：必须用 <code>long</code> 存 <code>a、b、temp、quotient</code>；<code>INT_MIN / -1</code> 在 32 位下会溢出，需单独返回 <code>INT_MAX</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 内层条件是 <code>a &gt;= temp &lt;&lt; 1</code>（还能再翻倍才移），不是 <code>a &gt;= temp</code>；否则 <code>temp</code> 会多加一位导致减法过量。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 符号用异或 <code>(dividend &lt; 0) ^ (divisor &lt; 0)</code> 判断，转绝对值后再算；最后结果要裁剪到 32 位有符号范围。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：被除数为 0</div>
+    <code>dividend = 0, divisor = 5 → 0</code>（<code>a &lt; b</code>，循环不执行）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：溢出边界</div>
+    <code>dividend = -2147483648, divisor = -1 → 2147483647</code>（唯一需特判的溢出情形）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：商为 1</div>
+    <code>dividend = 3, divisor = 3 → 1</code>（<code>a == b</code>，一轮减完）
+</div>""",
+    },
 }
 
 
