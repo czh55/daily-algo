@@ -4054,6 +4054,165 @@ public:
     <code>dividend = 3, divisor = 3 → 1</code>（<code>a == b</code>，一轮减完）
 </div>""",
     },
+    "substring-with-concatenation-of-all-words": {
+        "type": "可变滑窗",
+        "difficulty": "困难",
+        "frontend_id": "30",
+        "title": "串联所有单词的子串",
+        "time_complexity": "O(n × wordLen)",
+        "space_complexity": "O(m)",
+        "description": """<p>给定一个字符串 <code>s</code> 和一个字符串数组 <code>words</code>。<code>words</code> 中所有字符串 <strong>长度相同</strong>。</p>
+<p><code>s</code> 中的 <strong>串联子串</strong> 是指一个包含 <code>words</code> 中所有字符串以任意顺序排列连接起来的子串。</p>
+<p>返回所有串联子串在 <code>s</code> 中的开始索引。你可以以 <strong>任意顺序</strong> 返回答案。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "barfoothefoobarman", words = ["foo","bar"]</div>
+    <div class="example-output">输出：[0,9]</div>
+    <div class="example-explain">子串 "barfoo"（下标 0）和 "foobar"（下标 9）都是 words 的某种排列连接，长度均为 6。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "wordgoodgoodgoodbestword", words = ["word","good","best","word"]</div>
+    <div class="example-output">输出：[]</div>
+    <div class="example-explain">需要长度 16 的串联子串，s 中不存在满足条件的子串。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "barfoofoobarthefoobarman", words = ["bar","foo","the"]</div>
+    <div class="example-output">输出：[6,9,12]</div>
+    <div class="example-explain">下标 6、9、12 分别对应 "foobarthe"、"barthefoo"、"thefoobar"。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>need[w]</code></td><td>map&lt;string,int&gt;</td><td><b>定义</b>：目标单词 w 在 words 中应出现的次数<br><b>维护</b>：不变量，由 words 初始化<br><b>更新</b>：不更新</td></tr>
+    <tr><td><code>window[w]</code></td><td>map&lt;string,int&gt;</td><td><b>定义</b>：当前「按单词切分」的滑窗内，单词 w 的出现次数<br><b>维护</b>：随窗口在 s 上按 <code>wordLen</code> 步长滑动而增减<br><b>更新</b>：右端加入单词时 <code>window[w]++</code>；左端移出时 <code>window[w]--</code></td></tr>
+    <tr><td><code>valid</code></td><td>int</td><td><b>定义</b>：窗口内已「恰好匹配」need 的单词种类数（<code>window[w] == need[w]</code>）<br><b>维护</b>：每轮后 valid 等于满足精确匹配的单词种类数<br><b>更新</b>：某词计数从 need-1 变 need 时 valid++；从 need 变 need-1 时 valid--</td></tr>
+    <tr><td><code>offset</code></td><td>int</td><td><b>定义</b>：当前滑窗在 s 上的起始对齐偏移（0 到 wordLen-1）<br><b>维护</b>：每个 offset 独立跑一遍「按单词步长」的滑窗，覆盖所有可能切分<br><b>更新</b>：外层循环 <code>offset++</code>，内层从 <code>offset</code> 起按 <code>wordLen</code> 步进</td></tr>
+    <tr><td><code>left / right</code></td><td>int</td><td><b>定义</b>：当前窗口在 s 中的左右边界（字符下标）<br><b>维护</b>：窗口始终覆盖连续 <code>k</code> 个单词块，总字符长 <code>k × wordLen</code><br><b>更新</b>：<code>right</code> 每次 +wordLen 加入一块；超限时 <code>left</code> 循环 +wordLen 移出</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：枚举 s 中每个起点 i，切出长度 <code>wordLen × |words|</code> 的子串，再判断是否等于 words 的某种排列——要检查所有排列或逐词匹配，复杂度爆炸。</p>
+<p class="thinking-step">2. 重复在哪里？每个起点都在重新切词、重新比对。其实合法串联子串的长度固定，且每个单词长度相同，可以按「单词块」而不是单字符来滑窗。</p>
+<p class="thinking-step">3. 关键观察：若按字符下标 <code>i</code> 切块，只有 <code>i % wordLen</code> 相同的起点才属于同一套切分方式。所以对 offset = 0..wordLen-1 各跑一遍滑窗即可覆盖全部可能。</p>
+<p class="thinking-step">4. 滑窗逻辑类似「最小覆盖子串」：右扩加入一块单词，若某词超量就从左缩；当 <code>valid == len(need)</code> 时，<code>left</code> 即为一个合法串联子串起点。</p>
+<p class="thinking-step">5. 若右端切出的块不在 need 中，当前切分方式已不可能继续匹配，直接清空窗口并把 left 跳到 right 之后。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>words</code> 为空或 <code>len(s) &lt; wordLen × wordCount</code>，直接返回空列表</p>
+<p class="code-step">2. 统计 <code>need</code>：遍历 words，<code>need[w]++</code>；记 <code>wordLen</code>、<code>wordCount</code></p>
+<p class="code-step">3. 对每个 <code>offset ∈ [0, wordLen)</code>：初始化 <code>left = offset</code>、<code>window = {}</code>、<code>valid = 0</code></p>
+<p class="code-step">4. <code>right</code> 从 <code>offset</code> 起每次 +wordLen：切出 <code>word = s[right:right+wordLen]</code></p>
+<p class="code-step">5. 若 <code>word</code> 不在 need：清空 window、valid=0，<code>left = right + wordLen</code>（整块对齐后重启）</p>
+<p class="code-step">6. 否则 <code>window[word]++</code>，循环收缩：若 <code>window[word] &gt; need[word]</code>，移出 left 块并更新 valid，<code>left += wordLen</code></p>
+<p class="code-step">7. 若 <code>window[word] == need[word]</code> 则 <code>valid++</code>；当 <code>valid == len(need)</code> 时把 <code>left</code> 记入结果</p>
+<p class="code-step">8. 汇总所有 offset 的结果并返回</p>""",
+        "code_python": """class Solution:
+    def findSubstring(self, s: str, words: list[str]) -> list[int]:
+        if not words:
+            return []
+        word_len = len(words[0])
+        word_count = len(words)
+        total_len = word_len * word_count
+        if len(s) < total_len:
+            return []
+
+        need = {}
+        for w in words:
+            need[w] = need.get(w, 0) + 1
+
+        result = []
+        need_types = len(need)
+
+        for offset in range(word_len):
+            left = offset
+            valid = 0
+            window = {}
+
+            right = offset
+            while right + word_len <= len(s):
+                word = s[right:right + word_len]
+
+                if word not in need:
+                    window.clear()
+                    valid = 0
+                    left = right + word_len
+                else:
+                    window[word] = window.get(word, 0) + 1
+                    while window[word] > need[word]:
+                        left_word = s[left:left + word_len]
+                        if window[left_word] == need[left_word]:
+                            valid -= 1
+                        window[left_word] -= 1
+                        left += word_len
+
+                    if window[word] == need[word]:
+                        valid += 1
+
+                    if valid == need_types:
+                        result.append(left)
+
+                right += word_len
+
+        return result""",
+        "code_cpp": """class Solution {
+public:
+    vector<int> findSubstring(string s, vector<string>& words) {
+        vector<int> result;
+        if (words.empty()) return result;
+
+        int wordLen = words[0].size();
+        int wordCount = words.size();
+        int totalLen = wordLen * wordCount;
+        if (s.size() < totalLen) return result;
+
+        unordered_map<string, int> need;
+        for (const string& w : words) need[w]++;
+
+        int needTypes = need.size();
+
+        for (int offset = 0; offset < wordLen; offset++) {
+            int left = offset, valid = 0;
+            unordered_map<string, int> window;
+
+            for (int right = offset; right + wordLen <= s.size(); right += wordLen) {
+                string word = s.substr(right, wordLen);
+
+                if (!need.count(word)) {
+                    window.clear();
+                    valid = 0;
+                    left = right + wordLen;
+                } else {
+                    window[word]++;
+                    while (window[word] > need[word]) {
+                        string leftWord = s.substr(left, wordLen);
+                        if (window[leftWord] == need[leftWord]) valid--;
+                        window[leftWord]--;
+                        left += wordLen;
+                    }
+                    if (window[word] == need[word]) valid++;
+                    if (valid == needTypes) result.push_back(left);
+                }
+            }
+        }
+        return result;
+    }
+};
+// 时间 O(n × wordLen)，空间 O(m)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 必须对每个 <code>offset ∈ [0, wordLen)</code> 单独滑窗；只从 0 开始会漏掉如 "barfoo" 与 "foobar" 这类不同对齐的合法起点。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>valid</code> 只在 <code>window[w] == need[w]</code> 时 +1，超过 need 不算；收缩时须先判断 <code>== need</code> 再 --，与最小覆盖子串一致。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 遇到不在 need 中的单词块要<strong>整块重置</strong>窗口，并把 left 跳到 right+wordLen，否则脏数据会误报合法起点。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：words 含重复词</div>
+    <code>words = ["word","good","best","word"]</code>，需要窗口内 "word" 恰好出现 2 次才算 valid。
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：s 长度不足</div>
+    <code>len(s) &lt; wordLen × wordCount → []</code>（无需进入滑窗）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：words 为空</div>
+    <code>words = [] → []</code>（按题意通常不会出现，但实现上应直接返回）
+</div>""",
+    },
 }
 
 
