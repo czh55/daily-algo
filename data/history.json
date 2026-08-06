@@ -250,5 +250,11 @@
     "slug": "substring-with-concatenation-of-all-words",
     "title": "串联所有单词的子串",
     "type": "可变滑窗"
+  },
+  {
+    "date": "2026-08-06",
+    "slug": "next-permutation",
+    "title": "下一个排列",
+    "type": "双指针"
   }
 ]

@@ -4213,6 +4213,116 @@ public:
     <code>words = [] → []</code>（按题意通常不会出现，但实现上应直接返回）
 </div>""",
     },
+    "next-permutation": {
+        "type": "双指针",
+        "difficulty": "中等",
+        "frontend_id": "31",
+        "title": "下一个排列",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>整数数组的一个 <strong>排列</strong> 就是将其所有成员以序列或线性顺序排列。</p>
+<p>整数数组的 <strong>下一个排列</strong> 是指其整数的下一个字典序更大的排列。更正式地，如果数组的所有排列根据其字典顺序从小到大排列在一个容器中，那么数组的 <strong>下一个排列</strong> 就是在这个有序容器中排在它后面的那个排列。如果不存在下一个更大的排列，那么这个数组必须重排为字典序最小的排列（即，其元素按升序排列）。</p>
+<p>给你一个整数数组 <code>nums</code>，找出 <code>nums</code> 的下一个排列。</p>
+<p>必须<strong>原地</strong>修改，只允许使用额外常数空间。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,2,3]</div>
+    <div class="example-output">输出：[1,3,2]</div>
+    <div class="example-explain">[1,2,3] 的下一个字典序更大排列是 [1,3,2]。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [3,2,1]</div>
+    <div class="example-output">输出：[1,2,3]</div>
+    <div class="example-explain">[3,2,1] 已是最大排列，下一个排列为最小排列 [1,2,3]。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [1,1,5]</div>
+    <div class="example-output">输出：[1,5,1]</div>
+    <div class="example-explain">将末尾 1 与 5 交换，再反转后缀 [5,1] → [1,5]。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：从右向左第一个满足 <code>nums[i] &lt; nums[i+1]</code> 的下标，即「后缀升序」被打破的位置<br><b>维护</b>：若找不到则当前已是最大排列，需整体反转<br><b>更新</b>：从 <code>n-2</code> 向左扫描，找到第一个「比右边邻居小」的元素</td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：在 <code>i</code> 右侧后缀中，从右向左第一个满足 <code>nums[j] &gt; nums[i]</code> 的下标<br><b>维护</b>：保证交换后 <code>nums[i]</code> 位置换成「后缀中刚好比它大的最小值」<br><b>更新</b>：从 <code>n-1</code> 向左扫描至 <code>i+1</code>，找到第一个大于 <code>nums[i]</code> 的元素</td></tr>
+    <tr><td><code>left / right</code></td><td>int</td><td><b>定义</b>：交换后待反转后缀 <code>nums[i+1..n-1]</code> 的双指针边界<br><b>维护</b>：后缀经交换后仍降序，反转后变为升序，得到「刚好大一点的」最小后缀<br><b>更新</b>：<code>left = i+1</code>，<code>right = n-1</code>，双指针向中间交换直至 <code>left &gt;= right</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：生成所有排列、排序、找当前排列的下一个——能过但 O(n×n!)，完全不可接受。</p>
+<p class="thinking-step">2. 重复在哪里？字典序的「下一个」有规律：从右往左看，若后缀是严格降序（如 [3,2,1]），说明没有更大的了，只能回到最小排列。</p>
+<p class="thinking-step">3. 关键观察：找第一个 <code>nums[i] &lt; nums[i+1]</code>，说明 <code>i</code> 右侧是降序后缀；要让整体字典序变大，必须增大 <code>nums[i]</code>，且增幅要尽可能小。</p>
+<p class="thinking-step">4. 因此在后缀中找刚好比 <code>nums[i]</code> 大的最小元素 <code>nums[j]</code>，交换 <code>nums[i]</code> 与 <code>nums[j]</code>；交换后 <code>i+1</code> 右侧仍是降序，再反转后缀得到升序，即「下一个排列」。</p>
+<p class="thinking-step">5. 若找不到这样的 <code>i</code>，说明整个数组降序，直接反转全数组即可得到最小排列；全程原地 O(n) 时间、O(1) 空间。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>n = len(nums)</code>，从 <code>i = n-2</code> 向左找第一个 <code>nums[i] &lt; nums[i+1]</code></p>
+<p class="code-step">2. 若找不到 <code>i</code>（<code>i &lt; 0</code>）：整个数组降序，反转 <code>nums[0..n-1]</code> 后返回</p>
+<p class="code-step">3. 从 <code>j = n-1</code> 向左找第一个 <code>nums[j] &gt; nums[i]</code></p>
+<p class="code-step">4. 交换 <code>nums[i]</code> 与 <code>nums[j]</code></p>
+<p class="code-step">5. 双指针反转后缀 <code>nums[i+1..n-1]</code>（<code>left = i+1</code>，<code>right = n-1</code>，交换并向中间移动）</p>""",
+        "code_python": """class Solution:
+    def nextPermutation(self, nums: list[int]) -> None:
+        n = len(nums)
+
+        # 1. 从右向左找第一个「升序对」的左端 i
+        i = n - 2
+        while i >= 0 and nums[i] >= nums[i + 1]:
+            i -= 1
+
+        if i >= 0:
+            # 2. 在后缀中找刚好比 nums[i] 大的元素 j
+            j = n - 1
+            while nums[j] <= nums[i]:
+                j -= 1
+            nums[i], nums[j] = nums[j], nums[i]
+
+        # 3. 反转 i+1 到末尾（若 i<0 则反转整个数组）
+        left, right = i + 1, n - 1
+        while left < right:
+            nums[left], nums[right] = nums[right], nums[left]
+            left += 1
+            right -= 1""",
+        "code_cpp": """class Solution {
+public:
+    void nextPermutation(vector<int>& nums) {
+        int n = nums.size();
+
+        // 1. 从右向左找第一个「升序对」的左端 i
+        int i = n - 2;
+        while (i >= 0 && nums[i] >= nums[i + 1]) {
+            i--;
+        }
+
+        if (i >= 0) {
+            // 2. 在后缀中找刚好比 nums[i] 大的元素 j
+            int j = n - 1;
+            while (nums[j] <= nums[i]) {
+                j--;
+            }
+            swap(nums[i], nums[j]);
+        }
+
+        // 3. 反转 i+1 到末尾（若 i<0 则反转整个数组）
+        reverse(nums.begin() + i + 1, nums.end());
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 找 <code>i</code> 的条件是 <code>nums[i] &lt; nums[i+1]</code>（严格小于），不是 <code>&lt;=</code>；相等时不能停，否则重复元素会选错下一个排列。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 找 <code>j</code> 时同样用严格大于 <code>nums[i]</code>；交换后必须<strong>反转后缀</strong>，不能只交换就结束——后缀仍是降序，不反转得不到最小合法后缀。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 当 <code>i &lt; 0</code>（已是最大排列）时，跳过交换步骤，直接反转整个数组；忘记这一步会返回原数组而非最小排列。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>nums = [1] → [1]</code>（<code>i = -1</code>，反转自身不变）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：已是最大排列</div>
+    <code>nums = [3,2,1] → [1,2,3]</code>（找不到 <code>i</code>，整体反转）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：含重复元素</div>
+    <code>nums = [1,1,5] → [1,5,1]</code>（<code>i=1, j=2</code>，交换后反转后缀）
+</div>""",
+    },
 }
 
 
