@@ -256,5 +256,11 @@
     "slug": "next-permutation",
     "title": "下一个排列",
     "type": "双指针"
+  },
+  {
+    "date": "2026-08-07",
+    "slug": "longest-valid-parentheses",
+    "title": "最长有效括号",
+    "type": "栈"
   }
 ]

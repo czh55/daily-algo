@@ -4323,6 +4323,102 @@ public:
     <code>nums = [1,1,5] → [1,5,1]</code>（<code>i=1, j=2</code>，交换后反转后缀）
 </div>""",
     },
+    "longest-valid-parentheses": {
+        "type": "栈",
+        "difficulty": "困难",
+        "frontend_id": "32",
+        "title": "最长有效括号",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "description": """<p>给你一个只包含 <code>'('</code> 和 <code>')'</code> 的字符串，找出最长有效（格式正确且连续）括号 <strong>子串</strong> 的长度。</p>
+<p>左右括号匹配，即每个左括号都有对应的右括号将其闭合的字符串是格式正确的，比如 <code>"(()())"</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "(()"</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">最长有效括号子串是 <code>"()"</code>。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = ")()())"</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain">最长有效括号子串是 <code>"()()"</code>。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = ""</div>
+    <div class="example-output">输出：0</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>stk</code></td><td>list / stack</td><td><b>定义</b>：存放「尚未被匹配的左括号下标」以及作为基准的哨兵下标<br><b>维护</b>：栈顶对应当前有效子串的「左边界前一位」；初始压入 <code>-1</code> 作为全局基准<br><b>更新</b>：遇 <code>'('</code> 压入下标 <code>i</code>；遇 <code>')'</code> 先 <code>pop</code>，栈空则压入 <code>i</code> 重置基准，否则用 <code>i - stk[-1]</code> 更新答案</td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：截至目前发现的最长有效括号子串长度<br><b>维护</b>：单调不减，记录全局最优<br><b>更新</b>：每次成功匹配右括号后，计算 <code>i - stk[-1]</code> 并与 <code>ans</code> 取 <code>max</code></td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前扫描到的字符下标<br><b>维护</b>：从左到右依次处理每个括号<br><b>更新</b>：每轮循环 <code>i += 1</code>，根据 <code>s[i]</code> 是左/右括号分支更新栈与答案</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：枚举所有子串，对每个子串用栈或计数判断括号是否有效，取最长——能过但 O(n³) 或 O(n²)，3×10⁴ 的数据会超时。</p>
+<p class="thinking-step">2. 重复在哪里？每遇到一个 <code>')'</code>，它只能与「离它最近、尚未匹配」的 <code>'('</code> 配对——又是后进先出；但本题要的是<strong>最长连续有效子串</strong>，不是判断整串是否有效。</p>
+<p class="thinking-step">3. 关键转化：栈里不存字符，存<strong>下标</strong>。压入哨兵 <code>-1</code> 表示「有效段起点的前一位」；每次 <code>')'</code> 弹出匹配的 <code>'('</code> 后，当前有效段长度 = <code>当前下标 - 栈顶下标</code>。</p>
+<p class="thinking-step">4. 若弹出后栈空，说明这个 <code>')'</code> 无法配对（如开头就是 <code>')'</code>），把它压回栈作为新的「分割点」，后面的有效段从这里重新计算。</p>
+<p class="thinking-step">5. 例 <code>")()())"</code>：遇到开头 <code>')'</code> 后栈只剩 <code>[2]</code> 作基准，随后 <code>()</code> 得长度 2，再 <code>()</code> 得长度 4；全程 O(n) 一遍扫描。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>stk = [-1]</code>（哨兵）、<code>ans = 0</code></p>
+<p class="code-step">2. 从左到右遍历下标 <code>i</code> 与字符 <code>s[i]</code></p>
+<p class="code-step">3. 若 <code>s[i] == '('</code>，将 <code>i</code> 压入栈，等待后续右括号匹配</p>
+<p class="code-step">4. 若 <code>s[i] == ')'</code>：先 <code>stk.pop()</code> 弹出待匹配的左括号（或哨兵）</p>
+<p class="code-step">5. 弹出后若栈空，说明当前 <code>')'</code> 无法配对，将 <code>i</code> 压栈作为新基准；否则 <code>ans = max(ans, i - stk[-1])</code></p>
+<p class="code-step">6. 遍历结束返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def longestValidParentheses(self, s: str) -> int:
+        stk = [-1]          # 哨兵：有效段左边界的前一位
+        ans = 0
+        for i, ch in enumerate(s):
+            if ch == '(':
+                stk.append(i)
+            else:
+                stk.pop()   # 匹配掉一个 '(' 或哨兵
+                if not stk:
+                    stk.append(i)   # 多余的 ')'，作为新分割点
+                else:
+                    ans = max(ans, i - stk[-1])
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int longestValidParentheses(string s) {
+        vector<int> stk = {-1};  // 哨兵：有效段左边界的前一位
+        int ans = 0;
+        for (int i = 0; i < (int)s.size(); i++) {
+            if (s[i] == '(') {
+                stk.push_back(i);
+            } else {
+                stk.pop_back();  // 匹配掉一个 '(' 或哨兵
+                if (stk.empty()) {
+                    stk.push_back(i);  // 多余的 ')'，作为新分割点
+                } else {
+                    ans = max(ans, i - stk.back());
+                }
+            }
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 栈里存字符而不是下标：无法计算子串长度，也无法在多余 <code>')'</code> 处设置分割点。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记初始哨兵 <code>-1</code>：第一个完整段 <code>"()"</code> 在 <code>i=1</code> 时栈顶为空，长度会变成 <code>1-0=1</code> 而非 2。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 弹出后栈空时忘记压入当前 <code>i</code>：后续有效段会把前面无法配对的 <code>')'</code> 也算进去，导致长度偏大。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空串</div>
+    <code>s = "" → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：只有左括号</div>
+    <code>s = "(()" → 2</code>（末尾多余 <code>'('</code> 留在栈中，不影响已算出的 <code>"()"</code>）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：以右括号开头</div>
+    <code>s = ")()())" → 4</code>（开头 <code>')'</code> 触发重置基准，最长段为 <code>"()()"</code>）
+</div>""",
+    },
 }
 
 
