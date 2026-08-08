@@ -4416,7 +4416,114 @@ public:
 </div>
 <div class="edge-case">
     <div class="edge-label">Case 3：以右括号开头</div>
-    <code>s = ")()())" → 4</code>（开头 <code>')'</code> 触发重置基准，最长段为 <code>"()()"</code>）
+        <code>s = ")()())" → 4</code>（开头 <code>')'</code> 触发重置基准，最长段为 <code>"()()"</code>）
+</div>""",
+    },
+
+    "search-in-rotated-sorted-array": {
+        "type": "二分查找",
+        "difficulty": "中等",
+        "frontend_id": "33",
+        "title": "搜索旋转排序数组",
+        "time_complexity": "O(log n)",
+        "space_complexity": "O(1)",
+        "description": """<p>整数数组 <code>nums</code> 按升序排列，数组中的值 <strong>互不相同</strong>。</p>
+<p>在传递给函数之前，<code>nums</code> 在预先未知的某个下标 <code>k</code>（<code>0 &lt;= k &lt; nums.length</code>）上进行了 <strong>向左旋转</strong>，使数组变为 <code>[nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]</code>。</p>
+<p>给你 <strong>旋转后</strong> 的数组 <code>nums</code> 和一个整数 <code>target</code>，如果 <code>nums</code> 中存在这个目标值 <code>target</code>，则返回它的下标，否则返回 <code>-1</code>。你必须设计一个时间复杂度为 <code>O(log n)</code> 的算法。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [4,5,6,7,0,1,2], target = 0</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain"><code>target = 0</code> 在下标 4 处。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [4,5,6,7,0,1,2], target = 3</div>
+    <div class="example-output">输出：-1</div>
+    <div class="example-explain">数组中不存在 3。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [1], target = 0</div>
+    <div class="example-output">输出：-1</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>l, r</code></td><td>int</td><td><b>定义</b>：当前待搜索区间的左右边界下标<br><b>维护</b>：若 <code>target</code> 存在，其下标始终在 <code>[l, r]</code> 内<br><b>更新</b>：每轮根据哪一半有序、<code>target</code> 是否落在该有序半段，将 <code>l</code> 或 <code>r</code> 收缩一半</td></tr>
+    <tr><td><code>mid</code></td><td>int</td><td><b>定义</b>：当前区间中点下标 <code>(l + r) // 2</code><br><b>维护</b>：将区间切成左段 <code>[l, mid]</code> 与右段 <code>[mid+1, r]</code>，其中<strong>至少有一段仍是升序</strong><br><b>更新</b>：每轮二分重新计算；若 <code>nums[mid] == target</code> 直接返回</td></tr>
+    <tr><td><code>有序半段判定</code></td><td>bool</td><td><b>定义</b>：用 <code>nums[l] &lt;= nums[mid]</code> 判断左半是否升序，否则右半 <code>[mid+1, r]</code> 升序<br><b>维护</b>：旋转数组任意时刻都只有「断点」一侧无序，另一侧保持原升序<br><b>更新</b>：在有序半段上用普通二分条件 <code>nums[l] &lt;= target &lt; nums[mid]</code> 或 <code>nums[mid] &lt; target &lt;= nums[r]</code> 决定往哪边缩</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：从左到右线性扫描找 <code>target</code>，O(n)——能过但题目明确要求 O(log n)。</p>
+<p class="thinking-step">2. 重复在哪里？原数组整体升序，旋转后只是「在某个点切开再拼接」；任意取 <code>mid</code>，左半 <code>[l,mid]</code> 与右半 <code>[mid+1,r]</code> 里<strong>至少有一段仍是严格升序</strong>（另一段可能跨过旋转断点）。</p>
+<p class="thinking-step">3. 关键转化：先判断哪一半有序——若 <code>nums[l] &lt;= nums[mid]</code>，左半升序；否则右半升序。再在有序半段上做普通二分：看 <code>target</code> 是否落在这段数值范围内，是则缩到该半段，否则去另一半。</p>
+<p class="thinking-step">4. 例 <code>[4,5,6,7,0,1,2], target=0</code>：首轮 <code>mid=3, nums[mid]=7</code>，左半 <code>[4,7]</code> 升序且 0 不在其中，故去右半；次轮右半 <code>[0,1,2]</code> 升序且 0 在内，最终命中下标 4。</p>
+<p class="thinking-step">5. 每轮排除一半元素，整体 O(log n)；元素互不相同保证了有序半段的边界判断不会出现 <code>==</code> 歧义。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>l = 0</code>、<code>r = len(nums) - 1</code></p>
+<p class="code-step">2. 当 <code>l &lt;= r</code>：取 <code>mid = (l + r) // 2</code>，若 <code>nums[mid] == target</code> 返回 <code>mid</code></p>
+<p class="code-step">3. 若 <code>nums[l] &lt;= nums[mid]</code>（左半升序）：若 <code>nums[l] &lt;= target &lt; nums[mid]</code> 则 <code>r = mid - 1</code>，否则 <code>l = mid + 1</code></p>
+<p class="code-step">4. 否则（右半升序）：若 <code>nums[mid] &lt; target &lt;= nums[r]</code> 则 <code>l = mid + 1</code>，否则 <code>r = mid - 1</code></p>
+<p class="code-step">5. 循环结束返回 <code>-1</code></p>""",
+        "code_python": """class Solution:
+    def search(self, nums: list[int], target: int) -> int:
+        l, r = 0, len(nums) - 1
+        while l <= r:
+            mid = (l + r) // 2
+            if nums[mid] == target:
+                return mid
+            if nums[l] <= nums[mid]:          # 左半 [l, mid] 升序
+                if nums[l] <= target < nums[mid]:
+                    r = mid - 1
+                else:
+                    l = mid + 1
+            else:                             # 右半 [mid+1, r] 升序
+                if nums[mid] < target <= nums[r]:
+                    l = mid + 1
+                else:
+                    r = mid - 1
+        return -1""",
+        "code_cpp": """class Solution {
+public:
+    int search(vector<int>& nums, int target) {
+        int l = 0, r = (int)nums.size() - 1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (nums[mid] == target) return mid;
+            if (nums[l] <= nums[mid]) {      // 左半 [l, mid] 升序
+                if (nums[l] <= target && target < nums[mid])
+                    r = mid - 1;
+                else
+                    l = mid + 1;
+            } else {                         // 右半 [mid+1, r] 升序
+                if (nums[mid] < target && target <= nums[r])
+                    l = mid + 1;
+                else
+                    r = mid - 1;
+            }
+        }
+        return -1;
+    }
+};
+// 时间 O(log n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 左半有序时用 <code>nums[l] &lt;= target &lt; nums[mid]</code>（右边界不含 <code>mid</code>），右半有序时用 <code>nums[mid] &lt; target &lt;= nums[r]</code>——与已排除的 <code>nums[mid]</code> 对称，避免死循环。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误判哪一半有序：必须比较 <code>nums[l]</code> 与 <code>nums[mid]</code>，不能只看 <code>nums[mid]</code> 与 <code>nums[r]</code> 的大小关系。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>nums[mid] == target</code> 的提前返回：虽然范围判断有时也能收敛到 <code>mid</code>，但显式判断更清晰且避免边界遗漏。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素且命中</div>
+    <code>nums = [1], target = 1 → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单元素未命中</div>
+    <code>nums = [1], target = 0 → -1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：未旋转（k=0）</div>
+    <code>nums = [1,3,5], target = 3 → 1</code>（退化为普通二分，左半始终升序）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：目标在旋转断点附近</div>
+    <code>nums = [4,5,6,7,0,1,2], target = 0 → 4</code>（首轮排除左半升序段，次轮在右半升序段命中）
 </div>""",
     },
 }

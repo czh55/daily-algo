@@ -262,5 +262,11 @@
     "slug": "longest-valid-parentheses",
     "title": "最长有效括号",
     "type": "栈"
+  },
+  {
+    "date": "2026-08-08",
+    "slug": "search-in-rotated-sorted-array",
+    "title": "搜索旋转排序数组",
+    "type": "二分查找"
   }
 ]
