@@ -4644,6 +4644,104 @@ public:
     <code>nums = [1,2,3], target = 2 → [1,1]</code>（左边界与右边界相同）
 </div>""",
     },
+
+    "search-insert-position": {
+        "type": "二分查找",
+        "difficulty": "简单",
+        "frontend_id": "35",
+        "title": "搜索插入位置",
+        "time_complexity": "O(log n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给定一个排序数组和一个目标值，在数组中找到目标值，并返回其索引。如果目标值不存在于数组中，返回它将会被按顺序插入的位置。</p>
+<p>请必须使用时间复杂度为 <code>O(log n)</code> 的算法。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,3,5,6], target = 5</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain"><code>5</code> 已存在于下标 2。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [1,3,5,6], target = 2</div>
+    <div class="example-output">输出：1</div>
+    <div class="example-explain"><code>2</code> 不存在，应插入到下标 1（在 1 与 3 之间）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [1,3,5,6], target = 7</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain"><code>7</code> 大于所有元素，应插入到末尾下标 4。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>l, r</code></td><td>int</td><td><b>定义</b>：当前待搜索区间的左右边界下标<br><b>维护</b>：答案下标（命中位置或插入位置）始终在 <code>[l, r+1]</code> 对应的搜索范围内<br><b>更新</b>：每轮根据 <code>nums[mid]</code> 与 <code>target</code> 的大小关系，将区间收缩一半</td></tr>
+    <tr><td><code>mid</code></td><td>int</td><td><b>定义</b>：当前区间中点下标 <code>(l + r) // 2</code><br><b>维护</b>：将区间切成左段 <code>[l, mid]</code> 与右段 <code>[mid+1, r]</code><br><b>更新</b>：每轮二分重新计算；若 <code>nums[mid] == target</code> 直接返回 <code>mid</code></td></tr>
+    <tr><td><code>插入位置 l</code></td><td>int</td><td><b>定义</b>：循环结束后 <code>l</code> 指向「第一个 <code>&gt;= target</code> 的元素下标」，即 lower bound<br><b>维护</b>：数组升序且无重复，<code>l</code> 左侧元素均 <code>&lt; target</code>，右侧（含 <code>l</code>）均 <code>&gt;= target</code><br><b>更新</b>：当 <code>nums[mid] &lt; target</code> 时令 <code>l = mid + 1</code>，否则令 <code>r = mid - 1</code>；未命中时返回 <code>l</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：从左到右扫描，遇到 <code>target</code> 就返回下标，否则找到第一个比 <code>target</code> 大的位置——O(n)，但题目要求 O(log n)。</p>
+<p class="thinking-step">2. 重复在哪里？数组<strong>升序且无重复</strong>，任意时刻「答案」要么是 <code>target</code> 的下标，要么是第一个 <code>&gt;= target</code> 的位置——这和普通二分查找的「排除一半」结构完全一致。</p>
+<p class="thinking-step">3. 关键转化：用标准二分维护 <code>[l, r]</code>；<code>nums[mid] == target</code> 直接返回；<code>nums[mid] &lt; target</code> 则答案在右半 <code>l = mid + 1</code>，否则在左半 <code>r = mid - 1</code>。循环结束时 <code>l</code> 就是插入位置（lower bound）。</p>
+<p class="thinking-step">4. 例 <code>[1,3,5,6], target=2</code>：首轮 <code>mid=1, nums[mid]=3 &gt; 2</code> 缩左；次轮 <code>mid=0, nums[mid]=1 &lt; 2</code> 令 <code>l=1</code>；循环结束返回 <code>l=1</code>。</p>
+<p class="thinking-step">5. 每轮排除一半，O(log n)；也可理解为在升序数组上求 <code>lower_bound(target)</code>，命中与未命中统一由 <code>l</code> 表达。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>l = 0</code>、<code>r = len(nums) - 1</code></p>
+<p class="code-step">2. 当 <code>l &lt;= r</code>：取 <code>mid = (l + r) // 2</code>，若 <code>nums[mid] == target</code> 返回 <code>mid</code></p>
+<p class="code-step">3. 若 <code>nums[mid] &lt; target</code>，则 <code>l = mid + 1</code>（答案在右半）</p>
+<p class="code-step">4. 否则 <code>r = mid - 1</code>（答案在左半或就是 <code>mid</code> 左侧的插入位）</p>
+<p class="code-step">5. 循环结束返回 <code>l</code>（第一个 <code>&gt;= target</code> 的下标，即插入位置）</p>""",
+        "code_python": """class Solution:
+    def searchInsert(self, nums: list[int], target: int) -> int:
+        l, r = 0, len(nums) - 1
+        while l <= r:
+            mid = (l + r) // 2
+            if nums[mid] == target:
+                return mid
+            if nums[mid] < target:
+                l = mid + 1          # target 在右半
+            else:
+                r = mid - 1          # target 在左半或应插在此处
+        return l                       # lower bound：第一个 >= target 的下标""",
+        "code_cpp": """class Solution {
+public:
+    int searchInsert(vector<int>& nums, int target) {
+        int l = 0, r = (int)nums.size() - 1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (nums[mid] == target) return mid;
+            if (nums[mid] < target)
+                l = mid + 1;         // target 在右半
+            else
+                r = mid - 1;         // target 在左半或应插在此处
+        }
+        return l;                    // lower bound
+    }
+};
+// 时间 O(log n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 未命中时必须返回 <code>l</code> 而不是 <code>r</code>：循环结束时 <code>l</code> 是第一个 <code>&gt;= target</code> 的位置，<code>r</code> 会落在其左侧。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>target</code> 大于所有元素时，<code>l</code> 会增至 <code>len(nums)</code>（如示例 3 返回 4），不要误以为越界——这正是「插入末尾」的正确答案。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与 #34 找左右边界不同，本题元素无重复，命中时可直接 <code>return mid</code>，无需继续向两侧搜索。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：目标命中</div>
+    <code>nums = [1,3,5,6], target = 5 → 2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：插入中间</div>
+    <code>nums = [1,3,5,6], target = 2 → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：插入末尾</div>
+    <code>nums = [1,3,5,6], target = 7 → 4</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：插入开头</div>
+    <code>nums = [1,3,5,6], target = 0 → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：单元素数组</div>
+    <code>nums = [1], target = 0 → 0</code>；<code>nums = [1], target = 2 → 1</code>
+</div>""",
+    },
 }
 
 
