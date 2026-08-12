@@ -4742,6 +4742,130 @@ public:
     <code>nums = [1], target = 0 → 0</code>；<code>nums = [1], target = 2 → 1</code>
 </div>""",
     },
+
+    "valid-sudoku": {
+        "type": "哈希表",
+        "difficulty": "中等",
+        "frontend_id": "36",
+        "title": "有效的数独",
+        "time_complexity": "O(1)",
+        "space_complexity": "O(1)",
+        "description": """<p>请你判断一个 <code>9×9</code> 的数独是否有效。只需要<strong>根据以下规则</strong>，验证已经填入的数字是否有效即可。</p>
+<ol>
+<li>数字 <code>1-9</code> 在每一行只能出现一次。</li>
+<li>数字 <code>1-9</code> 在每一列只能出现一次。</li>
+<li>数字 <code>1-9</code> 在每一个以粗实线分隔的 <code>3×3</code> 宫内只能出现一次。</li>
+</ol>
+<p><strong>注意：</strong>一个有效的数独（部分已被填充）不一定是可解的；只需验证已填数字是否违反规则；空白格用 <code>'.'</code> 表示。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：board =
+[["5","3",".",".","7",".",".",".","."]
+,["6",".",".","1","9","5",".",".","."]
+,[".","9","8",".",".",".",".","6","."]
+,["8",".",".",".","6",".",".",".","3"]
+,["4",".",".","8",".","3",".",".","1"]
+,["7",".",".",".","2",".",".",".","6"]
+,[".","6",".",".",".",".","2","8","."]
+,[".",".",".","4","1","9",".",".","5"]
+,[".",".",".",".","8",".",".","7","9"]]</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：board =
+[["8","3",".",".","7",".",".",".","."]
+,["6",".",".","1","9","5",".",".","."]
+,[".","9","8",".",".",".",".","6","."]
+,["8",".",".",".","6",".",".",".","3"]
+,["4",".",".","8",".","3",".",".","1"]
+,["7",".",".",".","2",".",".",".","6"]
+,[".","6",".",".",".",".","2","8","."]
+,[".",".",".","4","1","9",".",".","5"]
+,[".",".",".",".","8",".",".","7","9"]]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">左上角 <code>3×3</code> 宫内有两个 <code>8</code>，违反宫格规则。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>rows[i]</code></td><td>set&lt;char&gt; × 9</td><td><b>定义</b>：第 <code>i</code> 行已出现过的数字集合<br><b>维护</b>：扫描到 <code>(i,j)</code> 时，<code>rows[i]</code> 恰好包含该行 <code>j</code> 左侧及当前格的所有非空数字<br><b>更新</b>：遇到数字 <code>c</code> 时，若 <code>c in rows[i]</code> 则非法，否则 <code>rows[i].add(c)</code></td></tr>
+    <tr><td><code>cols[j]</code></td><td>set&lt;char&gt; × 9</td><td><b>定义</b>：第 <code>j</code> 列已出现过的数字集合<br><b>维护</b>：与行对称，保证列内 <code>1-9</code> 不重复<br><b>更新</b>：同上，重复则返回 <code>false</code>，否则加入集合</td></tr>
+    <tr><td><code>boxes[b]</code></td><td>set&lt;char&gt; × 9</td><td><b>定义</b>：第 <code>b</code> 个 <code>3×3</code> 宫格已出现过的数字集合，<code>b = (i//3)*3 + j//3</code><br><b>维护</b>：每个宫格独立维护，与行、列约束并行检查<br><b>更新</b>：若 <code>c in boxes[b]</code> 则非法，否则 <code>boxes[b].add(c)</code></td></tr>
+    <tr><td><code>c = board[i][j]</code></td><td>char</td><td><b>定义</b>：当前格字符，<code>'.'</code> 表示空白<br><b>维护</b>：仅对 <code>'1'..'9'</code> 执行去重检查，空白格直接跳过<br><b>更新</b>：双重循环逐格推进，每遇到一个数字同时查行、列、宫三套集合</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：对每个已填数字，分别检查它所在行、列、<code>3×3</code> 宫有没有重复——每格要扫最多 9 个邻居，整体约 O(81×9)，虽能过但重复劳动多。</p>
+<p class="thinking-step">2. 重复在哪里？每往右/往下扫一格，其实只是在问：「这个数字在我<strong>已经看过的</strong>同行/同列/同宫里出现过吗？」——本质是<strong>集合查重</strong>，不必每次重新遍历整行整列。</p>
+<p class="thinking-step">3. 关键转化：开 9 个行集合、9 个列集合、9 个宫集合；扫到 <code>(i,j)</code> 的数字 <code>c</code> 时，算宫号 <code>b=(i//3)*3+j//3</code>，若 <code>c</code> 已在 <code>rows[i]/cols[j]/boxes[b]</code> 任一集合中则立即 <code>false</code>，否则三处都加入 <code>c</code>。</p>
+<p class="thinking-step">4. 例 2 左上角宫：先记入 <code>8,3</code>，再扫到第二个 <code>8</code> 时 <code>boxes[0]</code> 已有 <code>8</code>，直接判无效——不必解完整数独。</p>
+<p class="thinking-step">5. 棋盘固定 <code>9×9</code>，最多 81 格、每格 O(1) 查集合，总复杂度 O(1)；空间也是 27 个小集合的常数级。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>rows, cols, boxes</code> 为 9 个空集合</p>
+<p class="code-step">2. 双重循环遍历每个格子 <code>(i, j)</code></p>
+<p class="code-step">3. 若 <code>board[i][j] == '.'</code> 跳过；否则令 <code>c = board[i][j]</code>，<code>b = (i//3)*3 + j//3</code></p>
+<p class="code-step">4. 若 <code>c</code> 已在 <code>rows[i]</code>、<code>cols[j]</code> 或 <code>boxes[b]</code> 中，返回 <code>false</code></p>
+<p class="code-step">5. 否则将 <code>c</code> 同时加入三个集合；全部扫完返回 <code>true</code></p>""",
+        "code_python": """class Solution:
+    def isValidSudoku(self, board: list[list[str]]) -> bool:
+        rows = [set() for _ in range(9)]
+        cols = [set() for _ in range(9)]
+        boxes = [set() for _ in range(9)]
+        for i in range(9):
+            for j in range(9):
+                c = board[i][j]
+                if c == '.':
+                    continue
+                b = (i // 3) * 3 + j // 3
+                if c in rows[i] or c in cols[j] or c in boxes[b]:
+                    return False
+                rows[i].add(c)
+                cols[j].add(c)
+                boxes[b].add(c)
+        return True""",
+        "code_cpp": """class Solution {
+public:
+    bool isValidSudoku(vector<vector<char>>& board) {
+        vector<unordered_set<char>> rows(9), cols(9), boxes(9);
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                char c = board[i][j];
+                if (c == '.') continue;
+                int b = (i / 3) * 3 + j / 3;
+                if (rows[i].count(c) || cols[j].count(c) || boxes[b].count(c))
+                    return false;
+                rows[i].insert(c);
+                cols[j].insert(c);
+                boxes[b].insert(c);
+            }
+        }
+        return true;
+    }
+};
+// 时间 O(1)，空间 O(1)（棋盘规模固定）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 宫格编号公式写错：应是 <code>(i//3)*3 + j//3</code>，不是 <code>i//3 + j//3</code> 或 <code>(i%3)*3 + j%3</code> 的误用。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 本题只<strong>验证合法性</strong>，不要求可解；看到矛盾直接 <code>false</code>，不要尝试回溯填数。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 字符类型是 <code>'1'..'9'</code> 和 <code>'.'</code>，不要当成 int；空白格必须跳过，否则会把 <code>'.'</code> 当数字处理。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：全空白盘</div>
+    <code>board 全是 '.' → true</code>（无冲突可判）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：行内重复</div>
+    <code>同一行两个 '5' → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：宫内重复（示例 2）</div>
+    <code>左上角 3×3 宫两个 '8' → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：列内重复</div>
+    <code>同一列两个 '7' → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：合法但不可解</div>
+    <code>已填数字互不冲突即可返回 true</code>，不要求能填满全盘
+</div>""",
+    },
 }
 
 

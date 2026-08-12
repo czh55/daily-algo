@@ -280,5 +280,11 @@
     "slug": "search-insert-position",
     "title": "搜索插入位置",
     "type": "二分查找"
+  },
+  {
+    "date": "2026-08-12",
+    "slug": "valid-sudoku",
+    "title": "有效的数独",
+    "type": "哈希表"
   }
 ]
