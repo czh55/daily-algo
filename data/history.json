@@ -286,5 +286,11 @@
     "slug": "valid-sudoku",
     "title": "有效的数独",
     "type": "哈希表"
+  },
+  {
+    "date": "2026-08-13",
+    "slug": "sudoku-solver",
+    "title": "解数独",
+    "type": "回溯"
   }
 ]
