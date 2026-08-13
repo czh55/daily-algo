@@ -4866,6 +4866,180 @@ public:
     <code>已填数字互不冲突即可返回 true</code>，不要求能填满全盘
 </div>""",
     },
+
+    "sudoku-solver": {
+        "type": "回溯",
+        "difficulty": "困难",
+        "frontend_id": "37",
+        "title": "解数独",
+        "time_complexity": "O(9^m)",
+        "space_complexity": "O(m)（递归栈，m 为空格数）",
+        "description": """<p>编写一个程序，通过填充空格来解决数独问题。</p>
+<p>数独的解法需<strong>遵循如下规则</strong>：</p>
+<ol>
+<li>数字 <code>1-9</code> 在每一行只能出现一次。</li>
+<li>数字 <code>1-9</code> 在每一列只能出现一次。</li>
+<li>数字 <code>1-9</code> 在每一个以粗实线分隔的 <code>3×3</code> 宫内只能出现一次。</li>
+</ol>
+<p>数独部分空格内已填入了数字，空白格用 <code>'.'</code> 表示。题目数据<strong>保证</strong>输入数独仅有一个解。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：board =
+[["5","3",".",".","7",".",".",".","."]
+,["6",".",".","1","9","5",".",".","."]
+,[".","9","8",".",".",".",".","6","."]
+,["8",".",".",".","6",".",".",".","3"]
+,["4",".",".","8",".","3",".",".","1"]
+,["7",".",".",".","2",".",".",".","6"]
+,[".","6",".",".",".",".","2","8","."]
+,[".",".",".","4","1","9",".",".","5"]
+,[".",".",".",".","8",".",".","7","9"]]</div>
+    <div class="example-output">输出：
+[["5","3","4","6","7","8","9","1","2"]
+,["6","7","2","1","9","5","3","4","8"]
+,["1","9","8","3","4","2","5","6","7"]
+,["8","5","9","7","6","1","4","2","3"]
+,["4","2","6","8","5","3","7","9","1"]
+,["7","1","3","9","2","4","8","5","6"]
+,["9","6","1","5","3","7","2","8","4"]
+,["2","8","7","4","1","9","6","3","5"]
+,["3","4","5","2","8","6","1","7","9"]]</div>
+    <div class="example-explain">按行、列、宫三条规则填满所有 <code>'.'</code>，得到唯一解。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>rows[i]</code></td><td>set&lt;char&gt; × 9</td><td><b>定义</b>：第 <code>i</code> 行已占用的数字集合<br><b>维护</b>：回溯过程中，<code>rows[i]</code> 始终等于当前盘上第 <code>i</code> 行所有非空格数字<br><b>更新</b>：在 <code>(r,c)</code> 填入 <code>d</code> 时 <code>rows[r].add(d)</code>；撤销时 <code>rows[r].remove(d)</code></td></tr>
+    <tr><td><code>cols[j]</code></td><td>set&lt;char&gt; × 9</td><td><b>定义</b>：第 <code>j</code> 列已占用的数字集合<br><b>维护</b>：与行对称，保证列内 <code>1-9</code> 不重复<br><b>更新</b>：填数时加入、回溯时移除，与 <code>rows</code> 同步</td></tr>
+    <tr><td><code>boxes[b]</code></td><td>set&lt;char&gt; × 9</td><td><b>定义</b>：第 <code>b</code> 个 <code>3×3</code> 宫已占用的数字，<code>b = (r//3)*3 + c//3</code><br><b>维护</b>：与行、列约束并行，任意时刻三套集合互不矛盾<br><b>更新</b>：尝试数字 <code>d</code> 前查 <code>d not in boxes[b]</code>；填入/撤销与行列一致</td></tr>
+    <tr><td><code>(r, c)</code></td><td>int, int</td><td><b>定义</b>：当前待填空格坐标，按行优先扫描得到<br><b>维护</b>：每轮递归只处理一个空格，填完递归下一格，失败则换数字或回溯<br><b>更新</b>：<code>find_empty()</code> 返回下一个 <code>'.'</code> 的位置；无空格时回溯成功终止</td></tr>
+    <tr><td><code>d</code></td><td>char</td><td><b>定义</b>：当前尝试填入的数字 <code>'1'..'9'</code><br><b>维护</b>：仅当 <code>d</code> 不在 <code>rows[r]/cols[c]/boxes[b]</code> 时才合法<br><b>更新</b>：合法则写入 <code>board[r][c]=d</code> 并递归；子调用失败则撤销并试下一个 <code>d</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：统计空格数 <code>m</code>，对每个空格枚举 <code>1-9</code>，共 <code>9^m</code> 种组合，再逐个检查行、列、宫是否合法——思路对，但无效组合占绝大多数。</p>
+<p class="thinking-step">2. 重复在哪里？每填一格，子问题变成「在<strong>当前已填前缀</strong>上继续填下一个空格」；很多分支在填到一半时就会因行/列/宫冲突而注定失败，却还要把后面空格全部试完。</p>
+<p class="thinking-step">3. 关键转化：用与 #36 相同的 <code>rows/cols/boxes</code> 三套集合做 O(1) 合法性判断；DFS 找到下一个 <code>'.'</code>，依次尝试 <code>1-9</code>，能放就递归，子树无解立刻撤销换数字——经典回溯剪枝。</p>
+<p class="thinking-step">4. 例 1 第一格空格 <code>(0,2)</code>：先试 <code>'1'</code> 会与同行 <code>'3'</code> 冲突被剪枝，最终找到 <code>'4'</code> 合法后深入下一空格；任一路径走不通就回退改选。</p>
+<p class="thinking-step">5. 题目保证唯一解，找到第一个完整合法填法即可返回；最坏 <code>O(9^m)</code>，剪枝后远好于全枚举；递归深度 ≤ 空格数 <code>m ≤ 81</code>。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>rows, cols, boxes</code> 三套集合，扫描初始盘把已有数字登记进去</p>
+<p class="code-step">2. 定义 <code>find_empty()</code>：按行优先找第一个 <code>board[r][c]=='.'</code>，返回坐标；找不到说明已解完</p>
+<p class="code-step">3. 定义 <code>backtrack()</code>：调用 <code>find_empty()</code>，无空格则返回 <code>True</code></p>
+<p class="code-step">4. 对当前空格 <code>(r,c)</code>，令 <code>b=(r//3)*3+c//3</code>，依次尝试 <code>d='1'..'9'</code></p>
+<p class="code-step">5. 若 <code>d</code> 不在三套集合中：写入 <code>board</code> 并更新集合 → 递归 <code>backtrack()</code> → 成功则返回 <code>True</code>，否则撤销填数和集合</p>
+<p class="code-step">6. 九个数都失败则返回 <code>False</code>；从 <code>backtrack()</code> 启动，解直接写回原 <code>board</code></p>""",
+        "code_python": """class Solution:
+    def solveSudoku(self, board: list[list[str]]) -> None:
+        rows = [set() for _ in range(9)]
+        cols = [set() for _ in range(9)]
+        boxes = [set() for _ in range(9)]
+        for i in range(9):
+            for j in range(9):
+                c = board[i][j]
+                if c != '.':
+                    b = (i // 3) * 3 + j // 3
+                    rows[i].add(c)
+                    cols[j].add(c)
+                    boxes[b].add(c)
+
+        def find_empty() -> tuple[int, int] | None:
+            for i in range(9):
+                for j in range(9):
+                    if board[i][j] == '.':
+                        return i, j
+            return None
+
+        def backtrack() -> bool:
+            pos = find_empty()
+            if pos is None:
+                return True
+            r, c = pos
+            b = (r // 3) * 3 + c // 3
+            for d in map(str, range(1, 10)):
+                if d in rows[r] or d in cols[c] or d in boxes[b]:
+                    continue
+                board[r][c] = d
+                rows[r].add(d)
+                cols[c].add(d)
+                boxes[b].add(d)
+                if backtrack():
+                    return True
+                board[r][c] = '.'
+                rows[r].remove(d)
+                cols[c].remove(d)
+                boxes[b].remove(d)
+            return False
+
+        backtrack()""",
+        "code_cpp": """class Solution {
+public:
+    void solveSudoku(vector<vector<char>>& board) {
+        vector<unordered_set<char>> rows(9), cols(9), boxes(9);
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                char c = board[i][j];
+                if (c == '.') continue;
+                int b = (i / 3) * 3 + j / 3;
+                rows[i].insert(c);
+                cols[j].insert(c);
+                boxes[b].insert(c);
+            }
+        }
+
+        function<bool()> backtrack = [&]() -> bool {
+            int r = -1, c = -1;
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    if (board[i][j] == '.') { r = i; c = j; break; }
+                }
+                if (r != -1) break;
+            }
+            if (r == -1) return true;
+
+            int b = (r / 3) * 3 + c / 3;
+            for (char d = '1'; d <= '9'; d++) {
+                if (rows[r].count(d) || cols[c].count(d) || boxes[b].count(d))
+                    continue;
+                board[r][c] = d;
+                rows[r].insert(d);
+                cols[c].insert(d);
+                boxes[b].insert(d);
+                if (backtrack()) return true;
+                board[r][c] = '.';
+                rows[r].erase(d);
+                cols[c].erase(d);
+                boxes[b].erase(d);
+            }
+            return false;
+        };
+
+        backtrack();
+    }
+};
+// 最坏 O(9^m)，m 为空格数；空间 O(m) 递归栈""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 回溯不撤销：填入数字后递归失败，必须把 <code>board[r][c]</code> 还原为 <code>'.'</code> 并从三套集合中 <code>remove</code>，否则污染兄弟分支。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 宫格编号公式写错：应是 <code>(r//3)*3 + c//3</code>，与 #36 有效数独相同。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回值误用：函数签名是 <code>void</code>，解直接写回 <code>board</code>，不要 <code>return board</code>；找到解后立刻返回，不必继续搜索其他可能（题目保证唯一解）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：接近填满的盘</div>
+    <code>仅剩 1-2 个 '.' → 回溯深度极浅，几乎 O(1)</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：空格较多</div>
+    <code>初始盘大量 '.' → 依赖剪枝，暴力 9^m 不可接受</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：字符类型</div>
+    <code>board 存 '1'..'9' 和 '.' 字符，不是 int</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：唯一解保证</div>
+    <code>找到第一个完整合法填法即可停止</code>，无需枚举所有解
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：示例 1 全盘</div>
+    <code>按题面输入应得到唯一输出矩阵</code>，修改原 board 而非返回新数组
+</div>""",
+    },
 }
 
 
