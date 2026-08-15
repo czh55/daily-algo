@@ -292,5 +292,11 @@
     "slug": "sudoku-solver",
     "title": "解数独",
     "type": "回溯"
+  },
+  {
+    "date": "2026-08-15",
+    "slug": "count-and-say",
+    "title": "外观数列",
+    "type": "字符串模拟"
   }
 ]

@@ -5040,6 +5040,122 @@ public:
     <code>按题面输入应得到唯一输出矩阵</code>，修改原 board 而非返回新数组
 </div>""",
     },
+
+    "count-and-say": {
+        "type": "字符串模拟",
+        "difficulty": "中等",
+        "frontend_id": "38",
+        "title": "外观数列",
+        "time_complexity": "O(L)（L 为各轮字符串长度之和，n≤30 时可控）",
+        "space_complexity": "O(L)（存放当前轮与下一轮字符串）",
+        "description": """<p>「外观数列」是一个数位字符串序列，由递归公式定义：</p>
+<ul>
+<li><code>countAndSay(1) = "1"</code></li>
+<li><code>countAndSay(n)</code> 是 <code>countAndSay(n-1)</code> 的<strong>行程长度编码</strong>（RLE）。</li>
+</ul>
+<p>行程长度编码将每个<strong>最大连续相同字符组</strong>替换为「组长度 + 该字符」。例如 <code>"3322251"</code> 编码为 <code>"23321511"</code>（<code>"33"→"23"</code>，<code>"222"→"32"</code>，<code>"5"→"15"</code>，<code>"1"→"11"</code>）。</p>
+<p>给定整数 <code>n</code>，返回外观数列的第 <code>n</code> 项。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 4</div>
+    <div class="example-output">输出："1211"</div>
+    <div class="example-explain">
+        <code>countAndSay(1) = "1"</code><br>
+        <code>countAndSay(2) = "1" 的 RLE = "11"</code><br>
+        <code>countAndSay(3) = "11" 的 RLE = "21"</code><br>
+        <code>countAndSay(4) = "21" 的 RLE = "1211"</code>
+    </div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 1</div>
+    <div class="example-output">输出："1"</div>
+    <div class="example-explain">基本情况，无需编码。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>cur</code></td><td>str</td><td><b>定义</b>：当前轮的外观数列字符串，初始为 <code>"1"</code><br><b>维护</b>：每完成一轮 RLE 编码后，<code>cur</code> 被替换为新生成的字符串<br><b>更新</b>：外层循环执行 <code>n-1</code> 次后，<code>cur</code> 即为第 <code>n</code> 项答案</td></tr>
+    <tr><td><code>nxt</code></td><td>str / StringBuilder</td><td><b>定义</b>：对 <code>cur</code> 做一轮行程长度编码后得到的新串<br><b>维护</b>：每轮编码前清空，扫描 <code>cur</code> 时逐段追加 <code>计数+字符</code><br><b>更新</b>：一轮扫描结束后令 <code>cur = nxt</code>，进入下一轮</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：在 <code>cur</code> 上的扫描指针，指向当前连续段的起始位置<br><b>维护</b>：每处理完一段相同字符后，跳到该段末尾的下一位<br><b>更新</b>：内层 <code>while i &lt; len(cur)</code> 循环推进；段长由 <code>j</code> 探测得到</td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：从 <code>i</code> 出发，向右延伸直到字符与 <code>cur[i]</code> 不同<br><b>维护</b>：<code>cnt = j - i</code> 即为当前连续段长度<br><b>更新</b>：将 <code>str(cnt) + cur[i]</code> 追加到 <code>nxt</code> 后，令 <code>i = j</code></td></tr>
+  <tr><td><code>cnt</code></td><td>int</td><td><b>定义</b>：以 <code>cur[i]</code> 为首的连续相同字符个数<br><b>维护</b>：由双指针 <code>i, j</code> 一次 O(段长) 统计，每段只算一次<br><b>更新</b>：编码为十进制数字字符串拼在字符前，如 <code>3</code> 个 <code>'2'</code> → <code>"32"</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：按定义递归 <code>countAndSay(n-1)</code> 再对其做 RLE——逻辑对，但每层都重新从头编码，函数调用栈深 <code>n</code>，且中间串反复构造。</p>
+<p class="thinking-step">2. 重复在哪里？无论递归还是迭代，核心子问题都是「给定字符串 <code>s</code>，输出它的行程长度编码」；第 <code>k</code> 项只依赖第 <code>k-1</code> 项，与更早项无关。</p>
+<p class="thinking-step">3. 关键转化：迭代维护 <code>cur</code>，从 <code>"1"</code> 出发做 <code>n-1</code> 轮编码；每轮用双指针扫描 <code>cur</code>，数清连续相同字符后追加 <code>计数+字符</code> 到 <code>nxt</code>。</p>
+<p class="thinking-step">4. 手推 <code>n=4</code>：<code>"1"→"11"→"21"→"1211"</code>。第三轮读 <code>"21"</code>：先 <code>1</code> 个 <code>'2'</code> 得 <code>"12"</code>，再 <code>1</code> 个 <code>'1'</code> 得 <code>"11"</code>，合并 <code>"1211"</code>。</p>
+<p class="thinking-step">5. <code>n=1</code> 直接返回 <code>"1"</code>，循环 0 次；<code>n≤30</code> 时串长可控，双指针每轮总扫描长度等于当前串长，整体可行。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>n == 1</code>，直接返回 <code>"1"</code></p>
+<p class="code-step">2. 令 <code>cur = "1"</code>，准备执行 <code>n-1</code> 轮编码</p>
+<p class="code-step">3. 每轮初始化空串 <code>nxt</code>，双指针 <code>i = 0</code> 扫描 <code>cur</code></p>
+<p class="code-step">4. 固定 <code>ch = cur[i]</code>，令 <code>j = i</code> 向右扩直到 <code>cur[j] != ch</code>，<code>cnt = j - i</code></p>
+<p class="code-step">5. 将 <code>str(cnt) + ch</code> 追加到 <code>nxt</code>，<code>i = j</code> 处理下一段</p>
+<p class="code-step">6. 一轮结束 <code>cur = nxt</code>；全部轮次完成后返回 <code>cur</code></p>""",
+        "code_python": """class Solution:
+    def countAndSay(self, n: int) -> str:
+        if n == 1:
+            return "1"
+        cur = "1"
+        for _ in range(n - 1):
+            nxt = []
+            i = 0
+            while i < len(cur):
+                ch = cur[i]
+                j = i
+                while j < len(cur) and cur[j] == ch:
+                    j += 1
+                nxt.append(str(j - i))
+                nxt.append(ch)
+                i = j
+            cur = "".join(nxt)
+        return cur""",
+        "code_cpp": """class Solution {
+public:
+    string countAndSay(int n) {
+        if (n == 1) return "1";
+        string cur = "1";
+        for (int round = 1; round < n; ++round) {
+            string nxt;
+            for (int i = 0; i < (int)cur.size(); ) {
+                char ch = cur[i];
+                int j = i;
+                while (j < (int)cur.size() && cur[j] == ch) ++j;
+                nxt += to_string(j - i);
+                nxt += ch;
+                i = j;
+            }
+            cur = move(nxt);
+        }
+        return cur;
+    }
+};
+// 时间 O(L)，空间 O(L)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 计数与字符拼接顺序反了：应先写<strong>个数</strong>再写<strong>字符</strong>，<code>3</code> 个 <code>'2'</code> 是 <code>"32"</code> 而非 <code>"23"</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环次数 off-by-one：只需编码 <code>n-1</code> 次；多跑一轮会把答案再 RLE 一次，<code>n=4</code> 会错成 <code>"111221"</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 内层扫描未正确跳段：每处理完一段必须令 <code>i = j</code>，否则会在同一字符上死循环或重复计数。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：n = 1</div>
+    <code>直接返回 "1"，不进入编码循环</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：n = 4</div>
+    <code>经典手推链 "1"→"11"→"21"→"1211"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：含多段相同模式</div>
+    <code>"111221" 编码为 "312211"（3个1 + 2个2 + 1个1）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单字符段</div>
+    <code>"21" 中两段长度均为 1 → "1211"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：较大 n</div>
+    <code>n = 30 时串长可达数千，仍须用 O(当前长度) 扫描，避免暴力递归重复计算</code>
+</div>""",
+    },
 }
 
 
