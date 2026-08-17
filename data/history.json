@@ -298,5 +298,11 @@
     "slug": "count-and-say",
     "title": "外观数列",
     "type": "字符串模拟"
+  },
+  {
+    "date": "2026-08-17",
+    "slug": "combination-sum",
+    "title": "组合总和",
+    "type": "回溯"
   }
 ]
