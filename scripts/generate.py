@@ -5273,6 +5273,120 @@ public:
     <code>排序不影响正确性，但有助于 remain 剪枝</code>
 </div>""",
     },
+    "combination-sum-ii": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "40",
+        "title": "组合总和 II",
+        "time_complexity": "O(2^N)（N 为候选数；排序 + 剪枝 + 同层去重后远好于全子集枚举）",
+        "space_complexity": "O(N)（递归栈深度，不计输出）",
+        "description": """<p>给定一个候选人编号的集合 <code>candidates</code> 和一个目标数 <code>target</code>，找出 <code>candidates</code> 中所有可以使数字和为 <code>target</code> 的组合。</p>
+<p><code>candidates</code> 中的每个数字在每个组合中只能使用 <strong>一次</strong>。</p>
+<p><strong>注意：</strong>解集不能包含重复的组合。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：candidates = [10,1,2,7,6,1,5], target = 8</div>
+    <div class="example-output">输出：[[1,1,6],[1,2,5],[1,7],[2,6]]</div>
+    <div class="example-explain">1 和 1 来自两个不同的 1，可以一起使用；1,2,5 与 2,5,1 视为同一组合，只保留一种。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：candidates = [2,5,2,1,2], target = 5</div>
+    <div class="example-output">输出：[[1,2,2],[5]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>path</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前正在构造的组合（已选数字序列）<br><b>维护</b>：DFS 每层在末尾追加一个候选数，回溯时 <code>pop</code> 撤销<br><b>更新</b>：尝试 <code>candidates[i]</code> 时 <code>append</code>；该分支探索完毕后 <code>pop</code></td></tr>
+    <tr><td><code>remain</code></td><td>int</td><td><b>定义</b>：距离 <code>target</code> 还差多少和<br><b>维护</b>：每选一个数 <code>x</code>，子问题变为 <code>remain - x</code><br><b>更新</b>：<code>remain == 0</code> 时收集答案；<code>remain &lt; 0</code> 时剪枝返回</td></tr>
+    <tr><td><code>start</code></td><td>int</td><td><b>定义</b>：本轮可选候选的起始下标（含自身）<br><b>维护</b>：只从 <code>candidates[start..]</code> 中选，保证组合不重复（如不会出现 <code>[1,2,5]</code> 与 <code>[2,5,1]</code>）<br><b>更新</b>：选 <code>candidates[i]</code> 后递归传 <code>i+1</code>（每个数最多用一次）</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：所有和为 <code>target</code> 的不同组合<br><b>维护</b>：仅当 <code>remain == 0</code> 时将 <code>path</code> 的副本加入<br><b>更新</b>：每到达合法叶子追加一次；中途不收集半成品</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：从 <code>candidates</code> 中任选若干个（每个最多一次），枚举所有子集，检查总和是否等于 <code>target</code>——思路对，但组合爆炸，且输入有重复数字时会产生重复答案（如两个 1 分别选会生成相同组合）。</p>
+<p class="thinking-step">2. 重复在哪里？一是排列等价（<code>[1,2,5]</code> 与 <code>[2,5,1]</code>），用 <code>start</code> 只往后选可解决；二是相同数值的候选（如两个 1）在同一层被多次尝试，会生成重复组合。</p>
+<p class="thinking-step">3. 关键转化：先对 <code>candidates</code> 排序；每层从 <code>start</code> 往后选，递归传 <code>i+1</code>（不可重复选）；同层去重：若 <code>i &gt; start</code> 且 <code>candidates[i] == candidates[i-1]</code> 则 <code>continue</code>，跳过等价分支。</p>
+<p class="thinking-step">4. 例 1 排序后 <code>[1,1,2,5,6,7,10], target=8</code>：第一层选第一个 1（remain=7）→ 再选第二个 1（remain=6）→ 选 6（remain=0）→ <code>[1,1,6]</code>；另一路选 1+2+5 等。</p>
+<p class="thinking-step">5. 与 #39 组合总和的区别：本题每个数只能用一次（传 <code>i+1</code>），且必须排序 + 同层去重；<code>remain &lt; 0</code> 或 <code>candidates[i] &gt; remain</code> 时剪枝。</p>""",
+        "code_steps": """<p class="code-step">1. 对 <code>candidates</code> 排序，初始化结果 <code>ans</code></p>
+<p class="code-step">2. 定义 DFS <code>backtrack(start, remain, path)</code>：若 <code>remain == 0</code>，将 <code>path[:]</code> 加入 <code>ans</code> 并返回；若 <code>remain &lt; 0</code> 则剪枝返回</p>
+<p class="code-step">3. 对 <code>i</code> 从 <code>start</code> 到 <code>len(candidates)-1</code>：若 <code>candidates[i] &gt; remain</code> 可 <code>break</code>；若 <code>i &gt; start</code> 且 <code>candidates[i] == candidates[i-1]</code> 则 <code>continue</code>（同层去重）</p>
+<p class="code-step">4. 将 <code>candidates[i]</code> 追加到 <code>path</code>，递归 <code>backtrack(i+1, remain - candidates[i], path)</code>（传 <code>i+1</code> 保证每个数最多用一次）</p>
+<p class="code-step">5. 回溯：从 <code>path</code> 弹出末尾元素，继续尝试下一个 <code>i</code></p>
+<p class="code-step">6. 从 <code>backtrack(0, target, [])</code> 启动，返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def combinationSum2(self, candidates: list[int], target: int) -> list[list[int]]:
+        ans: list[list[int]] = []
+        candidates.sort()
+
+        def backtrack(start: int, remain: int, path: list[int]) -> None:
+            if remain == 0:
+                ans.append(path[:])
+                return
+            if remain < 0:
+                return
+            for i in range(start, len(candidates)):
+                if candidates[i] > remain:
+                    break
+                if i > start and candidates[i] == candidates[i - 1]:
+                    continue
+                path.append(candidates[i])
+                backtrack(i + 1, remain - candidates[i], path)
+                path.pop()
+
+        backtrack(0, target, [])
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
+        vector<vector<int>> ans;
+        vector<int> path;
+        sort(candidates.begin(), candidates.end());
+
+        function<void(int, int)> dfs = [&](int start, int remain) {
+            if (remain == 0) {
+                ans.push_back(path);
+                return;
+            }
+            if (remain < 0) return;
+            for (int i = start; i < (int)candidates.size(); i++) {
+                if (candidates[i] > remain) break;
+                if (i > start && candidates[i] == candidates[i - 1]) continue;
+                path.push_back(candidates[i]);
+                dfs(i + 1, remain - candidates[i]);
+                path.pop_back();
+            }
+        };
+
+        dfs(0, target);
+        return ans;
+    }
+};
+// 时间 O(2^N)，空间 O(N) 递归栈""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 递归下标传 <code>i</code> 而非 <code>i+1</code>：本题每个数只能用一次，传 <code>i</code> 会重复选同一位置，产生非法组合。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记同层去重：输入 <code>[1,1,2]</code> 时，若不跳过 <code>candidates[i]==candidates[i-1]</code>（当 <code>i&gt;start</code>），会输出两个 <code>[1,2]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 去重条件写错：应写 <code>i &gt; start</code> 时跳过，而非 <code>i &gt; 0</code>；后者会误杀跨层合法分支（如两个 1 分属不同层时都需要）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：无解</div>
+    <code>candidates = [3,4], target = 2 → []</code>（最小候选已大于 target）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单元素凑满</div>
+    <code>candidates = [5,2,2,1,2], target = 5 → 含 [5]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：重复数字</div>
+    <code>candidates = [10,1,2,7,6,1,5], target = 8 → 含 [1,1,6]</code>（两个 1 来自不同位置，合法）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：示例 2</div>
+    <code>[2,5,2,1,2], target=5 → [[1,2,2],[5]]</code>，排序去重后恰好两组
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：target 等于某候选</div>
+    <code>candidates = [1,1], target = 1 → [[1]]</code>（只选其中一个 1，同层去重保证不重复）
+</div>""",
+    },
 }
 
 
