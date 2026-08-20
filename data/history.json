@@ -310,5 +310,11 @@
     "slug": "combination-sum-ii",
     "title": "组合总和 II",
     "type": "回溯"
+  },
+  {
+    "date": "2026-08-20",
+    "slug": "first-missing-positive",
+    "title": "缺失的第一个正数",
+    "type": "数组原地哈希"
   }
 ]
