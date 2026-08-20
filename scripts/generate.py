@@ -54,6 +54,7 @@ TYPE_CLASS_MAP = {
     "回溯": "backtrack",
     "栈": "stack",
     "堆（优先队列）": "heap",
+    "数组原地哈希": "inplace-hash",
 }
 
 # ─── Variable Semantics Data for Core Problem Types ───
@@ -5385,6 +5386,109 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 5：target 等于某候选</div>
     <code>candidates = [1,1], target = 1 → [[1]]</code>（只选其中一个 1，同层去重保证不重复）
+</div>""",
+    },
+    "first-missing-positive": {
+        "type": "数组原地哈希",
+        "difficulty": "困难",
+        "frontend_id": "41",
+        "title": "缺失的第一个正数",
+        "time_complexity": "O(n)（每个元素最多被交换到正确位置一次）",
+        "space_complexity": "O(1)（仅原地修改输入数组，不计输出）",
+        "description": """<p>给你一个未排序的整数数组 <code>nums</code>，请你找出其中没有出现的最小的正整数。</p>
+<p>请你实现时间复杂度为 <code>O(n)</code> 并且只使用常数级别额外空间的解决方案。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,2,0]</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain">范围 [1,2] 中的数字都在数组中，最小缺失正数是 3。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [3,4,-1,1]</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">1 在数组中，但 2 没有。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [7,8,9,11,12]</div>
+    <div class="example-output">输出：1</div>
+    <div class="example-explain">最小的正数 1 没有出现。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>n</code></td><td>int</td><td><b>定义</b>：数组长度，答案必在区间 <code>[1, n+1]</code> 内<br><b>维护</b>：只关心 <code>1..n</code> 是否出现，大于 <code>n</code> 或非正数与答案无关<br><b>更新</b>：初始化后不变；扫描阶段若 <code>1..n</code> 全在正确位置则答案为 <code>n+1</code></td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前正在「归位」的下标<br><b>维护</b>：从左到右推进；位置 <code>i</code> 应存放值 <code>i+1</code><br><b>更新</b>：当 <code>nums[i]</code> 已在 <code>[1,n]</code> 且已归位（或重复/越界）时 <code>i++</code></td></tr>
+    <tr><td><code>nums[j]</code></td><td>int[]</td><td><b>定义</b>：同时充当输入与「桶数组」——下标 <code>j</code> 表示正整数 <code>j+1</code> 的槽位<br><b>维护</b>：若 <code>nums[j] == j+1</code>，说明 <code>j+1</code> 已出现；否则该槽位仍空<br><b>更新</b>：当 <code>1 &lt;= nums[i] &lt;= n</code> 且 <code>nums[i] != nums[nums[i]-1]</code> 时，交换 <code>nums[i]</code> 与 <code>nums[nums[i]-1]</code>，把值送到其对应桶位</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：从 <code>k=1</code> 开始逐个检查是否在 <code>nums</code> 里，第一次不在的就是答案——正确但最坏要扫 <code>O(n^2)</code>。</p>
+<p class="thinking-step">2. 重复在哪里？对每个 <code>k</code> 都线性扫一遍数组，大量重复遍历。</p>
+<p class="thinking-step">3. 用哈希集合存所有正数，再扫 <code>1,2,3...</code> 找第一个缺失——时间 <code>O(n)</code> 但额外空间 <code>O(n)</code>，不满足题意。</p>
+<p class="thinking-step">4. 关键转化：长度为 <code>n</code> 时，答案只可能在 <code>[1, n+1]</code>。把数组本身当哈希表：值 <code>v</code> 应放在下标 <code>v-1</code>；通过交换把每个合法值「归位」，最后第一个 <code>nums[i] != i+1</code> 的位置就是答案 <code>i+1</code>。</p>
+<p class="thinking-step">5. 例 <code>[3,4,-1,1]</code>：<code>n=4</code>，交换后变为 <code>[1,-1,3,4]</code>，下标 1 处应为 2 却是 -1，返回 2。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>n = len(nums)</code>，答案搜索空间为 <code>1..n+1</code></p>
+<p class="code-step">2. 对每个下标 <code>i</code>，当 <code>1 &lt;= nums[i] &lt;= n</code> 且 <code>nums[i] != nums[nums[i]-1]</code> 时，交换 <code>nums[i]</code> 与 <code>nums[nums[i]-1]</code>（把 <code>nums[i]</code> 送到值对应的桶位）</p>
+<p class="code-step">3. 交换条件中的 <code>nums[i] != nums[nums[i]-1]</code> 防止相同值无限互换（如两个 1）</p>
+<p class="code-step">4. 第二遍扫描：找第一个 <code>i</code> 使 <code>nums[i] != i+1</code>，返回 <code>i+1</code></p>
+<p class="code-step">5. 若 <code>1..n</code> 全部归位，返回 <code>n+1</code></p>""",
+        "code_python": """class Solution:
+    def firstMissingPositive(self, nums: list[int]) -> int:
+        n = len(nums)
+
+        # 原地哈希：把值 v 交换到下标 v-1
+        for i in range(n):
+            while 1 <= nums[i] <= n and nums[i] != nums[nums[i] - 1]:
+                target = nums[i] - 1
+                nums[i], nums[target] = nums[target], nums[i]
+
+        for i in range(n):
+            if nums[i] != i + 1:
+                return i + 1
+        return n + 1""",
+        "code_cpp": """class Solution {
+public:
+    int firstMissingPositive(vector<int>& nums) {
+        int n = nums.size();
+
+        // 原地哈希：把值 v 交换到下标 v-1
+        for (int i = 0; i < n; i++) {
+            while (nums[i] >= 1 && nums[i] <= n && nums[i] != nums[nums[i] - 1]) {
+                int target = nums[i] - 1;
+                swap(nums[i], nums[target]);
+            }
+        }
+
+        for (int i = 0; i < n; i++) {
+            if (nums[i] != i + 1) return i + 1;
+        }
+        return n + 1;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 交换循环写 <code>while nums[i] in [1,n]</code> 却忘记 <code>nums[i] != nums[nums[i]-1]</code>：遇到重复值（如两个 1）会死循环。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用额外哈希表或排序：虽然能过部分用例，但违反 <code>O(1)</code> 额外空间要求。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 第二遍扫描前误以为数组已排序：归位后顺序未必单调（如 <code>[-1,3,1]</code> 交换后为 <code>[1,3,-1]</code>），必须按下标检查 <code>nums[i] == i+1</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：全为正且连续</div>
+    <code>nums = [1,2,0] → 3</code>（1、2 都在，缺 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：缺 1</div>
+    <code>nums = [7,8,9,11,12] → 1</code>（最小正数 1 未出现）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：含负数与越界值</div>
+    <code>nums = [3,4,-1,1] → 2</code>（负数与 &gt;n 的值不参与归位）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单元素</div>
+    <code>nums = [1] → 2</code>（1 在，答案为 n+1=2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：全不在范围内</div>
+    <code>nums = [0,-1,100] → 1</code>（没有任何 1..n 的值归位，第一个缺失为 1）
 </div>""",
     },
 }
