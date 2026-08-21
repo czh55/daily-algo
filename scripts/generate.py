@@ -54,6 +54,7 @@ TYPE_CLASS_MAP = {
     "回溯": "backtrack",
     "栈": "stack",
     "堆（优先队列）": "heap",
+    "数组原地哈希": "inplace-hash",
 }
 
 # ─── Variable Semantics Data for Core Problem Types ───
@@ -5385,6 +5386,104 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 5：target 等于某候选</div>
     <code>candidates = [1,1], target = 1 → [[1]]</code>（只选其中一个 1，同层去重保证不重复）
+</div>""",
+    },
+    "first-missing-positive": {
+        "type": "数组原地哈希",
+        "difficulty": "困难",
+        "frontend_id": "41",
+        "title": "缺失的第一个正数",
+        "time_complexity": "O(N)（每个元素最多被交换到正确位置一次）",
+        "space_complexity": "O(1)（只用常数额外变量，原地修改数组）",
+        "description": """<p>给你一个未排序的整数数组 <code>nums</code>，请你找出其中没有出现的最小的正整数。</p>
+<p>请你实现时间复杂度为 <code>O(n)</code> 并且只使用常数级别额外空间的解决方案。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,2,0]</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain">范围 [1,2] 中的数字都在数组中。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [3,4,-1,1]</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">1 在数组中，但 2 没有。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [7,8,9,11,12]</div>
+    <div class="example-output">输出：1</div>
+    <div class="example-explain">最小的正数 1 没有出现。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>n</code></td><td>int</td><td><b>定义</b>：数组长度，答案只可能落在 <code>[1, n+1]</code><br><b>维护</b>：有效正整数 <code>x</code> 若存在，必在 <code>1..n</code> 内（大于 <code>n</code> 的数不可能是最小缺失正数）<br><b>更新</b>：初始化后不变，用于界定「该放哪里」与最终扫描上界</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前正在整理的数组下标<br><b>维护</b>：从左到右扫，保证 <code>nums[0..i-1]</code> 已就位（<code>nums[j]==j+1</code>）<br><b>更新</b>：当前位置元素归位或判定为垃圾后 <code>i++</code></td></tr>
+    <tr><td><code>nums[k]</code></td><td>int</td><td><b>定义</b>：下标 <code>k</code> 处的值；语义上应存放整数 <code>k+1</code>（若该数存在于原数组）<br><b>维护</b>：把每个合法值 <code>x∈[1,n]</code> 交换到 <code>nums[x-1]</code>，形成「值 <code>x</code> 住在下标 <code>x-1</code>」的原地哈希表<br><b>更新</b>：通过 <code>swap(nums[i], nums[nums[i]-1])</code> 循环搬运，直到 <code>nums[i]</code> 不在 <code>[1,n]</code> 或已在正确位置</td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：第一个缺失的正整数<br><b>维护</b>：第二遍扫描找最小 <code>i</code> 使 <code>nums[i] != i+1</code>，则 <code>ans = i+1</code><br><b>更新</b>：若 <code>1..n</code> 全在位，<code>ans = n+1</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：用哈希集合记录 <code>nums</code> 里所有正数，再从 <code>1</code> 开始递增找第一个不在集合里的——正确，但需要 <code>O(n)</code> 额外空间，不满足题意。</p>
+<p class="thinking-step">2. 重复在哪里？我们其实只关心 <code>1..n</code> 哪些出现了；大于 <code>n</code> 的数和 ≤0 的数都是噪声，可以忽略。</p>
+<p class="thinking-step">3. 关键转化：把数组当成长度为 <code>n</code> 的哈希桶——值 <code>x</code>（<code>1≤x≤n</code>）应该放在下标 <code>x-1</code>。对每个位置 <code>i</code>，若 <code>nums[i]</code> 是合法值且还没在正确位置，就与 <code>nums[nums[i]-1]</code> 交换，直到当前位无法继续换。</p>
+<p class="thinking-step">4. 例 2 <code>[3,4,-1,1]</code>：<code>i=0</code> 把 3 换到 index 2 → <code>[−1,4,3,1]</code>；<code>i=1</code> 把 4 换到 index 3 → <code>[−1,1,3,4]</code>；<code>i=1</code> 再把 1 换到 index 0 → <code>[1,−1,3,4]</code>。第二遍扫描：<code>nums[1]=−1≠2</code>，答案 2。</p>
+<p class="thinking-step">5. 为什么 <code>while</code> 不会死循环？每次交换都让某个合法值到达最终位置，每个下标最多被「填对」一次，总交换次数 <code>O(n)</code>。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>n = len(nums)</code>，第一遍原地整理：对 <code>i</code> 从 <code>0</code> 到 <code>n-1</code></p>
+<p class="code-step">2. 当 <code>1 ≤ nums[i] ≤ n</code> 且 <code>nums[i] ≠ nums[nums[i]-1]</code> 时，交换 <code>nums[i]</code> 与 <code>nums[nums[i]-1]</code>（把 <code>nums[i]</code> 送到它应在的下标）</p>
+<p class="code-step">3. 内层 <code>while</code> 结束说明当前位已是垃圾值（≤0 或 &gt;n）或已就位，<code>i++</code> 处理下一位</p>
+<p class="code-step">4. 第二遍扫描：找最小 <code>i</code> 使 <code>nums[i] ≠ i+1</code>，返回 <code>i+1</code></p>
+<p class="code-step">5. 若 <code>1..n</code> 全部在位，返回 <code>n+1</code></p>""",
+        "code_python": """class Solution:
+    def firstMissingPositive(self, nums: list[int]) -> int:
+        n = len(nums)
+        for i in range(n):
+            while 1 <= nums[i] <= n and nums[i] != nums[nums[i] - 1]:
+                j = nums[i] - 1
+                nums[i], nums[j] = nums[j], nums[i]
+        for i in range(n):
+            if nums[i] != i + 1:
+                return i + 1
+        return n + 1""",
+        "code_cpp": """class Solution {
+public:
+    int firstMissingPositive(vector<int>& nums) {
+        int n = nums.size();
+        for (int i = 0; i < n; i++) {
+            while (nums[i] >= 1 && nums[i] <= n && nums[i] != nums[nums[i] - 1]) {
+                int j = nums[i] - 1;
+                swap(nums[i], nums[j]);
+            }
+        }
+        for (int i = 0; i < n; i++) {
+            if (nums[i] != i + 1) return i + 1;
+        }
+        return n + 1;
+    }
+};
+// 时间 O(N)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用 <code>if</code> 只交换一次：例如 <code>[3,4,-1,1]</code> 在 <code>i=0</code> 换完后当前位仍是 3 的「错值」，必须用 <code>while</code> 持续交换直到无法继续。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记判重 <code>nums[i] != nums[nums[i]-1]</code>：若目标位已是相同值（重复数字），再交换会死循环。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 第二遍扫描条件写错：应比较 <code>nums[i] != i+1</code>，不是 <code>nums[i] != i</code>；下标从 0 开始，期望存放的是 <code>i+1</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：全为负数</div>
+    <code>nums = [-1,-2,-3] → 1</code>（没有任何正数，最小缺失正数为 1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：已连续 1..n</div>
+    <code>nums = [1,2,3] → 4</code>（1..n 都在，答案为 n+1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：含重复与垃圾值</div>
+    <code>nums = [3,4,-1,1] → 2</code>（-1 与重复值被留在错误位置，不影响扫描）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：全大于 n</div>
+    <code>nums = [7,8,9,11,12] → 1</code>（没有任何 1..n 的有效值）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：单元素</div>
+    <code>nums = [1] → 2</code>；<code>nums = [2] → 1</code>
 </div>""",
     },
 }
