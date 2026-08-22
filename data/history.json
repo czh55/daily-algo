@@ -316,5 +316,11 @@
     "slug": "first-missing-positive",
     "title": "缺失的第一个正数",
     "type": "数组原地哈希"
+  },
+  {
+    "date": "2026-08-22",
+    "slug": "multiply-strings",
+    "title": "字符串相乘",
+    "type": "数学模拟"
   }
 ]

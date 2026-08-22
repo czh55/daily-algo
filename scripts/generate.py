@@ -5486,6 +5486,113 @@ public:
     <code>nums = [1] → 2</code>；<code>nums = [2] → 1</code>
 </div>""",
     },
+    "multiply-strings": {
+        "type": "数学模拟",
+        "difficulty": "中等",
+        "frontend_id": "43",
+        "title": "字符串相乘",
+        "time_complexity": "O(m × n)（m、n 为两串长度，每位与每位相乘一次）",
+        "space_complexity": "O(m + n)（结果数组长度最多 m+n 位）",
+        "description": """<p>给定两个以字符串形式表示的非负整数 <code>num1</code> 和 <code>num2</code>，返回 <code>num1</code> 和 <code>num2</code> 的乘积，它们的乘积也表示为字符串形式。</p>
+<p><strong>注意：</strong>不能使用任何内置的 BigInteger 库或直接将输入转换为整数。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：num1 = "2", num2 = "3"</div>
+    <div class="example-output">输出："6"</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：num1 = "123", num2 = "456"</div>
+    <div class="example-output">输出："56088"</div>
+    <div class="example-explain">123 × 456 = 56088，模拟竖式乘法：每位相乘后按位累加进位。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>m, n</code></td><td>int</td><td><b>定义</b>：<code>num1</code>、<code>num2</code> 的长度<br><b>维护</b>：乘积最多 <code>m+n</code> 位，结果数组长度由此确定<br><b>更新</b>：初始化后不变</td></tr>
+    <tr><td><code>res</code></td><td>int[]</td><td><b>定义</b>：长度为 <code>m+n</code> 的数位数组，<code>res[k]</code> 表示乘积从右数第 <code>k</code> 位的数字（低位在右）<br><b>维护</b>：模拟竖式乘法，<code>num1[i]×num2[j]</code> 的贡献落在 <code>res[i+j]</code> 与 <code>res[i+j+1]</code><br><b>更新</b>：每对数位相乘后 <code>res[p2] += mul</code>，再向 <code>res[p1]</code> 传递进位</td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：<code>num1</code>、<code>num2</code> 当前参与相乘的字符下标（从右向左）<br><b>维护</b>：双重循环枚举所有数位对，覆盖竖式中每一次「个位×个位、个位×十位…」<br><b>更新</b>：<code>i</code> 从 <code>m-1</code> 到 <code>0</code>，内层 <code>j</code> 从 <code>n-1</code> 到 <code>0</code></td></tr>
+    <tr><td><code>mul</code></td><td>int</td><td><b>定义</b>：当前两位数字的乘积 <code>int(num1[i]) × int(num2[j])</code><br><b>维护</b>：范围 <code>0..81</code>，加上已有低位后可能产生进位<br><b>更新</b>：每对 <code>(i,j)</code> 重新计算</td></tr>
+    <tr><td><code>p1, p2</code></td><td>int</td><td><b>定义</b>：<code>mul</code> 在 <code>res</code> 中对应的十位、个位下标，<code>p2 = i+j+1</code>、<code>p1 = i+j</code><br><b>维护</b>：下标 <code>i</code> 越靠左（高位）、<code>j</code> 越靠左，乘积贡献越靠高位<br><b>更新</b>：随当前 <code>(i,j)</code> 变化</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：把两个字符串转成 <code>int</code> 再相乘——题面明确禁止，且长度可达 200 位，会溢出。</p>
+<p class="thinking-step">2. 重复在哪里？竖式乘法里，每一位都要与另一个数的每一位相乘，再把部分积按位对齐相加。这个「对齐 + 进位」过程可以抽象成数组操作。</p>
+<p class="thinking-step">3. 关键观察：<code>num1[i] × num2[j]</code> 的结果（最多两位）应写入结果数组的 <code>res[i+j+1]</code>（个位）和 <code>res[i+j]</code>（十位进位）。开一个长度 <code>m+n</code> 的数组足够存放最终乘积。</p>
+<p class="thinking-step">4. 例 <code>"123" × "456"</code>：<code>3×6=18</code> 写入 <code>res[4..5]</code>；<code>3×5=15</code>、<code>2×6=12</code> 等同理累加并进位。全部数位对处理完后，从左到右跳过前导零，拼接成字符串。</p>
+<p class="thinking-step">5. 特判：任一串为 <code>"0"</code> 直接返回 <code>"0"</code>；结果全零时也要返回 <code>"0"</code> 而非空串。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>num1 == "0" or num2 == "0"</code>，返回 <code>"0"</code></p>
+<p class="code-step">2. 令 <code>m, n = len(num1), len(num2)</code>，初始化 <code>res = [0] * (m + n)</code></p>
+<p class="code-step">3. 双重循环：<code>i</code> 从 <code>m-1</code> 到 <code>0</code>，<code>j</code> 从 <code>n-1</code> 到 <code>0</code></p>
+<p class="code-step">4. 计算 <code>mul = int(num1[i]) * int(num2[j])</code>，<code>p1 = i+j</code>、<code>p2 = i+j+1</code></p>
+<p class="code-step">5. <code>sum = mul + res[p2]</code>，<code>res[p2] = sum % 10</code>，<code>res[p1] += sum // 10</code>（个位落位、进位向高位传递）</p>
+<p class="code-step">6. 从左到右跳过前导零，将 <code>res</code> 剩余数位拼接为字符串返回</p>""",
+        "code_python": """class Solution:
+    def multiply(self, num1: str, num2: str) -> str:
+        if num1 == "0" or num2 == "0":
+            return "0"
+        m, n = len(num1), len(num2)
+        res = [0] * (m + n)
+        for i in range(m - 1, -1, -1):
+            for j in range(n - 1, -1, -1):
+                mul = int(num1[i]) * int(num2[j])
+                p1, p2 = i + j, i + j + 1
+                total = mul + res[p2]
+                res[p2] = total % 10
+                res[p1] += total // 10
+        # 跳过前导零
+        start = 0
+        while start < len(res) - 1 and res[start] == 0:
+            start += 1
+        return "".join(str(d) for d in res[start:])""",
+        "code_cpp": """class Solution {
+public:
+    string multiply(string num1, string num2) {
+        if (num1 == "0" || num2 == "0") return "0";
+        int m = num1.size(), n = num2.size();
+        vector<int> res(m + n, 0);
+        for (int i = m - 1; i >= 0; i--) {
+            for (int j = n - 1; j >= 0; j--) {
+                int mul = (num1[i] - '0') * (num2[j] - '0');
+                int p1 = i + j, p2 = i + j + 1;
+                int total = mul + res[p2];
+                res[p2] = total % 10;
+                res[p1] += total / 10;
+            }
+        }
+        int start = 0;
+        while (start < (int)res.size() - 1 && res[start] == 0) start++;
+        string ans;
+        for (int k = start; k < (int)res.size(); k++)
+            ans += char('0' + res[k]);
+        return ans;
+    }
+};
+// 时间 O(m×n)，空间 O(m+n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 下标写反：<code>num1[i]×num2[j]</code> 的个位在 <code>res[i+j+1]</code>、十位进位在 <code>res[i+j]</code>，不是 <code>res[i+j]</code> 存个位。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记累加已有值：应写 <code>total = mul + res[p2]</code>，该位可能已被之前的数位对贡献过。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 前导零处理不当：结果数组首位常为 0，需跳过；但若乘积为 0 必须返回 <code>"0"</code> 而非空字符串。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：乘数为 0</div>
+    <code>num1 = "0", num2 = "12345" → "0"</code>（任一侧为 0 即返回 "0"）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单 digit</div>
+    <code>num1 = "2", num2 = "3" → "6"</code>（最小非平凡输入）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：含前导零的乘积位</div>
+    <code>num1 = "99", num2 = "99" → "9801"</code>（中间结果数组有前导零，输出需跳过）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：长度差大</div>
+    <code>num1 = "1", num2 = "99999999999999999999" → "99999999999999999999"</code>（一位数乘大数）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：经典样例</div>
+    <code>num1 = "123", num2 = "456" → "56088"</code>
+</div>""",
+    },
 }
 
 
