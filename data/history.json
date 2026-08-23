@@ -322,5 +322,11 @@
     "slug": "multiply-strings",
     "title": "字符串相乘",
     "type": "数学模拟"
+  },
+  {
+    "date": "2026-08-23",
+    "slug": "wildcard-matching",
+    "title": "通配符匹配",
+    "type": "二维DP"
   }
 ]
