@@ -55,6 +55,7 @@ TYPE_CLASS_MAP = {
     "栈": "stack",
     "堆（优先队列）": "heap",
     "数组原地哈希": "inplace-hash",
+    "贪心": "greedy",
 }
 
 # ─── Variable Semantics Data for Core Problem Types ───
@@ -5709,6 +5710,102 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 5：星号夹字符</div>
     <code>s = "adceb", p = "*a*b" → true</code>（* 匹配空，a 匹配 a，* 匹配 dce，b 匹配 b）
+</div>""",
+    },
+
+    "jump-game-ii": {
+        "type": "贪心",
+        "difficulty": "中等",
+        "frontend_id": "45",
+        "title": "跳跃游戏 II",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给定一个长度为 <code>n</code> 的 <strong>0 索引</strong>整数数组 <code>nums</code>。初始位置在下标 0。</p>
+<p>每个元素 <code>nums[i]</code> 表示从索引 <code>i</code> 向后跳转的最大长度。换句话说，如果你在索引 <code>i</code> 处，你可以跳转到任意 <code>(i + j)</code> 处：</p>
+<ul>
+<li><code>0 &lt;= j &lt;= nums[i]</code> 且</li>
+<li><code>i + j &lt; n</code></li>
+</ul>
+<p>返回到达 <code>n - 1</code> 的最小跳跃次数。测试用例保证可以到达 <code>n - 1</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [2,3,1,1,4]</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">跳到最后一个位置的最小跳跃数是 2。从下标 0 跳到下标 1（跳 1 步），再跳 3 步到达最后一个位置。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [2,3,0,1,4]</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">与示例 1 类似，最小跳跃次数为 2。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>steps</code></td><td>int</td><td><b>定义</b>：从起点到当前「跳跃层」已使用的最小跳跃次数<br><b>维护</b>：当扫描指针 <code>i</code> 触及当前层右边界 <code>end</code> 时，说明必须再跳一层，<code>steps += 1</code><br><b>更新</b>：循环结束后 <code>steps</code> 即为到达 <code>n-1</code> 的最少跳跃数</td></tr>
+    <tr><td><code>end</code></td><td>int</td><td><b>定义</b>：仅用当前 <code>steps</code> 次跳跃所能到达的最远下标（当前层的右边界）<br><b>维护</b>：初始 <code>end=0</code>；每当 <code>i==end</code> 完成一层扫描后，令 <code>end = farthest</code> 扩展到下一层<br><b>更新</b>：<code>end</code> 单调不减，且题目保证可达，最终会 ≥ <code>n-1</code></td></tr>
+    <tr><td><code>farthest</code></td><td>int</td><td><b>定义</b>：在<b>当前层</b>内任取起点再跳一步，能到达的最远下标（下一层的候选右边界）<br><b>维护</b>：遍历 <code>i ∈ [0, end]</code> 时持续 <code>farthest = max(farthest, i + nums[i])</code><br><b>更新</b>：一层扫完时把 <code>farthest</code> 赋给 <code>end</code>，作为下一层边界</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：从左到右扫描的下标，代表「当前层里正在考察的落脚点」<br><b>维护</b>：<code>for i in range(n-1)</code>，最后一格无需再跳<br><b>更新</b>：每轮用 <code>nums[i]</code> 更新 <code>farthest</code>，并在 <code>i==end</code> 时结算一层</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：从每个位置 DFS/BFS 枚举所有合法跳跃路径，记录到达 <code>n-1</code> 的最短路径，状态空间指数级，<code>n=10⁴</code> 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？「到位置 <code>i</code> 最少几步」会被反复计算——典型 DP：<code>dp[i] = min(dp[j]+1)</code> 对所有 <code>j&lt;i</code> 且 <code>j+nums[j]≥i</code>，朴素 O(n²)。</p>
+<p class="thinking-step">3. 换个视角：不是「到某点最少几步」，而是按<b>跳跃次数分层</b>——第 0 跳能覆盖 <code>[0..end₀]</code>，在第 0 跳可达范围内再跳一次能覆盖 <code>[0..end₁]</code>……层数就是答案。</p>
+<p class="thinking-step">4. 贪心关键：扫描当前层 <code>[0..end]</code> 时只需维护「再跳一步最远能到哪」<code>farthest</code>；当 <code>i</code> 扫到本层右边界 <code>end</code>，说明下一跳不可避免，<code>steps++</code> 并把 <code>end</code> 扩展到 <code>farthest</code>。</p>
+<p class="thinking-step">5. 正确性直觉：在当前层内无论从哪里再跳，最远不超过 <code>farthest</code>；推迟增加 <code>steps</code> 不会让下一层边界更大，因此在 <code>i==end</code> 时结算一层是最优的。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>steps=0, end=0, farthest=0</code></p>
+<p class="code-step">2. 遍历 <code>i</code> 从 0 到 <code>n-2</code>（最后一格不必再跳）</p>
+<p class="code-step">3. 更新 <code>farthest = max(farthest, i + nums[i])</code></p>
+<p class="code-step">4. 若 <code>i == end</code>：说明当前层扫完，<code>steps += 1</code>，<code>end = farthest</code></p>
+<p class="code-step">5. 返回 <code>steps</code></p>""",
+        "code_python": """class Solution:
+    def jump(self, nums: List[int]) -> int:
+        steps = 0
+        end = 0          # 当前跳跃次数能到达的最远下标
+        farthest = 0     # 下一跳能到达的最远下标
+        for i in range(len(nums) - 1):
+            farthest = max(farthest, i + nums[i])
+            if i == end:
+                steps += 1
+                end = farthest
+        return steps""",
+        "code_cpp": """class Solution {
+public:
+    int jump(vector<int>& nums) {
+        int steps = 0, end = 0, farthest = 0;
+        for (int i = 0; i < nums.size() - 1; i++) {
+            farthest = max(farthest, i + nums[i]);
+            if (i == end) {
+                steps++;
+                end = farthest;
+            }
+        }
+        return steps;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环应到 <code>n-2</code> 而非 <code>n-1</code>：已在最后一格时无需再跳，多扫一轮可能多计一次 <code>steps</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 本题求<b>最少跳跃次数</b>，与 #55「跳跃游戏」（判断能否到达）不同；能到达时最少步数贪心有效，不能混用「能跳就跳最远」的写法。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 必须在 <code>i == end</code> 时再 <code>steps++</code>，而不是每更新 <code>farthest</code> 就加；否则把「层内扫描」和「结算一层」混在一起会算错。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>nums = [0] → 0</code>（已在终点，无需跳跃）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：一步直达</div>
+    <code>nums = [2, 1] → 1</code>（从下标 0 直接跳到末尾）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：必须分段跳</div>
+    <code>nums = [1, 1, 1, 1] → 3</code>（每次最多跳 1，需 3 次）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：含零步长</div>
+    <code>nums = [2, 3, 0, 1, 4] → 2</code>（中间 0 不影响层边界扩展）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：大跨度</div>
+    <code>nums = [5, 4, 3, 2, 1] → 1</code>（第一步即可覆盖全程）
 </div>""",
     },
 }

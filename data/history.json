@@ -328,5 +328,11 @@
     "slug": "wildcard-matching",
     "title": "通配符匹配",
     "type": "二维DP"
+  },
+  {
+    "date": "2026-08-24",
+    "slug": "jump-game-ii",
+    "title": "跳跃游戏 II",
+    "type": "贪心"
   }
 ]
