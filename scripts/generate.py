@@ -5808,6 +5808,122 @@ public:
     <code>nums = [5, 4, 3, 2, 1] → 1</code>（第一步即可覆盖全程）
 </div>""",
     },
+
+    "permutations": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "46",
+        "title": "全排列",
+        "time_complexity": "O(n × n!)",
+        "space_complexity": "O(n)（递归栈 + used，不计输出）",
+        "description": """<p>给定一个不含重复数字的数组 <code>nums</code>，返回其 <strong>所有可能的全排列</strong>。你可以 <strong>按任意顺序</strong> 返回答案。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,2,3]</div>
+    <div class="example-output">输出：[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [0,1]</div>
+    <div class="example-output">输出：[[0,1],[1,0]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [1]</div>
+    <div class="example-output">输出：[[1]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>path</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前正在构造的排列前缀（已选数字的有序序列）<br><b>维护</b>：每进入一层递归，从 <code>nums</code> 中选一个尚未使用的数追加到末尾<br><b>更新</b>：递归返回后 <code>pop</code> 撤销选择，保证兄弟分支从同一前缀出发</td></tr>
+    <tr><td><code>used</code></td><td>list&lt;bool&gt;</td><td><b>定义</b>：长度 <code>n</code> 的标记数组，<code>used[i]</code> 表示 <code>nums[i]</code> 是否已在 <code>path</code> 中<br><b>维护</b>：选 <code>nums[i]</code> 前置 <code>used[i]=True</code>，回溯时恢复 <code>False</code><br><b>更新</b>：保证每个数字在全排列中恰好出现一次，避免重复选取</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：所有合法全排列的集合<br><b>维护</b>：当 <code>len(path) == n</code> 时，将 <code>path[:]</code> 的副本加入<br><b>更新</b>：每到达一棵 DFS 叶子追加一次；中途不收集半成品</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前层尝试选取的 <code>nums</code> 下标<br><b>维护</b>：<code>for i in range(n)</code>，跳过 <code>used[i]</code> 为真的位置<br><b>更新</b>：同一层按固定顺序枚举候选，自然覆盖所有排列且不重复</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：用 <code>itertools.permutations</code> 或三重循环硬枚举所有排列——思路对，但面试要写 DFS，且要理解为何能剪枝、如何回溯。</p>
+<p class="thinking-step">2. 重复在哪里？构造排列时，「已选前缀 + 剩余可选数字」这一状态会被反复访问；若允许同一数字选两次，会产生重复元素或非法排列。</p>
+<p class="thinking-step">3. 优化成回溯：用 <code>path</code> 记录当前前缀，用 <code>used[i]</code> 标记 <code>nums[i]</code> 是否已入选；每层从 0 到 n-1 扫描，跳过已用下标。</p>
+<p class="thinking-step">4. 终止条件：<code>len(path) == n</code> 时得到一个完整排列，将 <code>path[:]</code> 加入 <code>ans</code>；否则对每个未使用的 <code>nums[i]</code>：标记 → 追加 → 递归 → 撤销。</p>
+<p class="thinking-step">5. 题目保证元素互不相同，因此不需要「同层去重」；<code>n ≤ 6</code>，<code>n!</code> 最多 720，回溯完全可行。也可交换法原地生成，但 <code>used</code> 数组更直观。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>ans = []</code>，<code>used = [False] * n</code>，空列表 <code>path</code></p>
+<p class="code-step">2. 定义 DFS <code>backtrack()</code>：若 <code>len(path) == n</code>，将 <code>path[:]</code> 加入 <code>ans</code> 并返回</p>
+<p class="code-step">3. 遍历 <code>i ∈ [0, n)</code>：若 <code>used[i]</code> 为真则跳过</p>
+<p class="code-step">4. 选择 <code>nums[i]</code>：<code>used[i]=True</code>，<code>path.append(nums[i])</code>，递归 <code>backtrack()</code>，再 <code>path.pop()</code> 且 <code>used[i]=False</code></p>
+<p class="code-step">5. 从 <code>backtrack()</code> 启动，返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def permute(self, nums: List[int]) -> List[List[int]]:
+        ans: List[List[int]] = []
+        n = len(nums)
+        used = [False] * n
+        path: List[int] = []
+
+        def backtrack() -> None:
+            if len(path) == n:
+                ans.append(path[:])
+                return
+            for i in range(n):
+                if used[i]:
+                    continue
+                used[i] = True
+                path.append(nums[i])
+                backtrack()
+                path.pop()
+                used[i] = False
+
+        backtrack()
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> permute(vector<int>& nums) {
+        vector<vector<int>> ans;
+        vector<int> path;
+        vector<bool> used(nums.size(), false);
+
+        function<void()> dfs = [&]() {
+            if (path.size() == nums.size()) {
+                ans.push_back(path);
+                return;
+            }
+            for (int i = 0; i < (int)nums.size(); i++) {
+                if (used[i]) continue;
+                used[i] = true;
+                path.push_back(nums[i]);
+                dfs();
+                path.pop_back();
+                used[i] = false;
+            }
+        };
+
+        dfs();
+        return ans;
+    }
+};
+// 时间 O(n × n!)，空间 O(n)（递归栈 + used，不计输出）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 收集答案时必须存 <code>path[:]</code>（或 C++ 里 <code>push_back(path)</code> 副本），不能直接 <code>append(path)</code>——否则 <code>ans</code> 里全是同一可变对象的引用。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 回溯不撤销：递归返回后必须 <code>pop</code> 并恢复 <code>used[i]</code>，否则后续分支会带着脏状态，漏解或重复。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 本题元素互不相同，同层不需要「跳过相同值」；若改成 <code>permutations-ii</code>（含重复数字），才要在同层对相同 <code>nums[i]</code> 去重。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>nums = [1] → [[1]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两个元素</div>
+    <code>nums = [0,1] → [[0,1],[1,0]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：三个元素</div>
+    <code>nums = [1,2,3] → 6 种排列</code>（3! = 6）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：含负数</div>
+    <code>nums = [-1,0,1] → 6 种排列</code>（符号不影响回溯逻辑）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：最大规模</div>
+    <code>n = 6 → 720 种排列</code>（仍在题目数据范围内）
+</div>""",
+    },
 }
 
 

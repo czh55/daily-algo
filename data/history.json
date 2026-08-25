@@ -334,5 +334,11 @@
     "slug": "jump-game-ii",
     "title": "跳跃游戏 II",
     "type": "贪心"
+  },
+  {
+    "date": "2026-08-25",
+    "slug": "permutations",
+    "title": "全排列",
+    "type": "回溯"
   }
 ]
