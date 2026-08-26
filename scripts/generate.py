@@ -6279,8 +6279,34 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
             <a href="archive/{item['date']}.html">
                 <div class="archive-date">{item['date']}</div>
                 <div class="archive-title">{item['title']}</div>
-                <span class="archive-type problem-type {type_class}">{ptype}</span>
+                <span class="archive-type problem-type tag-{type_class}">{ptype}</span>
             </a>
+        </div>"""
+
+    # 构建按题型归类区块：按 history 中的 type 聚合，展示每类题目数量与题目列表
+    type_groups: dict = {}
+    for item in history:
+        tname = item.get("type") or "未分类"
+        type_groups.setdefault(tname, []).append(item)
+
+    # 题型按题目数降序、同数量按题型名排序；组内题目按日期倒序（最新在前）
+    types_html = ""
+    for tname, items in sorted(type_groups.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+        tclass = TYPE_CLASS_MAP.get(tname, "other")
+        item_html = ""
+        for it in reversed(items):
+            item_html += (
+                f'<li><a href="archive/{it["date"]}.html">{it["title"]}</a>'
+                f'<span class="type-item-date">{it["date"]}</span></li>'
+            )
+        types_html += f"""<div class="type-card">
+            <div class="type-card-header">
+                <span class="problem-type tag-{tclass}">{tname}</span>
+                <span class="type-count">{len(items)} 题</span>
+            </div>
+            <ul class="type-problem-list">
+                {item_html}
+            </ul>
         </div>"""
 
     index_html = f"""<!DOCTYPE html>
@@ -6316,6 +6342,13 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
             <h2>&#x1F4DA; 往期归档</h2>
             <div class="archive-grid">
                 {archive_html if archive_html else '<p style="color:var(--text-tertiary);">暂无归档，第一道题即将推荐！</p>'}
+            </div>
+        </section>
+
+        <section class="types-section">
+            <h2>&#x1F4C2; 按题型归类</h2>
+            <div class="types-grid">
+                {types_html if types_html else '<p style="color:var(--text-tertiary);">暂无题目。</p>'}
             </div>
         </section>
     </main>
