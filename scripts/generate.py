@@ -5924,6 +5924,124 @@ public:
     <code>n = 6 → 720 种排列</code>（仍在题目数据范围内）
 </div>""",
     },
+
+    "permutations-ii": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "47",
+        "title": "全排列 II",
+        "time_complexity": "O(n × n!)",
+        "space_complexity": "O(n)（递归栈 + used，不计输出）",
+        "description": """<p>给定一个可包含重复数字的序列 <code>nums</code>，<strong>按任意顺序</strong> 返回所有<strong>不重复</strong>的全排列。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,1,2]</div>
+    <div class="example-output">输出：[[1,1,2],[1,2,1],[2,1,1]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [1,2,3]</div>
+    <div class="example-output">输出：[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>nums</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：输入数组（可能含重复元素）<br><b>维护</b>：回溯前先 <code>sort(nums)</code>，让相同数字相邻<br><b>更新</b>：排序后才能在同一 DFS 层用「相邻相等」规则剪枝，避免重复排列</td></tr>
+    <tr><td><code>path</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前正在构造的排列前缀<br><b>维护</b>：每层从未使用的 <code>nums[i]</code> 中选一个追加到末尾<br><b>更新</b>：递归返回后 <code>pop</code> 撤销，保证兄弟分支从同一前缀出发</td></tr>
+    <tr><td><code>used</code></td><td>list&lt;bool&gt;</td><td><b>定义</b>：长度 <code>n</code> 的标记数组，<code>used[i]</code> 表示 <code>nums[i]</code> 是否已在 <code>path</code> 中<br><b>维护</b>：选 <code>nums[i]</code> 前置 <code>used[i]=True</code>，回溯时恢复 <code>False</code><br><b>更新</b>：保证每个下标最多用一次；配合排序实现同层去重</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：所有不重复全排列的集合<br><b>维护</b>：当 <code>len(path) == n</code> 时，将 <code>path[:]</code> 副本加入<br><b>更新</b>：每到达一棵 DFS 叶子追加一次</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前层尝试选取的 <code>nums</code> 下标<br><b>维护</b>：<code>for i in range(n)</code>，跳过已用及同层重复值<br><b>更新</b>：若 <code>nums[i]==nums[i-1]</code> 且 <code>used[i-1]</code> 为假，说明同层已枚举过该值，直接 <code>continue</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：沿用 #46 全排列的 DFS + <code>used</code> 回溯——能枚举所有排列，但 <code>nums</code> 有重复时，会产出重复结果，例如 <code>[1,1,2]</code> 会多次得到 <code>[1,1,2]</code>。</p>
+<p class="thinking-step">2. 重复在哪里？不是「状态」重复，而是「排列结果」重复：两个相同的 <code>1</code> 互换位置，得到的序列一样。需要在搜索树同层剪掉「选相同值但来自不同下标」的等价分支。</p>
+<p class="thinking-step">3. 关键观察：先 <code>sort(nums)</code>，同一层 DFS 中，若 <code>nums[i] == nums[i-1]</code> 且左边的 <code>nums[i-1]</code> 本轮还没用（<code>not used[i-1]</code>），说明同层已经用「第一个 1」试过这条路，再选「第二个 1」只会重复。</p>
+<p class="thinking-step">4. 剪枝条件 <code>i &gt; 0 and nums[i] == nums[i-1] and not used[i-1]</code>：保证相同数字按排序后的下标顺序被使用（先选靠前的副本），从而同层只保留一种选法。</p>
+<p class="thinking-step">5. 终止与回溯不变：<code>len(path)==n</code> 收集答案；否则对每个合法 <code>i</code>：标记 → 追加 → 递归 → 撤销。<code>n ≤ 8</code>，剪枝后规模仍可控。</p>""",
+        "code_steps": """<p class="code-step">1. 将 <code>nums</code> 排序；初始化 <code>ans</code>、<code>used = [False]*n</code>、空 <code>path</code></p>
+<p class="code-step">2. 定义 DFS <code>backtrack()</code>：若 <code>len(path) == n</code>，将 <code>path[:]</code> 加入 <code>ans</code> 并返回</p>
+<p class="code-step">3. 遍历 <code>i ∈ [0, n)</code>：若 <code>used[i]</code> 为真则跳过</p>
+<p class="code-step">4. 同层去重：若 <code>i &gt; 0 and nums[i] == nums[i-1] and not used[i-1]</code>，<code>continue</code></p>
+<p class="code-step">5. 选择 <code>nums[i]</code>：<code>used[i]=True</code>，<code>path.append(nums[i])</code>，递归，再 <code>pop</code> 并 <code>used[i]=False</code></p>
+<p class="code-step">6. 启动 <code>backtrack()</code>，返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def permuteUnique(self, nums: List[int]) -> List[List[int]]:
+        nums.sort()
+        ans: List[List[int]] = []
+        n = len(nums)
+        used = [False] * n
+        path: List[int] = []
+
+        def backtrack() -> None:
+            if len(path) == n:
+                ans.append(path[:])
+                return
+            for i in range(n):
+                if used[i]:
+                    continue
+                if i > 0 and nums[i] == nums[i - 1] and not used[i - 1]:
+                    continue
+                used[i] = True
+                path.append(nums[i])
+                backtrack()
+                path.pop()
+                used[i] = False
+
+        backtrack()
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> permuteUnique(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> ans;
+        vector<int> path;
+        vector<bool> used(nums.size(), false);
+
+        function<void()> dfs = [&]() {
+            if (path.size() == nums.size()) {
+                ans.push_back(path);
+                return;
+            }
+            for (int i = 0; i < (int)nums.size(); i++) {
+                if (used[i]) continue;
+                if (i > 0 && nums[i] == nums[i - 1] && !used[i - 1]) continue;
+                used[i] = true;
+                path.push_back(nums[i]);
+                dfs();
+                path.pop_back();
+                used[i] = false;
+            }
+        };
+
+        dfs();
+        return ans;
+    }
+};
+// 时间 O(n × n!)，空间 O(n)（递归栈 + used，不计输出）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记先排序：不排序则 <code>nums[i]==nums[i-1]</code> 剪枝无效，仍会输出重复排列。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 同层去重条件写反：应是 <code>not used[i-1]</code>（左边相同值未用才跳过），写成 <code>used[i-1]</code> 会误剪合法分支、漏解。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 收集答案时必须存 <code>path[:]</code> 副本；回溯后忘记 <code>pop</code> 或恢复 <code>used[i]</code> 会导致脏状态。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：全相同</div>
+    <code>nums = [1,1,1] → [[1,1,1]]</code>（只有一种排列）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两两重复</div>
+    <code>nums = [1,1,2,2] → 6 种不重复排列</code>（4!/(2!×2!) = 6）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：无重复</div>
+    <code>nums = [1,2,3] → 6 种排列</code>（退化为 #46，剪枝条件不触发）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单元素</div>
+    <code>nums = [0] → [[0]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：含负数</div>
+    <code>nums = [-1,-1,0] → [[-1,-1,0],[-1,0,-1],[0,-1,-1]]</code>（排序后去重逻辑不变）
+</div>""",
+    },
 }
 
 

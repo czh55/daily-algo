@@ -340,5 +340,11 @@
     "slug": "permutations",
     "title": "全排列",
     "type": "回溯"
+  },
+  {
+    "date": "2026-08-26",
+    "slug": "permutations-ii",
+    "title": "全排列 II",
+    "type": "回溯"
   }
 ]
