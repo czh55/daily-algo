@@ -6378,7 +6378,7 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
             <div class="today-label">&#x1F4C5; 今日推荐</div>
             <h2><a href="archive/{featured_date}.html">{today_semantics.get('frontend_id', '')}. {today_semantics.get('title', '')}</a></h2>
             <div class="today-meta">
-                <span class="problem-type {type_class}">{ptype}</span>
+                <span class="problem-type tag-{type_class}">{ptype}</span>
                 <span class="problem-difficulty difficulty-{diff_class}">{diff}</span>
             </div>
             {audio_block}

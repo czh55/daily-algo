@@ -1,7 +1,9 @@
-name: 校验题解完整性
+name: 校验站点完整性
 
-# 保证发布到 GitHub Pages 的每一个题目页都是完整的「变量语义法」精讲，
-# 任何缺精讲的占位页都会让检查失败，从而在 PR / push 时被拦下。
+# 保证发布到 GitHub Pages 的内容质量，任何问题都会让检查失败，从而在 PR / push 时被拦下：
+# 1. 归档页都是完整的「变量语义法」精讲（缺精讲的占位页直接失败）；
+# 2. 首页与 data/history.json 一致（归档链接有效、归类数量一致）；
+# 3. 生成脚本语法正确、题型配色完整。
 on:
   push:
     branches: [ main ]
@@ -16,5 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: 校验所有归档页均为完整变量语义法精讲
+      - name: 脚本语法检查
+        run: python3 -m py_compile scripts/generate.py scripts/generate_audio.py scripts/leetcode_api.py scripts/check_pages.py
+      - name: 校验归档页精讲完整性 / 首页一致性 / 题型配色
         run: python3 scripts/check_pages.py

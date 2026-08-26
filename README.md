@@ -33,7 +33,7 @@ daily-algo/
 ├── templates/
 │   └── problem.html        # 题目页面 HTML 模板
 └── .github/workflows/
-    └── pages.yml           # 备用 CI 部署
+    └── validate-pages.yml  # CI 兜底校验：精讲完整性 + 首页一致性 + 题型配色
 ```
 
 ## 使用方式
