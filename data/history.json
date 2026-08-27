@@ -346,5 +346,11 @@
     "slug": "permutations-ii",
     "title": "全排列 II",
     "type": "回溯"
+  },
+  {
+    "date": "2026-08-27",
+    "slug": "rotate-image",
+    "title": "旋转图像",
+    "type": "矩阵操作"
   }
 ]

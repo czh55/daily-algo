@@ -56,6 +56,7 @@ TYPE_CLASS_MAP = {
     "堆（优先队列）": "heap",
     "数组原地哈希": "inplace-hash",
     "贪心": "greedy",
+    "矩阵操作": "matrix",
 }
 
 # ─── Variable Semantics Data for Core Problem Types ───
@@ -6040,6 +6041,104 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 5：含负数</div>
     <code>nums = [-1,-1,0] → [[-1,-1,0],[-1,0,-1],[0,-1,-1]]</code>（排序后去重逻辑不变）
+</div>""",
+    },
+
+    "rotate-image": {
+        "type": "矩阵操作",
+        "difficulty": "中等",
+        "frontend_id": "48",
+        "title": "旋转图像",
+        "time_complexity": "O(n²)",
+        "space_complexity": "O(1)（原地修改，不计输入）",
+        "description": """<p>给定一个 <em>n</em> × <em>n</em> 的二维矩阵 <code>matrix</code> 表示一个图像。请你将图像<strong>顺时针旋转 90 度</strong>。</p>
+<p>你必须在<strong><a href="https://baike.baidu.com/item/%E5%8E%9F%E5%9C%B0%E7%AE%97%E6%B3%95" target="_blank">原地</a></strong>旋转图像，这意味着你需要直接修改输入的二维矩阵。<strong>请不要</strong>使用另一个矩阵来旋转图像。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：matrix = [[1,2,3],[4,5,6],[7,8,9]]</div>
+    <div class="example-output">输出：[[7,4,1],[8,5,2],[9,6,3]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]</div>
+    <div class="example-output">输出：[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>matrix</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：<code>n×n</code> 方阵，既是输入也是最终输出<br><b>维护</b>：分两步原地变换——先沿主对角线转置，再对每一行左右翻转<br><b>更新</b>：转置交换 <code>matrix[i][j]</code> 与 <code>matrix[j][i]</code>；翻转交换行内 <code>matrix[i][left]</code> 与 <code>matrix[i][right]</code></td></tr>
+    <tr><td><code>n</code></td><td>int</td><td><b>定义</b>：矩阵边长，<code>n = len(matrix)</code><br><b>维护</b>：转置时 <code>i</code> 取 <code>0..n-1</code>，<code>j</code> 取 <code>i+1..n-1</code>，避免同一对元素交换两次<br><b>更新</b>：全程不变，控制两层循环边界</td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：转置阶段的双重下标，遍历上三角区域<br><b>维护</b>：每对 <code>(i,j)</code> 满足 <code>j &gt; i</code>，交换 <code>matrix[i][j]</code> 与 <code>matrix[j][i]</code><br><b>更新</b>：双重循环递增；转置完成后进入逐行翻转阶段</td></tr>
+    <tr><td><code>left, right</code></td><td>int</td><td><b>定义</b>：翻转第 <code>i</code> 行时的双指针，分别指向行首与行尾<br><b>维护</b>：<code>left &lt; right</code> 时交换 <code>matrix[i][left]</code> 与 <code>matrix[i][right]</code>，然后 <code>left++</code>、<code>right--</code><br><b>更新</b>：相遇时当前行翻转完成，换下一行</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：开一个新 <code>n×n</code> 数组，按公式 <code>new[j][n-1-i] = old[i][j]</code> 填值——思路正确，但题目要求原地，额外 <code>O(n²)</code> 空间会被判不符合。</p>
+<p class="thinking-step">2. 重复在哪里？若逐元素搬到临时变量再写回，本质上仍需要辅助存储；要把「顺时针 90°」拆成可在原数组上完成的原子操作。</p>
+<p class="thinking-step">3. 关键观察：顺时针 90° = 先<strong>转置</strong>（沿主对角线交换）再对<strong>每一行左右翻转</strong>。手画 3×3 例子可验证：转置后 [[1,4,7],[2,5,8],[3,6,9]]，逐行翻转即得目标。</p>
+<p class="thinking-step">4. 坐标规律：原位置 <code>(i,j)</code> 顺时针 90° 后到 <code>(j, n-1-i)</code>；转置把 <code>(i,j)→(j,i)</code>，行翻转把 <code>(j,i)→(j, n-1-i)</code>，两步合成即目标映射。</p>
+<p class="thinking-step">5. 另一种等价写法是按「同心层」四元组循环交换（每次转 4 个角），但转置+翻转代码更短、不易写错下标；<code>n ≤ 20</code>，<code>O(n²)</code> 完全够用。</p>""",
+        "code_steps": """<p class="code-step">1. 取 <code>n = len(matrix)</code></p>
+<p class="code-step">2. <strong>转置</strong>：双重循环 <code>for i in range(n): for j in range(i+1, n):</code> 交换 <code>matrix[i][j]</code> 与 <code>matrix[j][i]</code></p>
+<p class="code-step">3. <strong>逐行翻转</strong>：对每行 <code>i</code>，令 <code>left=0, right=n-1</code>，当 <code>left &lt; right</code> 时交换两端元素并收缩指针</p>
+<p class="code-step">4. 两步完成后 <code>matrix</code> 即为顺时针 90° 结果，无需返回值（原地修改）</p>""",
+        "code_python": """class Solution:
+    def rotate(self, matrix: List[List[int]]) -> None:
+        n = len(matrix)
+        # 1. 沿主对角线转置
+        for i in range(n):
+            for j in range(i + 1, n):
+                matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
+        # 2. 每一行左右翻转
+        for i in range(n):
+            left, right = 0, n - 1
+            while left < right:
+                matrix[i][left], matrix[i][right] = matrix[i][right], matrix[i][left]
+                left += 1
+                right -= 1""",
+        "code_cpp": """class Solution {
+public:
+    void rotate(vector<vector<int>>& matrix) {
+        int n = matrix.size();
+        // 1. 沿主对角线转置
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                swap(matrix[i][j], matrix[j][i]);
+            }
+        }
+        // 2. 每一行左右翻转
+        for (int i = 0; i < n; i++) {
+            int left = 0, right = n - 1;
+            while (left < right) {
+                swap(matrix[i][left], matrix[i][right]);
+                left++;
+                right--;
+            }
+        }
+    }
+};
+// 时间 O(n²)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 转置时 <code>j</code> 必须从 <code>i+1</code> 开始，不能从 0 开始——否则同一对元素会被交换两次，等于没转置。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 逆时针 90° 是「转置 + 逐列翻转」或「先逐行翻转再转置」，与顺时针步骤不同；混用会得到错误结果。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 题目要求原地修改、无返回值；新建矩阵再赋值虽能 AC 部分测试，但不符合题意且浪费空间。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：1×1 矩阵</div>
+    <code>matrix = [[1]] → [[1]]</code>（转置与翻转均为空操作）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：2×2 矩阵</div>
+    <code>matrix = [[1,2],[3,4]] → [[3,1],[4,2]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：含负数</div>
+    <code>matrix = [[-1,2],[-3,4]] → [[-3,-1],[4,2]]</code>（符号不影响交换逻辑）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：奇数边长 3×3</div>
+    <code>matrix = [[1,2,3],[4,5,6],[7,8,9]] → [[7,4,1],[8,5,2],[9,6,3]]</code>（中心元素 5 转置后仍在中心）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：偶数边长 4×4</div>
+    <code>见示例 2</code>（无单独中心格，全靠成对交换完成）
 </div>""",
     },
 }
