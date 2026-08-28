@@ -6141,6 +6141,100 @@ public:
     <code>见示例 2</code>（无单独中心格，全靠成对交换完成）
 </div>""",
     },
+    "group-anagrams": {
+        "type": "哈希表",
+        "difficulty": "中等",
+        "frontend_id": "49",
+        "title": "字母异位词分组",
+        "time_complexity": "O(n · k log k)",
+        "space_complexity": "O(n · k)",
+        "description": """<p>给你一个字符串数组，请你将 <strong>字母异位词</strong> 组合在一起。可以按任意顺序返回结果列表。</p>
+<p><strong>字母异位词</strong> 是由重新排列源单词的所有字母得到的一个新单词。通常，所有源单词中的字母恰好只使用一次。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：strs = ["eat","tea","tan","ate","nat","bat"]</div>
+    <div class="example-output">输出：[["bat"],["nat","tan"],["ate","eat","tea"]]</div>
+    <div class="example-explain"><code>"nat"</code> 与 <code>"tan"</code> 互为异位词；<code>"ate"</code>、<code>"eat"</code>、<code>"tea"</code> 互为异位词；<code>"bat"</code> 单独成组。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：strs = [""]</div>
+    <div class="example-output">输出：[[""]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：strs = ["a"]</div>
+    <div class="example-output">输出：[["a"]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>groups</code></td><td>dict[str, list[str]]</td><td><b>定义</b>：从「异位词签名」到「同组字符串列表」的哈希表，最终答案即其所有 value<br><b>维护</b>：遍历过程中，同一签名下的字符串始终被放在同一个列表里<br><b>更新</b>：每处理一个 <code>s</code>，计算签名 <code>key</code>，执行 <code>groups.setdefault(key, []).append(s)</code></td></tr>
+    <tr><td><code>s</code></td><td>str</td><td><b>定义</b>：当前正在处理的输入字符串<br><b>维护</b>：外层循环每次取 <code>strs</code> 中的一个元素，内层只读不改原串<br><b>更新</b>：按输入顺序逐个推进，直到全部处理完</td></tr>
+    <tr><td><code>key</code></td><td>str</td><td><b>定义</b>：字符串 <code>s</code> 的异位词签名，取排序后的结果（如 <code>"eat" → "aet"</code>）<br><b>维护</b>：互为异位词的字符串必然得到相同的 <code>key</code>，不同组则 <code>key</code> 不同<br><b>更新</b>：对每个 <code>s</code> 重新计算：<code>key = "".join(sorted(s))</code></td></tr>
+    <tr><td><code>strs</code></td><td>list[str]</td><td><b>定义</b>：输入字符串数组，长度 <code>n</code>，每个串长度不超过 100<br><b>维护</b>：只读遍历，不修改元素内容<br><b>更新</b>：作为外层循环的数据源，驱动整次分组</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：对每个字符串，和其余所有串两两比较是否为异位词（排序后相等或字符频次相同），相同则划入同一组——思路正确，但最坏要 O(n²) 次比较，每次比较还要 O(k log k) 排序。</p>
+<p class="thinking-step">2. 重复在哪里？判断「eat 和 tea 是否同组」时，其实不必关心它们具体怎么排列，只关心<strong>字母 multiset 是否相同</strong>——也就是说，异位词共享同一个「签名」。</p>
+<p class="thinking-step">3. 关键转化：为每个字符串算一个签名 <code>key</code>（排序后的串，如 <code>"tan" → "ant"</code>），用哈希表 <code>groups[key]</code> 收集所有同签名字符串；扫一遍输入即可完成分组。</p>
+<p class="thinking-step">4. 手推示例 1：<code>"eat","tea","ate"</code> 的 key 都是 <code>"aet"</code>，落入同一列表；<code>"tan","nat"</code> 的 key 都是 <code>"ant"</code>；<code>"bat"</code> 的 key 是 <code>"abt"</code>，单独一组。</p>
+<p class="thinking-step">5. 另一种等价签名是长度 26 的字符计数元组（O(k) 不需排序），但排序写法更短；<code>n ≤ 10⁴, k ≤ 100</code>，总复杂度 O(n · k log k) 完全够用。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化空哈希表 <code>groups = {}</code></p>
+<p class="code-step">2. 遍历每个字符串 <code>s in strs</code></p>
+<p class="code-step">3. 计算签名 <code>key = "".join(sorted(s))</code></p>
+<p class="code-step">4. 若 <code>key</code> 不在表中则 <code>groups[key] = []</code>，然后将 <code>s</code> 追加到 <code>groups[key]</code></p>
+<p class="code-step">5. 返回 <code>list(groups.values())</code>（外层列表顺序任意）</p>""",
+        "code_python": """class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        groups: dict[str, list[str]] = {}
+        for s in strs:
+            key = "".join(sorted(s))
+            if key not in groups:
+                groups[key] = []
+            groups[key].append(s)
+        return list(groups.values())""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<string>> groupAnagrams(vector<string>& strs) {
+        unordered_map<string, vector<string>> groups;
+        for (const string& s : strs) {
+            string key = s;
+            sort(key.begin(), key.end());
+            groups[key].push_back(s);
+        }
+        vector<vector<string>> ans;
+        for (auto& [k, v] : groups) {
+            ans.push_back(move(v));
+        }
+        return ans;
+    }
+};
+// 时间 O(n·k log k)，空间 O(n·k)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 不能用「字符串长度」当 key——<code>"ab"</code> 和 <code>"cd"</code> 长度相同但不是异位词，必须比较字母组成（排序或计数）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回的是「分组列表的列表」，外层顺序任意，但每组内的字符串必须来自输入、不能遗漏或重复。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空字符串 <code>""</code> 排序后仍是 <code>""</code>，应正常入组；不要当作特殊值跳过。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单个字符串</div>
+    <code>strs = ["a"] → [["a"]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：空字符串</div>
+    <code>strs = [""] → [[""]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：全部互为异位词</div>
+    <code>strs = ["abc","bca","cab"] → [["abc","bca","cab"]]</code>（只有一个分组）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：全部不同组</div>
+    <code>strs = ["a","b","c"] → [["a"],["b"],["c"]]</code>（每组仅一个元素）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：相同字符串重复出现</div>
+    <code>strs = ["dd","dd"] → [["dd","dd"]]</code>（相同签名，应归入同一组）
+</div>""",
+    },
 }
 
 

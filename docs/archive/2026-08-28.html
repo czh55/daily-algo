@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字母异位词分组 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-08-28</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#49</span>
+                    <span class="problem-type tag-hash">哈希表</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">字母异位词分组</h1>
+                <a href="https://leetcode.cn/problems/group-anagrams/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-08-28">
+                        <source src="../audio/2026-08-28.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-08-28', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-08-28', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-08-28', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-08-28', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你一个字符串数组，请你将 <strong>字母异位词</strong> 组合在一起。可以按任意顺序返回结果列表。</p>
+<p><strong>字母异位词</strong> 是由重新排列源单词的所有字母得到的一个新单词。通常，所有源单词中的字母恰好只使用一次。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：strs = ["eat","tea","tan","ate","nat","bat"]</div>
+    <div class="example-output">输出：[["bat"],["nat","tan"],["ate","eat","tea"]]</div>
+    <div class="example-explain"><code>"nat"</code> 与 <code>"tan"</code> 互为异位词；<code>"ate"</code>、<code>"eat"</code>、<code>"tea"</code> 互为异位词；<code>"bat"</code> 单独成组。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：strs = [""]</div>
+    <div class="example-output">输出：[[""]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：strs = ["a"]</div>
+    <div class="example-output">输出：[["a"]]</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 最直接：对每个字符串，和其余所有串两两比较是否为异位词（排序后相等或字符频次相同），相同则划入同一组——思路正确，但最坏要 O(n²) 次比较，每次比较还要 O(k log k) 排序。</p>
+<p class="thinking-step">2. 重复在哪里？判断「eat 和 tea 是否同组」时，其实不必关心它们具体怎么排列，只关心<strong>字母 multiset 是否相同</strong>——也就是说，异位词共享同一个「签名」。</p>
+<p class="thinking-step">3. 关键转化：为每个字符串算一个签名 <code>key</code>（排序后的串，如 <code>"tan" → "ant"</code>），用哈希表 <code>groups[key]</code> 收集所有同签名字符串；扫一遍输入即可完成分组。</p>
+<p class="thinking-step">4. 手推示例 1：<code>"eat","tea","ate"</code> 的 key 都是 <code>"aet"</code>，落入同一列表；<code>"tan","nat"</code> 的 key 都是 <code>"ant"</code>；<code>"bat"</code> 的 key 是 <code>"abt"</code>，单独一组。</p>
+<p class="thinking-step">5. 另一种等价签名是长度 26 的字符计数元组（O(k) 不需排序），但排序写法更短；<code>n ≤ 10⁴, k ≤ 100</code>，总复杂度 O(n · k log k) 完全够用。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>groups</code></td><td>dict[str, list[str]]</td><td><b>定义</b>：从「异位词签名」到「同组字符串列表」的哈希表，最终答案即其所有 value<br><b>维护</b>：遍历过程中，同一签名下的字符串始终被放在同一个列表里<br><b>更新</b>：每处理一个 <code>s</code>，计算签名 <code>key</code>，执行 <code>groups.setdefault(key, []).append(s)</code></td></tr>
+    <tr><td><code>s</code></td><td>str</td><td><b>定义</b>：当前正在处理的输入字符串<br><b>维护</b>：外层循环每次取 <code>strs</code> 中的一个元素，内层只读不改原串<br><b>更新</b>：按输入顺序逐个推进，直到全部处理完</td></tr>
+    <tr><td><code>key</code></td><td>str</td><td><b>定义</b>：字符串 <code>s</code> 的异位词签名，取排序后的结果（如 <code>"eat" → "aet"</code>）<br><b>维护</b>：互为异位词的字符串必然得到相同的 <code>key</code>，不同组则 <code>key</code> 不同<br><b>更新</b>：对每个 <code>s</code> 重新计算：<code>key = "".join(sorted(s))</code></td></tr>
+    <tr><td><code>strs</code></td><td>list[str]</td><td><b>定义</b>：输入字符串数组，长度 <code>n</code>，每个串长度不超过 100<br><b>维护</b>：只读遍历，不修改元素内容<br><b>更新</b>：作为外层循环的数据源，驱动整次分组</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 初始化空哈希表 <code>groups = {}</code></p>
+<p class="code-step">2. 遍历每个字符串 <code>s in strs</code></p>
+<p class="code-step">3. 计算签名 <code>key = "".join(sorted(s))</code></p>
+<p class="code-step">4. 若 <code>key</code> 不在表中则 <code>groups[key] = []</code>，然后将 <code>s</code> 追加到 <code>groups[key]</code></p>
+<p class="code-step">5. 返回 <code>list(groups.values())</code>（外层列表顺序任意）</p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def groupAnagrams(self, strs: List[str]) -&gt; List[List[str]]:
+        groups: dict[str, list[str]] = {}
+        for s in strs:
+            key = "".join(sorted(s))
+            if key not in groups:
+                groups[key] = []
+            groups[key].append(s)
+        return list(groups.values())</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    vector&lt;vector&lt;string&gt;&gt; groupAnagrams(vector&lt;string&gt;&amp; strs) {
+        unordered_map&lt;string, vector&lt;string&gt;&gt; groups;
+        for (const string&amp; s : strs) {
+            string key = s;
+            sort(key.begin(), key.end());
+            groups[key].push_back(s);
+        }
+        vector&lt;vector&lt;string&gt;&gt; ans;
+        for (auto&amp; [k, v] : groups) {
+            ans.push_back(move(v));
+        }
+        return ans;
+    }
+};
+// 时间 O(n·k log k)，空间 O(n·k)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n · k log k)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(n · k)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 不能用「字符串长度」当 key——<code>"ab"</code> 和 <code>"cd"</code> 长度相同但不是异位词，必须比较字母组成（排序或计数）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回的是「分组列表的列表」，外层顺序任意，但每组内的字符串必须来自输入、不能遗漏或重复。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空字符串 <code>""</code> 排序后仍是 <code>""</code>，应正常入组；不要当作特殊值跳过。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：单个字符串</div>
+    <code>strs = ["a"] → [["a"]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：空字符串</div>
+    <code>strs = [""] → [[""]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：全部互为异位词</div>
+    <code>strs = ["abc","bca","cab"] → [["abc","bca","cab"]]</code>（只有一个分组）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：全部不同组</div>
+    <code>strs = ["a","b","c"] → [["a"],["b"],["c"]]</code>（每组仅一个元素）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：相同字符串重复出现</div>
+    <code>strs = ["dd","dd"] → [["dd","dd"]]</code>（相同签名，应归入同一组）
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

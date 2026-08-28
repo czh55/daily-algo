@@ -352,5 +352,11 @@
     "slug": "rotate-image",
     "title": "旋转图像",
     "type": "矩阵操作"
+  },
+  {
+    "date": "2026-08-28",
+    "slug": "group-anagrams",
+    "title": "字母异位词分组",
+    "type": "哈希表"
   }
 ]
