@@ -6232,7 +6232,106 @@ public:
 </div>
 <div class="edge-case">
     <div class="edge-label">Case 5：相同字符串重复出现</div>
-    <code>strs = ["dd","dd"] → [["dd","dd"]]</code>（相同签名，应归入同一组）
+        <code>strs = ["dd","dd"] → [["dd","dd"]]</code>（相同签名，应归入同一组）
+</div>""",
+    },
+
+    "powx-n": {
+        "type": "数学模拟",
+        "difficulty": "中等",
+        "frontend_id": "50",
+        "title": "Pow(x, n)",
+        "time_complexity": "O(log|n|)",
+        "space_complexity": "O(1)",
+        "description": """<p>实现 <a href="https://www.cplusplus.com/reference/valarray/pow/" target="_blank">pow(<em>x</em>, <em>n</em>)</a>，即计算 <code>x</code> 的整数 <code>n</code> 次幂函数（即，<code>x<sup>n</sup></code>）。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：x = 2.00000, n = 10</div>
+    <div class="example-output">输出：1024.00000</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：x = 2.10000, n = 3</div>
+    <div class="example-output">输出：9.26100</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：x = 2.00000, n = -2</div>
+    <div class="example-output">输出：0.25000</div>
+    <div class="example-explain"><code>2<sup>-2</sup> = 1/2<sup>2</sup> = 1/4 = 0.25</code></div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>result</code></td><td>double</td><td><b>定义</b>：当前已累积的幂次结果，初始为 1.0<br><b>维护</b>：每当指数 <code>exp</code> 的最低二进制位为 1 时，乘上当前的底数 <code>x</code><br><b>更新</b>：若 <code>exp &amp; 1</code> 则 <code>result *= x</code>；每轮循环结束后 <code>x</code> 会自乘，<code>exp</code> 右移一位</td></tr>
+    <tr><td><code>x</code></td><td>double</td><td><b>定义</b>：当前轮的「底数」，代表 <code>原底数<sup>2<sup>k</sup></sup></code>（k 为已右移的位数）<br><b>维护</b>：每轮循环末尾自乘一次，相当于底数平方<br><b>更新</b>：若 <code>n &lt; 0</code> 先变为 <code>1/x</code>；循环中 <code>x *= x</code></td></tr>
+    <tr><td><code>exp</code></td><td>long long</td><td><b>定义</b>：剩余待处理的指数（绝对值），用 long long 避免 <code>INT_MIN</code> 取负溢出<br><b>维护</b>：每轮右移一位，等价于将指数二进制表示从低位向高位消费<br><b>更新</b>：若原 <code>n &lt; 0</code> 则 <code>exp = -(long long)n</code>；否则 <code>exp = n</code>；循环中 <code>exp &gt;&gt;= 1</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：循环 <code>n</code> 次做 <code>result *= x</code>——思路对，但 <code>n</code> 可达 2³¹，O(n) 必超时。</p>
+<p class="thinking-step">2. 重复在哪里？乘方满足 <code>x<sup>n</sup> = x<sup>n/2</sup> × x<sup>n/2</sup></code>（n 为偶数）或 <code>x<sup>n</sup> = x × x<sup>n-1</sup></code>（n 为奇数）——同一底数被反复平方，可以「折半」处理指数。</p>
+<p class="thinking-step">3. 关键转化（快速幂）：把 <code>n</code> 写成二进制，例如 <code>10 = 1010₂</code>，则 <code>x<sup>10</sup> = x<sup>8</sup> × x<sup>2</sup>。从低位到高位扫描：当前位为 1 就把 <code>result</code> 乘上此时的 <code>x</code>，然后 <code>x</code> 自乘、<code>n</code> 右移一位。</p>
+<p class="thinking-step">4. 手推示例 1（x=2, n=10）：<code>10 = 1010₂</code>。第 1 轮（末位 0）只平方 x→4；第 2 轮（末位 1）result×4=4，x→16；第 3 轮（末位 0）x→256；第 4 轮（末位 1）result×256=1024。✓</p>
+<p class="thinking-step">5. 负指数：若 <code>n &lt; 0</code>，等价于计算 <code>(1/x)<sup>|n|</sup></code>，先把 <code>x</code> 取倒数、<code>exp</code> 取绝对值；<code>n = INT_MIN</code> 时 <code>-n</code> 在 32 位会溢出，必须用 <code>long long</code> 存指数。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>n &lt; 0</code>：令 <code>x = 1.0 / x</code>，<code>exp = -(long long)n</code>；否则 <code>exp = n</code></p>
+<p class="code-step">2. 初始化 <code>result = 1.0</code></p>
+<p class="code-step">3. 循环 <code>while exp &gt; 0</code>：若 <code>exp &amp; 1</code>（最低位为 1），则 <code>result *= x</code></p>
+<p class="code-step">4. 每轮末尾：<code>x *= x</code>（底数平方），<code>exp &gt;&gt;= 1</code>（指数折半）</p>
+<p class="code-step">5. 返回 <code>result</code></p>""",
+        "code_python": """class Solution:
+    def myPow(self, x: float, n: int) -> float:
+        exp = n
+        if exp < 0:
+            x = 1.0 / x
+            exp = -exp          # Python int 无溢出，INT_MIN 也安全
+        result = 1.0
+        while exp:
+            if exp & 1:         # 当前二进制位为 1，乘上这一轮的底数
+                result *= x
+            x *= x              # 底数平方，对应指数左移一位
+            exp >>= 1
+        return result""",
+        "code_cpp": """class Solution {
+public:
+    double myPow(double x, int n) {
+        long long exp = n;          // 用 long long 避免 INT_MIN 取负溢出
+        if (exp < 0) {
+            x = 1.0 / x;
+            exp = -exp;
+        }
+        double result = 1.0;
+        while (exp > 0) {
+            if (exp & 1)            // 当前二进制位为 1
+                result *= x;
+            x *= x;                 // 底数平方
+            exp >>= 1;
+        }
+        return result;
+    }
+};
+// 时间 O(log|n|)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>n = INT_MIN (-2147483648)</code> 时，<code>-n</code> 在 32 位 int 中会溢出；C++ 必须先把 <code>n</code> 转成 <code>long long</code> 再取负。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 负指数要先对 <code>x</code> 取倒数再算正指数幂，不要直接循环负数次乘法。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 判断当前位用 <code>exp &amp; 1</code> 或 <code>exp % 2 == 1</code>，不要用浮点；底数 <code>x</code> 可以为 0（此时 <code>n &gt; 0</code> 才出现，结果为 0）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：指数为 0</div>
+    <code>x = 2.0, n = 0 → 1.0</code>（任何非零数的 0 次幂为 1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：负指数</div>
+    <code>x = 2.0, n = -2 → 0.25</code>（等价于 1/4）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：底数为 1</div>
+    <code>x = 1.0, n = 100000 → 1.0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：INT_MIN 指数</div>
+    <code>x = 2.0, n = -2147483648 → 2.0<sup>-2147483648</sup></code>（需 long long 处理，不能对 int 直接取负）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：底数为负、指数为偶数</div>
+    <code>x = -2.0, n = 2 → 4.0</code>（负底数偶次幂为正）
 </div>""",
     },
 }

@@ -358,5 +358,11 @@
     "slug": "group-anagrams",
     "title": "字母异位词分组",
     "type": "哈希表"
+  },
+  {
+    "date": "2026-08-29",
+    "slug": "powx-n",
+    "title": "Pow(x, n)",
+    "type": "数学模拟"
   }
 ]
