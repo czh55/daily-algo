@@ -364,5 +364,11 @@
     "slug": "powx-n",
     "title": "Pow(x, n)",
     "type": "数学模拟"
+  },
+  {
+    "date": "2026-08-30",
+    "slug": "n-queens",
+    "title": "N 皇后",
+    "type": "回溯"
   }
 ]
