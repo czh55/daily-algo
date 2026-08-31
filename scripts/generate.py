@@ -6464,6 +6464,126 @@ public:
     <code>n = 9</code>（题目上限，回溯深度 9，需依赖剪枝）
 </div>""",
     },
+    "n-queens-ii": {
+        "type": "回溯",
+        "difficulty": "困难",
+        "frontend_id": "52",
+        "title": "N 皇后 II",
+        "time_complexity": "O(n!)（剪枝后远好于 n^n 全枚举）",
+        "space_complexity": "O(n)（递归栈 + 冲突集合）",
+        "description": """<p><strong>n 皇后问题</strong> 研究的是如何将 <code>n</code> 个皇后放置在 <code>n×n</code> 的棋盘上，并且使皇后彼此之间不能相互攻击。</p>
+<p>给你一个整数 <code>n</code>，返回 <strong>n 皇后问题</strong> 不同的解决方案的数量。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 4</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">4 皇后问题存在两个不同的解法，如上图所示（同一行、列、斜线不能有两个皇后）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 1</div>
+    <div class="example-output">输出：1</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>queens</code></td><td>int[n]</td><td><b>定义</b>：<code>queens[row]</code> 表示第 <code>row</code> 行皇后所在的列号<br><b>维护</b>：每行恰好放一个皇后，一维数组即可描述当前部分解<br><b>更新</b>：在 <code>row</code> 行尝试列 <code>col</code> 时令 <code>queens[row]=col</code>；回溯返回后该位置会被下一列覆盖</td></tr>
+    <tr><td><code>cols</code></td><td>set&lt;int&gt;</td><td><b>定义</b>：已被占用的列号集合<br><b>维护</b>：任意时刻，已放置的皇后两两不同列<br><b>更新</b>：在 <code>(row,col)</code> 放皇后前查 <code>col not in cols</code>；放入时 <code>add(col)</code>，回溯时 <code>remove(col)</code></td></tr>
+    <tr><td><code>diag1</code></td><td>set&lt;int&gt;</td><td><b>定义</b>：主对角线标识 <code>row - col</code> 的已占用集合（↘ 方向同线相等）<br><b>维护</b>：同一主对角线上任意两格 <code>row-col</code> 相同<br><b>更新</b>：放皇后前查 <code>(row-col) not in diag1</code>；放入/撤销与 <code>cols</code> 同步</td></tr>
+    <tr><td><code>diag2</code></td><td>set&lt;int&gt;</td><td><b>定义</b>：副对角线标识 <code>row + col</code> 的已占用集合（↗ 方向同线相等）<br><b>维护</b>：同一副对角线上任意两格 <code>row+col</code> 相同<br><b>更新</b>：放皇后前查 <code>(row+col) not in diag2</code>；放入/撤销与 <code>cols</code> 同步</td></tr>
+    <tr><td><code>row</code></td><td>int</td><td><b>定义</b>：当前待放置皇后的行号（从 0 到 n-1）<br><b>维护</b>：DFS 逐行向下推进，每行只尝试合法列<br><b>更新</b>：初始为 0；每成功放一行后 <code>row+1</code> 递归；<code>row==n</code> 时说明找到一种完整解</td></tr>
+    <tr><td><code>count</code></td><td>int</td><td><b>定义</b>：合法完整解的总数<br><b>维护</b>：仅当 <code>row==n</code> 时加 1，无需构造棋盘字符串<br><b>更新</b>：每到达叶子层 <code>count += 1</code>；DFS 结束后返回 <code>count</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：在 <code>n×n</code> 的每个格子里决定放或不放皇后，共 <code>2^{n²}</code> 种状态，再过滤出恰好 n 个皇后且互不攻击的——思路对，但状态空间巨大。</p>
+<p class="thinking-step">2. 第一个剪枝：每行必须恰好一个皇后，问题变成「为每一行选一个列」，至多 <code>n^n</code> 种排列。</p>
+<p class="thinking-step">3. 重复在哪里？按行放置时，很多列选法与已有皇后同列或同斜线冲突，却还要把后面所有行试完——和 #51 N 皇后完全相同的搜索树，只是本题不要求输出棋盘。</p>
+<p class="thinking-step">4. 关键转化：用 <code>cols</code>、<code>diag1(row-col)</code>、<code>diag2(row+col)</code> 三个集合 O(1) 判断冲突；DFS 逐行枚举列，能放就递归下一行，<code>row==n</code> 时 <code>count+=1</code> 即可，不必构造字符串棋盘。</p>
+<p class="thinking-step">5. 手推 n=4：搜索过程与 #51 一致，最终数到 2 种合法放置；<code>n=2/3</code> 时 <code>count=0</code>。<code>n≤9</code>，回溯深度 ≤ 9，完全可行。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>count = 0</code>、<code>queens = [0]*n</code>，以及空集合 <code>cols, diag1, diag2</code></p>
+<p class="code-step">2. 定义 DFS <code>backtrack(row)</code>：若 <code>row == n</code>，<code>count += 1</code> 并返回</p>
+<p class="code-step">3. 对 <code>col</code> 从 0 到 n-1：若 <code>col in cols</code> 或 <code>(row-col) in diag1</code> 或 <code>(row+col) in diag2</code>，跳过</p>
+<p class="code-step">4. 否则：登记三个集合、<code>queens[row]=col</code>，递归 <code>backtrack(row+1)</code></p>
+<p class="code-step">5. 回溯：从三个集合中移除本次登记，继续尝试下一列</p>
+<p class="code-step">6. 从 <code>backtrack(0)</code> 启动，返回 <code>count</code></p>""",
+        "code_python": """class Solution:
+    def totalNQueens(self, n: int) -> int:
+        count = 0
+        queens = [0] * n
+        cols: set[int] = set()
+        diag1: set[int] = set()   # row - col
+        diag2: set[int] = set()   # row + col
+
+        def backtrack(row: int) -> None:
+            nonlocal count
+            if row == n:
+                count += 1
+                return
+            for col in range(n):
+                if col in cols or (row - col) in diag1 or (row + col) in diag2:
+                    continue
+                cols.add(col)
+                diag1.add(row - col)
+                diag2.add(row + col)
+                queens[row] = col
+                backtrack(row + 1)
+                cols.remove(col)
+                diag1.remove(row - col)
+                diag2.remove(row + col)
+
+        backtrack(0)
+        return count""",
+        "code_cpp": """class Solution {
+public:
+    int totalNQueens(int n) {
+        int count = 0;
+        vector<int> queens(n, 0);
+        unordered_set<int> cols, diag1, diag2;
+
+        function<void(int)> backtrack = [&](int row) {
+            if (row == n) {
+                ++count;
+                return;
+            }
+            for (int col = 0; col < n; ++col) {
+                if (cols.count(col) || diag1.count(row - col) || diag2.count(row + col))
+                    continue;
+                cols.insert(col);
+                diag1.insert(row - col);
+                diag2.insert(row + col);
+                queens[row] = col;
+                backtrack(row + 1);
+                cols.erase(col);
+                diag1.erase(row - col);
+                diag2.erase(row + col);
+            }
+        };
+
+        backtrack(0);
+        return count;
+    }
+};
+// 时间 O(n!)，空间 O(n)（递归栈 + 集合）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 回溯不撤销：放入皇后后递归返回，必须从 <code>cols/diag1/diag2</code> 中移除本次登记，否则污染兄弟分支、计数偏大。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 斜线判断写错：主对角线是 <code>row - col</code> 相同，副对角线是 <code>row + col</code> 相同；不要混用或漏判其中一种。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 本题只计数：到达 <code>row==n</code> 时 <code>count+=1</code> 即可，不要像 #51 那样构造棋盘字符串——多此一举且更慢。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：n = 1</div>
+    <code>n = 1 → 1</code>（唯一一格放皇后，只有一种解）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：n = 2 或 3 无解</div>
+    <code>n = 2 → 0，n = 3 → 0</code>（小棋盘不存在合法放置）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：n = 4 两解</div>
+    <code>n = 4 → 2</code>（经典样例，与 #51 的解数一致）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：n = 9 边界</div>
+    <code>n = 9</code>（题目上限，回溯深度 9，需依赖剪枝）
+</div>""",
+    },
 }
 
 

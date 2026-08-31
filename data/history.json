@@ -370,5 +370,11 @@
     "slug": "n-queens",
     "title": "N 皇后",
     "type": "回溯"
+  },
+  {
+    "date": "2026-08-31",
+    "slug": "n-queens-ii",
+    "title": "N 皇后 II",
+    "type": "回溯"
   }
 ]
