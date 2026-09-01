@@ -376,5 +376,11 @@
     "slug": "n-queens-ii",
     "title": "N 皇后 II",
     "type": "回溯"
+  },
+  {
+    "date": "2026-09-01",
+    "slug": "maximum-subarray",
+    "title": "最大子数组和",
+    "type": "一维DP"
   }
 ]

@@ -39,6 +39,7 @@ TYPE_CLASS_MAP = {
     "链表指针": "linked-list",
     "设计题": "design",
     "二维DP": "dp",
+    "一维DP": "dp",
     "树后序递归": "tree",
     "并查集": "union-find",
     "网格搜索": "grid",
@@ -6582,6 +6583,94 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 4：n = 9 边界</div>
     <code>n = 9</code>（题目上限，回溯深度 9，需依赖剪枝）
+</div>""",
+    },
+
+    "maximum-subarray": {
+        "type": "一维DP",
+        "difficulty": "中等",
+        "frontend_id": "53",
+        "title": "最大子数组和",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个整数数组 <code>nums</code>，请你找出一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。</p>
+<p><strong>子数组</strong> 是数组中的一个连续部分。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [-2,1,-3,4,-1,2,1,-5,4]</div>
+    <div class="example-output">输出：6</div>
+    <div class="example-explain">连续子数组 [4,-1,2,1] 的和最大，为 6。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [1]</div>
+    <div class="example-output">输出：1</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [5,4,-1,7,8]</div>
+    <div class="example-output">输出：23</div>
+    <div class="example-explain">整个数组即为最大子数组，和为 23。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>cur</code></td><td>int</td><td><b>定义</b>：以当前下标 <code>i</code> <b>结尾</b> 的连续子数组的最大和<br><b>维护</b>：每扫到一个新元素，要么「接上前面的子数组」，要么「从当前元素重新开始」——取两者较大值<br><b>更新</b>：<code>cur = max(nums[i], cur + nums[i])</code>，即 Kadane 核心递推</td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：遍历过程中见过的所有「以某位置结尾的子数组」中的全局最大和<br><b>维护</b>：每更新一次 <code>cur</code>，同步 <code>ans = max(ans, cur)</code><br><b>更新</b>：初始 <code>ans = nums[0]</code>（至少含一个元素），扫完返回 <code>ans</code></td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：从左到右扫描的下标，代表「当前考察的结尾位置」<br><b>维护</b>：<code>for i in range(1, n)</code>，第 0 个元素已用于初始化 <code>cur</code> 和 <code>ans</code><br><b>更新</b>：每轮用 <code>nums[i]</code> 更新 <code>cur</code>，再刷新 <code>ans</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：枚举所有连续子数组 <code>[l..r]</code>，对每个区间求和取最大，双重循环 O(n²)，<code>n=10⁵</code> 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？固定右端点 <code>r</code> 时，左端点 <code>l</code> 从 0 到 <code>r</code> 的区间和 <code>sum(l,r)</code> 可以从前一个 <code>sum(l,r-1)</code> 加上 <code>nums[r]</code> 得到——但更简单的是只关心「以 <code>r</code> 结尾」的最优子数组。</p>
+<p class="thinking-step">3. 子问题定义：设 <code>dp[i]</code> = 以 <code>nums[i]</code> 结尾的连续子数组的最大和。则 <code>dp[i] = max(nums[i], dp[i-1] + nums[i])</code>——要么单独成段，要么接在前一段后面。</p>
+<p class="thinking-step">4. 全局答案不在 <code>dp[n-1]</code>，而是 <code>max(dp[0..n-1])</code>：最优子数组可能结束在任意位置（如样例中结束在下标 6 而非末尾）。</p>
+<p class="thinking-step">5. 手推 <code>[-2,1,-3,4,-1,2,1,-5,4]</code>：<code>cur</code> 依次为 -2→1→-2→4→3→5→6→1→5，<code>ans</code> 在扫到 6 时取到最大值 6，对应子数组 [4,-1,2,1]。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>cur = ans = nums[0]</code>（子数组至少含一个元素）</p>
+<p class="code-step">2. 从下标 1 遍历到 <code>n-1</code></p>
+<p class="code-step">3. 对每个 <code>nums[i]</code>：<code>cur = max(nums[i], cur + nums[i])</code>（接上 or 重启）</p>
+<p class="code-step">4. 更新全局：<code>ans = max(ans, cur)</code></p>
+<p class="code-step">5. 返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def maxSubArray(self, nums: List[int]) -> int:
+        cur = ans = nums[0]
+        for i in range(1, len(nums)):
+            cur = max(nums[i], cur + nums[i])
+            ans = max(ans, cur)
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        int cur = nums[0], ans = nums[0];
+        for (int i = 1; i < nums.size(); i++) {
+            cur = max(nums[i], cur + nums[i]);
+            ans = max(ans, cur);
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 答案不是 <code>dp[n-1]</code>：最大子数组可以结束在任意位置，必须全程维护 <code>ans = max(ans, cur)</code>，不能只返回最后一次的 <code>cur</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 全负数数组：如 <code>[-3,-2,-1]</code>，<code>cur</code> 会不断被 <code>max(nums[i], ...)</code> 重置为当前元素，<code>ans</code> 应取最大的那个负数（-1），不能返回 0。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 初始化勿用 <code>cur=0</code>：子数组至少包含一个元素，应从 <code>nums[0]</code> 开始；若 <code>cur</code> 初值为 0，全正数组虽能蒙对，全负时会错成 0。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>nums = [1] → 1</code>（唯一子数组即自身）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全负数</div>
+    <code>nums = [-3, -2, -1] → -1</code>（必须选一个元素，取最大负数）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：全正数</div>
+    <code>nums = [5, 4, -1, 7, 8] → 23</code>（整个数组即最优，无需截断）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：中间最优段</div>
+    <code>nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4] → 6</code>（最优子数组不贴首尾）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：前缀拖累</div>
+    <code>nums = [-1, -2, 5, -1, 3] → 7</code>（前面负前缀应被丢弃，从 5 重启）
 </div>""",
     },
 }
