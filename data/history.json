@@ -382,5 +382,11 @@
     "slug": "maximum-subarray",
     "title": "最大子数组和",
     "type": "一维DP"
+  },
+  {
+    "date": "2026-09-02",
+    "slug": "spiral-matrix",
+    "title": "螺旋矩阵",
+    "type": "矩阵操作"
   }
 ]

@@ -6673,6 +6673,135 @@ public:
     <code>nums = [-1, -2, 5, -1, 3] → 7</code>（前面负前缀应被丢弃，从 5 重启）
 </div>""",
     },
+
+    "spiral-matrix": {
+        "type": "矩阵操作",
+        "difficulty": "中等",
+        "frontend_id": "54",
+        "title": "螺旋矩阵",
+        "time_complexity": "O(m × n)",
+        "space_complexity": "O(1)（不计输出数组）",
+        "description": """<p>给你一个 <code>m</code> 行 <code>n</code> 列的矩阵 <code>matrix</code>，请按照 <strong>顺时针螺旋顺序</strong>，返回矩阵中的所有元素。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：matrix = [[1,2,3],[4,5,6],[7,8,9]]</div>
+    <div class="example-output">输出：[1,2,3,6,9,8,7,4,5]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]</div>
+    <div class="example-output">输出：[1,2,3,4,8,12,11,10,9,5,6,7]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>ans</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：按顺时针螺旋顺序收集到的所有元素<br><b>维护</b>：每走完一条边，就把该边上尚未访问的元素依次追加到 <code>ans</code><br><b>更新</b>：四条边（上→右→下→左）各扫一遍后，<code>ans</code> 长度增加当前「剩余矩形」的周长对应元素数</td></tr>
+    <tr><td><code>top, bottom</code></td><td>int</td><td><b>定义</b>：当前待遍历子矩阵的上、下边界行号（含端点）<br><b>维护</b>：每完成一圈螺旋后，<code>top++</code>、<code>bottom--</code>，向内收缩一行<br><b>更新</b>：初始 <code>top=0, bottom=m-1</code>；当 <code>top &gt; bottom</code> 时纵向已无剩余行，停止</td></tr>
+    <tr><td><code>left, right</code></td><td>int</td><td><b>定义</b>：当前待遍历子矩阵的左、右边界列号（含端点）<br><b>维护</b>：每完成一圈螺旋后，<code>left++</code>、<code>right--</code>，向内收缩一列<br><b>更新</b>：初始 <code>left=0, right=n-1</code>；当 <code>left &gt; right</code> 时横向已无剩余列，停止</td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：沿当前边扫描时的行、列下标<br><b>维护</b>：上边从左到右、右边从上到下、下边从右到左、左边从下到上，各用一层 <code>for</code> 推进<br><b>更新</b>：每访问 <code>matrix[i][j]</code> 后立即 <code>ans.append(...)</code>，避免重复访问</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：按螺旋路径手写坐标变化——从 <code>(0,0)</code> 出发，方向依次为右、下、左、上，遇边界或已访问格就转向；需要 <code>visited[m][n]</code> 防重复，时间 O(mn)，额外空间 O(mn)。</p>
+<p class="thinking-step">2. 重复在哪里？方向数组解法每走一步都要判「是否出界 / 是否已访问」，逻辑分散在四个分支里，单行或单列时特别容易多走或漏走。</p>
+<p class="thinking-step">3. 关键转化：把螺旋看成<strong>一圈圈剥洋葱</strong>——每一圈固定走四条边：顶行从左到右、右列从上到下、底行从右到左（若还有多行）、左列从下到上（若还有多列），然后四条边界各向内缩 1。</p>
+<p class="thinking-step">4. 手推 3×3：第一圈收集 1,2,3 → 6,9 → 8,7 → 4；收缩后只剩中心 5，第二圈顶行单独收集 5，得到 [1,2,3,6,9,8,7,4,5]。</p>
+<p class="thinking-step">5. 边界条件：底行仅在 <code>top &lt; bottom</code> 时遍历（避免与顶行重复）；左列仅在 <code>left &lt; right</code> 时遍历（避免与右列重复）。单行或单列矩阵靠这两条判断自然处理。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>matrix</code> 为空直接返回 <code>[]</code>；取 <code>m, n</code>，初始化 <code>top=0, bottom=m-1, left=0, right=n-1</code> 与空列表 <code>ans</code></p>
+<p class="code-step">2. 当 <code>top &lt;= bottom</code> 且 <code>left &lt;= right</code> 时循环（当前还有未访问的子矩形）</p>
+<p class="code-step">3. <strong>上边</strong>：<code>for j in range(left, right+1)</code>，收集 <code>matrix[top][j]</code></p>
+<p class="code-step">4. <strong>右边</strong>：<code>for i in range(top+1, bottom+1)</code>，收集 <code>matrix[i][right]</code></p>
+<p class="code-step">5. 若 <code>top &lt; bottom</code>，<strong>下边</strong>从 <code>right-1</code> 到 <code>left</code> 逆序收集 <code>matrix[bottom][j]</code></p>
+<p class="code-step">6. 若 <code>left &lt; right</code>，<strong>左边</strong>从 <code>bottom-1</code> 到 <code>top+1</code> 逆序收集 <code>matrix[i][left]</code></p>
+<p class="code-step">7. 收缩边界 <code>top++, bottom--, left++, right--</code>，进入下一圈</p>
+<p class="code-step">8. 返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def spiralOrder(self, matrix: List[List[int]]) -> List[int]:
+        if not matrix or not matrix[0]:
+            return []
+        m, n = len(matrix), len(matrix[0])
+        top, bottom = 0, m - 1
+        left, right = 0, n - 1
+        ans: list[int] = []
+
+        while top <= bottom and left <= right:
+            # 上边：从左到右
+            for j in range(left, right + 1):
+                ans.append(matrix[top][j])
+            # 右边：从上到下（跳过顶角，已在上边收集）
+            for i in range(top + 1, bottom + 1):
+                ans.append(matrix[i][right])
+            # 下边：从右到左（仅当还有多行时）
+            if top < bottom:
+                for j in range(right - 1, left - 1, -1):
+                    ans.append(matrix[bottom][j])
+            # 左边：从下到上（仅当还有多列时）
+            if left < right:
+                for i in range(bottom - 1, top, -1):
+                    ans.append(matrix[i][left])
+            top += 1
+            bottom -= 1
+            left += 1
+            right -= 1
+
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<int> spiralOrder(vector<vector<int>>& matrix) {
+        vector<int> ans;
+        if (matrix.empty() || matrix[0].empty()) return ans;
+        int m = matrix.size(), n = matrix[0].size();
+        int top = 0, bottom = m - 1, left = 0, right = n - 1;
+
+        while (top <= bottom && left <= right) {
+            // 上边：从左到右
+            for (int j = left; j <= right; j++)
+                ans.push_back(matrix[top][j]);
+            // 右边：从上到下
+            for (int i = top + 1; i <= bottom; i++)
+                ans.push_back(matrix[i][right]);
+            // 下边：从右到左（仅当还有多行）
+            if (top < bottom) {
+                for (int j = right - 1; j >= left; j--)
+                    ans.push_back(matrix[bottom][j]);
+            }
+            // 左边：从下到上（仅当还有多列）
+            if (left < right) {
+                for (int i = bottom - 1; i > top; i--)
+                    ans.push_back(matrix[i][left]);
+            }
+            top++;
+            bottom--;
+            left++;
+            right--;
+        }
+        return ans;
+    }
+};
+// 时间 O(m×n)，空间 O(1)（不计输出）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记「单行/单列」判断：走完顶行和右列后，若 <code>top == bottom</code> 仍遍历底行，会把同一行元素重复加入；必须用 <code>if (top &lt; bottom)</code> 和 <code>if (left &lt; right)</code> 保护。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 方向数组 + <code>visited</code> 写法里，转向时机写错会导致死循环或漏元素；剥洋葱法用边界收缩，每格恰好访问一次，更不易错。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 右边循环应从 <code>top+1</code> 开始、左边从 <code>bottom-1</code> 到 <code>top+1</code>，否则四个角的元素会被重复收集。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单行</div>
+    <code>matrix = [[1,2,3,4]] → [1,2,3,4]</code>（只走顶边，<code>top==bottom</code> 跳过底边）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单列</div>
+    <code>matrix = [[1],[2],[3]] → [1,2,3]</code>（顶边后只走右列，<code>left==right</code> 跳过左边）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：1×1</div>
+    <code>matrix = [[7]] → [7]</code>（一圈只收集一个元素）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：3×3 奇数方阵</div>
+    <code>matrix = [[1,2,3],[4,5,6],[7,8,9]] → [1,2,3,6,9,8,7,4,5]</code>（中心 5 在第二圈单独收集）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：3×4 长方形</div>
+    <code>matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]] → [1,2,3,4,8,12,11,10,9,5,6,7]</code>（非方阵同样适用边界收缩）
+</div>""",
+    },
 }
 
 
