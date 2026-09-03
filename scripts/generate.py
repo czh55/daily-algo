@@ -6930,6 +6930,24 @@ _DIFF_ZH = {
     "Easy": "简单", "Medium": "中等", "Hard": "困难",
     "简单": "简单", "中等": "中等", "困难": "困难",
 }
+_DIFF_CLASS = {"简单": "easy", "中等": "medium", "困难": "hard"}
+
+
+def resolve_difficulty(slug: str, html_content: str = None, semantics: dict = None) -> str:
+    """解析题目难度（中文）。优先级：显式 semantics → 精讲库 → 候选池 → 归档页 HTML → 默认中等。"""
+    if semantics and semantics.get("difficulty"):
+        return _DIFF_ZH.get(semantics["difficulty"], "中等")
+    data = VAR_SEMANTICS_DATA.get(slug)
+    if data and data.get("difficulty"):
+        return _DIFF_ZH.get(data["difficulty"], "中等")
+    meta = _pool_slug_to_meta().get(slug)
+    if meta and meta.get("difficulty"):
+        return _DIFF_ZH.get(meta["difficulty"], "中等")
+    if html_content:
+        m = re.search(r'problem-difficulty[^>]*>\s*(简单|中等|困难)', html_content)
+        if m:
+            return m.group(1)
+    return "中等"
 
 
 def build_semantics_from_leetcode(slug: str) -> Optional[dict]:
@@ -7022,6 +7040,7 @@ def rebuild_history_from_archives() -> list:
             "slug": slug,
             "title": title,
             "type": ptype,
+            "difficulty": resolve_difficulty(slug, html_content=content, semantics=semantics),
         })
     return history
 
@@ -7038,9 +7057,19 @@ def load_history() -> list:
     for item in file_history:
         merged[item.get("date", "")] = item
     for item in rebuild_history_from_archives():
+        prev = merged.get(item["date"], {})
+        # archive 重建可能缺 type（非精讲题）；保留文件里已有字段
+        if not item.get("type") and prev.get("type"):
+            item = {**item, "type": prev["type"]}
+        if not item.get("difficulty") and prev.get("difficulty"):
+            item = {**item, "difficulty": prev["difficulty"]}
         merged[item["date"]] = item
 
-    return sorted(merged.values(), key=lambda x: x.get("date", ""))
+    result = sorted(merged.values(), key=lambda x: x.get("date", ""))
+    for item in result:
+        if not item.get("difficulty"):
+            item["difficulty"] = resolve_difficulty(item.get("slug", ""))
+    return result
 
 
 def save_history(history: list):
@@ -7213,6 +7242,10 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
             "slug": item.get("slug", ""),
             "title": item.get("title", ""),
             "type": item.get("type", ""),
+            "difficulty": resolve_difficulty(
+                item.get("slug", ""),
+                semantics={"difficulty": item["difficulty"]} if item.get("difficulty") else None,
+            ),
         })
 
     # 构建今日题目卡片
@@ -7221,7 +7254,7 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
         ptype = today_semantics.get("type", "")
         type_class = TYPE_CLASS_MAP.get(ptype, "other")
         diff = today_semantics.get("difficulty", "中等")
-        diff_class = {"简单": "easy", "中等": "medium", "困难": "hard"}.get(diff, "medium")
+        diff_class = _DIFF_CLASS.get(diff, "medium")
         from scripts.generate_audio import render_audio_section
         audio_block = render_audio_section(featured_date, base_path="audio")
         today_html = f"""<div class="today-problem">
@@ -7243,11 +7276,16 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
     for item in reversed(archive_items):
         ptype = item.get("type", "")
         type_class = TYPE_CLASS_MAP.get(ptype, "other")
-        archive_html += f"""<div class="archive-item">
+        diff = item.get("difficulty", "中等")
+        diff_class = _DIFF_CLASS.get(diff, "medium")
+        archive_html += f"""<div class="archive-item" data-difficulty="{diff}">
             <a href="archive/{item['date']}.html">
                 <div class="archive-date">{item['date']}</div>
                 <div class="archive-title">{item['title']}</div>
-                <span class="archive-type problem-type tag-{type_class}">{ptype}</span>
+                <div class="archive-meta">
+                    <span class="archive-type problem-type tag-{type_class}">{ptype}</span>
+                    <span class="problem-difficulty difficulty-{diff_class}">{diff}</span>
+                </div>
             </a>
         </div>"""
 
@@ -7263,8 +7301,13 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
         tclass = TYPE_CLASS_MAP.get(tname, "other")
         item_html = ""
         for it in reversed(items):
+            diff = resolve_difficulty(
+                it.get("slug", ""),
+                semantics={"difficulty": it["difficulty"]} if it.get("difficulty") else None,
+            )
             item_html += (
-                f'<li><a href="archive/{it["date"]}.html">{it["title"]}</a>'
+                f'<li data-difficulty="{diff}">'
+                f'<a href="archive/{it["date"]}.html">{it["title"]}</a>'
                 f'<span class="type-item-date">{it["date"]}</span></li>'
             )
         types_html += f"""<div class="type-card">
@@ -7308,9 +7351,16 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
 
         <section class="archive-section">
             <h2>&#x1F4DA; 往期归档</h2>
+            <div class="difficulty-filter" role="group" aria-label="按难度筛选">
+                <button type="button" class="filter-btn active" data-filter="全部" onclick="filterByDifficulty('全部')">全部</button>
+                <button type="button" class="filter-btn filter-easy" data-filter="简单" onclick="filterByDifficulty('简单')">简单</button>
+                <button type="button" class="filter-btn filter-medium" data-filter="中等" onclick="filterByDifficulty('中等')">中等</button>
+                <button type="button" class="filter-btn filter-hard" data-filter="困难" onclick="filterByDifficulty('困难')">困难</button>
+            </div>
             <div class="archive-grid">
                 {archive_html if archive_html else '<p style="color:var(--text-tertiary);">暂无归档，第一道题即将推荐！</p>'}
             </div>
+            <p class="filter-empty" id="filter-empty" hidden>该难度暂无题目</p>
         </section>
 
         <section class="types-section">
@@ -7339,6 +7389,19 @@ def generate_index_html(today_slug: str = None, today_semantics: dict = None,
             if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
         }});
     }}
+    function filterByDifficulty(diff) {{
+        var visible = 0;
+        document.querySelectorAll('.archive-item').forEach(function(el) {{
+            var match = (diff === '全部' || el.getAttribute('data-difficulty') === diff);
+            el.hidden = !match;
+            if (match) visible++;
+        }});
+        document.querySelectorAll('.difficulty-filter .filter-btn').forEach(function(btn) {{
+            btn.classList.toggle('active', btn.getAttribute('data-filter') === diff);
+        }});
+        var empty = document.getElementById('filter-empty');
+        if (empty) empty.hidden = visible > 0 || diff === '全部';
+    }}
     </script>
 </body>
 </html>"""
@@ -7366,6 +7429,7 @@ def add_to_history(slug: str, semantics: dict, date_str: str = None, force: bool
         "slug": slug,
         "title": semantics.get("title", slug),
         "type": semantics.get("type", ""),
+        "difficulty": resolve_difficulty(slug, semantics=semantics),
     })
     save_history(history)
 
