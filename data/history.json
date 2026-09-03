@@ -388,5 +388,11 @@
     "slug": "spiral-matrix",
     "title": "螺旋矩阵",
     "type": "矩阵操作"
+  },
+  {
+    "date": "2026-09-03",
+    "slug": "jump-game",
+    "title": "跳跃游戏",
+    "type": "贪心"
   }
 ]

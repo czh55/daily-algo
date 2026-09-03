@@ -6802,6 +6802,96 @@ public:
     <code>matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]] → [1,2,3,4,8,12,11,10,9,5,6,7]</code>（非方阵同样适用边界收缩）
 </div>""",
     },
+
+    "jump-game": {
+        "type": "贪心",
+        "difficulty": "中等",
+        "frontend_id": "55",
+        "title": "跳跃游戏",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个非负整数数组 <code>nums</code>，你最初位于数组的 <strong>第一个下标</strong>。数组中的每个元素代表你在该位置可以跳跃的最大长度。</p>
+<p>判断你是否能够到达最后一个下标，如果可以，返回 <code>true</code>；否则，返回 <code>false</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [2,3,1,1,4]</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">可以先跳 1 步，从下标 0 到达下标 1，然后再从下标 1 跳 3 步到达最后一个下标。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [3,2,1,0,4]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">无论怎样，总会到达下标为 3 的位置。但该下标的最大跳跃长度是 0，所以永远不可能到达最后一个下标。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>farthest</code></td><td>int</td><td><b>定义</b>：从起点出发，经过若干次合法跳跃后，<strong>最远能到达的下标</strong>（含该位置）<br><b>维护</b>：从左到右扫描时，每到一个可达位置 <code>i</code>，用 <code>i + nums[i]</code> 尝试扩展 <code>farthest</code><br><b>更新</b>：<code>farthest = max(farthest, i + nums[i])</code>；若最终 <code>farthest ≥ n-1</code> 则可达终点</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：从左到右扫描的下标，代表「当前正在考察的落脚点」<br><b>维护</b>：<code>for i in range(n)</code>，只处理 <code>i ≤ farthest</code> 的位置（超出则说明此点不可达）<br><b>更新</b>：每轮用 <code>nums[i]</code> 更新 <code>farthest</code>；若 <code>i &gt; farthest</code> 提前返回 <code>false</code></td></tr>
+    <tr><td><code>nums[i]</code></td><td>int</td><td><b>定义</b>：从下标 <code>i</code> 出发单次跳跃的最大步长<br><b>维护</b>：仅当 <code>i</code> 可达（<code>i ≤ farthest</code>）时才参与扩展<br><b>更新</b>：与 <code>i</code> 相加得到从 <code>i</code> 出发能跳到的最远下标，用于刷新 <code>farthest</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：从每个位置 DFS/BFS 枚举所有合法跳跃路径，看能否到达 <code>n-1</code>，状态空间指数级，<code>n=10⁴</code> 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？「从位置 <code>i</code> 能否到达终点」会被反复计算——典型 DP：<code>dp[i] = any(dp[j])</code> 对所有 <code>j&lt;i</code> 且 <code>j+nums[j]≥i</code>，朴素 O(n²)。</p>
+<p class="thinking-step">3. 换个视角：我们不需要知道「最少几步」，只需知道「最远能到哪」——从左到右扫描，维护一个全局最远可达下标 <code>farthest</code>。</p>
+<p class="thinking-step">4. 贪心关键：若当前 <code>i &gt; farthest</code>，说明连位置 <code>i</code> 都到不了，后面更不可能；否则用 <code>i + nums[i]</code> 扩展 <code>farthest</code>，扫完后看 <code>farthest</code> 是否 ≥ <code>n-1</code>。</p>
+<p class="thinking-step">5. 正确性直觉：<code>farthest</code> 单调不减，且包含了「从起点经任意合法路径能到达的所有位置」的上界；一旦 <code>farthest ≥ n-1</code> 即存在一条路径到终点。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>farthest = 0</code>，<code>n = len(nums)</code></p>
+<p class="code-step">2. 遍历 <code>i</code> 从 0 到 <code>n-1</code></p>
+<p class="code-step">3. 若 <code>i &gt; farthest</code>，说明当前位置不可达，返回 <code>false</code></p>
+<p class="code-step">4. 更新 <code>farthest = max(farthest, i + nums[i])</code></p>
+<p class="code-step">5. 若 <code>farthest ≥ n-1</code>，可提前返回 <code>true</code>（可选优化）</p>
+<p class="code-step">6. 循环结束返回 <code>true</code>（能扫完说明终点可达）</p>""",
+        "code_python": """class Solution:
+    def canJump(self, nums: List[int]) -> bool:
+        farthest = 0
+        n = len(nums)
+        for i in range(n):
+            if i > farthest:
+                return False
+            farthest = max(farthest, i + nums[i])
+            if farthest >= n - 1:
+                return True
+        return True""",
+        "code_cpp": """class Solution {
+public:
+    bool canJump(vector<int>& nums) {
+        int farthest = 0;
+        int n = nums.size();
+        for (int i = 0; i < n; i++) {
+            if (i > farthest) return false;
+            farthest = max(farthest, i + nums[i]);
+            if (farthest >= n - 1) return true;
+        }
+        return true;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记判断 <code>i &gt; farthest</code>：只更新 <code>farthest</code> 而不检查当前位置是否可达，会在 <code>[3,2,1,0,4]</code> 这类用例上误判为 <code>true</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 本题求<b>能否到达</b>，与 #45「跳跃游戏 II」（求最少跳跃次数）不同；后者需要按层结算 <code>steps</code>，不能混用。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>nums[i]</code> 可以为 0：站在 0 步长处仍算「到达该位置」，只是无法继续向前扩展 <code>farthest</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>nums = [0] → true</code>（已在终点，无需跳跃）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：一步直达</div>
+    <code>nums = [1, 0] → true</code>（从下标 0 跳 1 步到终点）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：卡在中途</div>
+    <code>nums = [3, 2, 1, 0, 4] → false</code>（最远只能到下标 3，<code>nums[3]=0</code> 无法继续前进）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：含零步长</div>
+    <code>nums = [2, 0, 0, 1] → true</code>（经过若干 0 步长位置仍可到达终点）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：大跨度</div>
+    <code>nums = [5, 0, 0, 0, 0] → true</code>（第一步即可覆盖全程）
+</div>""",
+    },
 }
 
 
