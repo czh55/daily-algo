@@ -58,6 +58,7 @@ TYPE_CLASS_MAP = {
     "数组原地哈希": "inplace-hash",
     "贪心": "greedy",
     "矩阵操作": "matrix",
+    "区间合并": "interval",
 }
 
 # ─── Variable Semantics Data for Core Problem Types ───
@@ -6890,6 +6891,111 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 5：大跨度</div>
     <code>nums = [5, 0, 0, 0, 0] → true</code>（第一步即可覆盖全程）
+</div>""",
+    },
+    "merge-intervals": {
+        "type": "区间合并",
+        "difficulty": "中等",
+        "frontend_id": "56",
+        "title": "合并区间",
+        "time_complexity": "O(n log n)",
+        "space_complexity": "O(log n)（排序栈空间，不计输出）",
+        "description": """<p>以数组 <code>intervals</code> 表示若干个区间的集合，其中单个区间为 <code>intervals[i] = [start<sub>i</sub>, end<sub>i</sub>]</code>。请你合并所有重叠的区间，并返回 <em>一个不重叠的区间数组，该数组需恰好覆盖输入中的所有区间</em>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：intervals = [[1,3],[2,6],[8,10],[15,18]]</div>
+    <div class="example-output">输出：[[1,6],[8,10],[15,18]]</div>
+    <div class="example-explain">区间 [1,3] 和 [2,6] 重叠，将它们合并为 [1,6]。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：intervals = [[1,4],[4,5]]</div>
+    <div class="example-output">输出：[[1,5]]</div>
+    <div class="example-explain">区间 [1,4] 和 [4,5] 可被视为重叠区间（端点相接也算重叠）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：intervals = [[4,7],[1,4]]</div>
+    <div class="example-output">输出：[[1,7]]</div>
+    <div class="example-explain">输入顺序不影响结果；排序后 [1,4] 与 [4,7] 端点相接，合并为 [1,7]。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>intervals</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：输入的区间集合，每个元素为 <code>[start, end]</code><br><b>维护</b>：处理前先按 <code>start</code> 升序排序，保证从左到右扫描时「当前区间起点 ≥ 已处理区间的起点」<br><b>更新</b>：<code>intervals.sort(key=lambda x: x[0])</code>；排序后线性扫描，不再回退</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：已合并完成的不重叠区间列表（输出结果）<br><b>维护</b>：始终按起点递增排列，且相邻区间互不相交<br><b>更新</b>：首个区间直接入 <code>ans</code>；后续若与 <code>ans[-1]</code> 重叠则扩展 <code>ans[-1][1]</code>，否则 append 新区间</td></tr>
+    <tr><td><code>cur</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前正在考察的区间 <code>[start, end]</code>（排序后的 <code>intervals[i]</code>）<br><b>维护</b>：每次循环取一个尚未并入 <code>ans</code> 的区间，与 <code>ans</code> 末尾比较<br><b>更新</b>：若 <code>cur[0] &lt;= ans[-1][1]</code> 则重叠，合并；否则 <code>ans.append(cur)</code></td></tr>
+    <tr><td><code>ans[-1][1]</code></td><td>int</td><td><b>定义</b>：当前已合并块的最右端点（右边界）<br><b>维护</b>：合并时取 <code>max(原右端, cur[1])</code>，因为 <code>cur</code> 可能完全包含在块内也可能向右延伸<br><b>更新</b>：<code>ans[-1][1] = max(ans[-1][1], cur[1])</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：枚举所有区间对的交集关系，用并查集或图连通分量把「能互相重叠到达」的区间归为一组，再每组取 min(start) 和 max(end)——思路正确但实现繁琐，且 O(n²) 判重叠。</p>
+<p class="thinking-step">2. 重复在哪里？若区间已按起点排序，判断「当前区间是否与已有合并块重叠」只需看 <strong>最后一个合并块</strong>，不必回溯检查 <code>ans</code> 中更早的区间——因为排序后若与更早块重叠，早就被合并进同一块了。</p>
+<p class="thinking-step">3. 关键转化：先按 <code>start</code> 排序，再线性扫描。维护 <code>ans</code> 中最后一个区间；若 <code>cur[0] &lt;= ans[-1][1]</code> 说明重叠（含端点相接），扩展右端；否则开新区间。</p>
+<p class="thinking-step">4. 重叠判定：排序后 <code>cur[0] &gt; ans[-1][1]</code> 即完全不重叠；否则合并。注意 <code>[1,4]</code> 与 <code>[4,5]</code> 中 <code>4 &lt;= 4</code> 算重叠，输出 <code>[1,5]</code>。</p>
+<p class="thinking-step">5. 复杂度：排序 O(n log n) 主导；扫描 O(n)。空间除输出外主要是排序的 O(log n) 栈。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>intervals</code> 为空，直接返回空列表</p>
+<p class="code-step">2. 按每个区间的起点 <code>intervals[i][0]</code> 升序排序</p>
+<p class="code-step">3. 初始化 <code>ans = [intervals[0]]</code></p>
+<p class="code-step">4. 遍历 <code>intervals[1:]</code> 中的每个 <code>cur</code></p>
+<p class="code-step">5. 若 <code>cur[0] &lt;= ans[-1][1]</code>，重叠：更新 <code>ans[-1][1] = max(ans[-1][1], cur[1])</code></p>
+<p class="code-step">6. 否则 <code>ans.append(cur)</code>，开始新的合并块</p>
+<p class="code-step">7. 返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def merge(self, intervals: List[List[int]]) -> List[List[int]]:
+        if not intervals:
+            return []
+        intervals.sort(key=lambda x: x[0])
+        ans = [intervals[0]]
+        for cur in intervals[1:]:
+            if cur[0] <= ans[-1][1]:
+                ans[-1][1] = max(ans[-1][1], cur[1])
+            else:
+                ans.append(cur)
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        if (intervals.empty()) return {};
+        sort(intervals.begin(), intervals.end(),
+             [](const vector<int>& a, const vector<int>& b) {
+                 return a[0] < b[0];
+             });
+        vector<vector<int>> ans;
+        ans.push_back(intervals[0]);
+        for (int i = 1; i < intervals.size(); i++) {
+            auto& cur = intervals[i];
+            if (cur[0] <= ans.back()[1]) {
+                ans.back()[1] = max(ans.back()[1], cur[1]);
+            } else {
+                ans.push_back(cur);
+            }
+        }
+        return ans;
+    }
+};
+// 时间 O(n log n)，空间 O(log n)（排序栈，不计输出）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记排序：输入顺序任意（如示例 3 <code>[[4,7],[1,4]]</code>），不排序就无法用「只看最后一个合并块」的线性策略。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 重叠条件写错：本题端点相接算重叠，应是 <code>cur[0] &lt;= ans[-1][1]</code>，不能写成 <code>&lt;</code>，否则 <code>[1,4],[4,5]</code> 无法合并。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 合并时只取 <code>cur[1]</code> 而不与 <code>ans[-1][1]</code> 取 max：当 <code>cur</code> 完全落在已有块内部时（如 <code>[1,10]</code> 后跟 <code>[2,3]</code>），右端点会被错误缩短。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单个区间</div>
+    <code>intervals = [[1,4]] → [[1,4]]</code>（无需合并，直接返回）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全部重叠成一块</div>
+    <code>intervals = [[1,4],[2,3],[3,6]] → [[1,6]]</code>（排序后依次合并）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：端点相接</div>
+    <code>intervals = [[1,4],[4,5]] → [[1,5]]</code>（<code>4 &lt;= 4</code> 视为重叠）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：互不重叠</div>
+    <code>intervals = [[1,2],[3,4],[5,6]] → [[1,2],[3,4],[5,6]]</code>（每个区间独立成块）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：乱序输入</div>
+    <code>intervals = [[4,7],[1,4]] → [[1,7]]</code>（排序后与前述逻辑一致）
 </div>""",
     },
 }

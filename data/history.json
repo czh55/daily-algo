@@ -460,5 +460,12 @@
     "title": "跳跃游戏",
     "type": "贪心",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-04",
+    "slug": "merge-intervals",
+    "title": "合并区间",
+    "type": "区间合并",
+    "difficulty": "中等"
   }
 ]
