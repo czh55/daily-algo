@@ -6998,6 +6998,119 @@ public:
     <code>intervals = [[4,7],[1,4]] → [[1,7]]</code>（排序后与前述逻辑一致）
 </div>""",
     },
+    "insert-interval": {
+        "type": "区间合并",
+        "difficulty": "中等",
+        "frontend_id": "57",
+        "title": "插入区间",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)（输出数组，不计输入）",
+        "description": """<p>给你一个<strong>无重叠的</strong>、按照区间起始端点排序的区间列表 <code>intervals</code>，其中 <code>intervals[i] = [start<sub>i</sub>, end<sub>i</sub>]</code> 表示第 <code>i</code> 个区间的开始和结束，并且 <code>intervals</code> 按照 <code>start<sub>i</sub></code> 升序排列。同样给定一个区间 <code>newInterval = [start, end]</code> 表示另一个区间的开始和结束。</p>
+<p>如果两个区间 <strong>至少</strong> 共享一个点，则认为它们是重叠的。</p>
+<p>在 <code>intervals</code> 中插入区间 <code>newInterval</code>，使得 <code>intervals</code> 依然按照 <code>start<sub>i</sub></code> 升序排列，且区间之间不重叠（如果有必要的话，可以合并区间）。</p>
+<p>返回插入之后的 <code>intervals</code>。</p>
+<p><strong>注意</strong> 你不需要原地修改 <code>intervals</code>。你可以创建一个新数组然后返回它。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：intervals = [[1,3],[6,9]], newInterval = [2,5]</div>
+    <div class="example-output">输出：[[1,5],[6,9]]</div>
+    <div class="example-explain">新区间 [2,5] 与 [1,3] 重叠，合并为 [1,5]；[6,9] 在右侧无重叠，直接保留。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]], newInterval = [4,8]</div>
+    <div class="example-output">输出：[[1,2],[3,10],[12,16]]</div>
+    <div class="example-explain">新区间 [4,8] 与 [3,5]、[6,7]、[8,10] 均重叠（端点 8 与 [8,10] 相接也算重叠），合并为 [3,10]。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>intervals</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：已按起点升序、两两不重叠的区间列表<br><b>维护</b>：从左到右线性扫描，用指针 <code>i</code> 标记当前考察位置，不回溯<br><b>更新</b>：每轮根据与 <code>newInterval</code> 的位置关系，将区间归入「左侧无重叠 / 待合并 / 右侧无重叠」三类之一</td></tr>
+    <tr><td><code>newInterval</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：待插入的新区间 <code>[start, end]</code><br><b>维护</b>：在合并阶段不断扩展左右端点，直到与所有重叠区间融合成一块<br><b>更新</b>：<code>newInterval[0] = min(newInterval[0], intervals[i][0])</code>；<code>newInterval[1] = max(newInterval[1], intervals[i][1])</code></td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：插入并合并后的结果区间列表<br><b>维护</b>：始终按起点递增，且相邻区间互不相交<br><b>更新</b>：阶段一 append 左侧区间；阶段二结束后 append 合并后的 <code>newInterval</code>；阶段三 append 剩余右侧区间</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：扫描 <code>intervals</code> 的下标指针<br><b>维护</b>：单调递增，每个区间最多访问一次<br><b>更新</b>：每处理完一个区间 <code>i += 1</code>；三阶段共用同一指针，自然衔接</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：把 <code>newInterval</code> 插入 <code>intervals</code> 合适位置，再调用上一题「合并区间」的排序+扫描——可行但多了一次 O(n log n) 排序，而本题输入<strong>已经有序</strong>，浪费了结构信息。</p>
+<p class="thinking-step">2. 重复在哪里？合并区间需要排序是因为输入乱序；本题 <code>intervals</code> 已按起点升序且无重叠，插入只需<strong>一次线性扫描</strong>，按与 <code>newInterval</code> 的相对位置分三段处理。</p>
+<p class="thinking-step">3. 关键转化：三阶段扫描——(1) 所有终点 &lt; <code>newInterval[0]</code> 的区间直接入 <code>ans</code>；(2) 所有与 <code>newInterval</code> 重叠的区间不断扩展 <code>newInterval</code> 的左右端点；(3) 将合并后的 <code>newInterval</code> 入 <code>ans</code>，再把剩余区间依次 append。</p>
+<p class="thinking-step">4. 重叠判定：因 <code>intervals</code> 有序，阶段二条件为 <code>intervals[i][0] &lt;= newInterval[1]</code>（新区间右端点尚未被当前区间起点越过）。注意端点相接算重叠，与合并区间题一致。</p>
+<p class="thinking-step">5. 复杂度：每个区间访问一次，O(n) 时间、O(n) 输出空间——比「插入后重排+合并」更优。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>ans = []</code>，<code>i = 0</code>，<code>n = len(intervals)</code></p>
+<p class="code-step">2. <strong>阶段一</strong>：当 <code>i &lt; n</code> 且 <code>intervals[i][1] &lt; newInterval[0]</code>，将 <code>intervals[i]</code> 加入 <code>ans</code>，<code>i += 1</code></p>
+<p class="code-step">3. <strong>阶段二</strong>：当 <code>i &lt; n</code> 且 <code>intervals[i][0] &lt;= newInterval[1]</code>，合并：<code>newInterval[0] = min(...)</code>，<code>newInterval[1] = max(...)</code>，<code>i += 1</code></p>
+<p class="code-step">4. 将合并后的 <code>newInterval</code> 加入 <code>ans</code></p>
+<p class="code-step">5. <strong>阶段三</strong>：将 <code>intervals[i:]</code> 剩余区间依次加入 <code>ans</code></p>
+<p class="code-step">6. 返回 <code>ans</code>（若 <code>intervals</code> 为空，阶段一、二跳过，直接返回 <code>[newInterval]</code>）</p>""",
+        "code_python": """class Solution:
+    def insert(self, intervals: List[List[int]], newInterval: List[int]) -> List[List[int]]:
+        ans = []
+        i, n = 0, len(intervals)
+        # 阶段一：完全在 newInterval 左侧的区间
+        while i < n and intervals[i][1] < newInterval[0]:
+            ans.append(intervals[i])
+            i += 1
+        # 阶段二：与 newInterval 重叠，不断扩展
+        while i < n and intervals[i][0] <= newInterval[1]:
+            newInterval[0] = min(newInterval[0], intervals[i][0])
+            newInterval[1] = max(newInterval[1], intervals[i][1])
+            i += 1
+        ans.append(newInterval)
+        # 阶段三：剩余右侧区间
+        while i < n:
+            ans.append(intervals[i])
+            i += 1
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> insert(vector<vector<int>>& intervals, vector<int>& newInterval) {
+        vector<vector<int>> ans;
+        int i = 0, n = intervals.size();
+        // 阶段一：完全在 newInterval 左侧
+        while (i < n && intervals[i][1] < newInterval[0]) {
+            ans.push_back(intervals[i]);
+            i++;
+        }
+        // 阶段二：重叠合并
+        while (i < n && intervals[i][0] <= newInterval[1]) {
+            newInterval[0] = min(newInterval[0], intervals[i][0]);
+            newInterval[1] = max(newInterval[1], intervals[i][1]);
+            i++;
+        }
+        ans.push_back(newInterval);
+        // 阶段三：剩余右侧
+        while (i < n) {
+            ans.push_back(intervals[i]);
+            i++;
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(n)（输出数组）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 阶段一条件写成 <code>&lt;=</code>：应为 <code>intervals[i][1] &lt; newInterval[0]</code>，若用 <code>&lt;=</code> 会把端点相接的区间错误地留在阶段一而不合并（如 <code>[1,3]</code> 与 <code>[3,5]</code>）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 阶段二条件写成 <code>&lt;</code>：应为 <code>intervals[i][0] &lt;= newInterval[1]</code>，否则端点相接（如 <code>newInterval=[4,8]</code> 与 <code>[8,10]</code>）无法合并。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记在阶段二结束后 append <code>newInterval</code>：合并后的新区间必须显式入 <code>ans</code>，否则结果缺少插入块。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空列表</div>
+    <code>intervals = [], newInterval = [5,7] → [[5,7]]</code>（直接返回新区间）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：插入在最左侧</div>
+    <code>intervals = [[3,5],[12,15]], newInterval = [1,2] → [[1,2],[3,5],[12,15]]</code>（阶段一无元素，不合并，直接 append 后接原列表）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：插入在最右侧</div>
+    <code>intervals = [[1,2],[3,5]], newInterval = [6,8] → [[1,2],[3,5],[6,8]]</code>（阶段二无重叠，append 新区间后阶段三为空）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：与多个区间连续合并</div>
+    <code>intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]], newInterval = [4,8] → [[1,2],[3,10],[12,16]]</code>（阶段二循环多次扩展）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：新区间完全包含已有区间</div>
+    <code>intervals = [[3,5]], newInterval = [1,10] → [[1,10]]</code>（合并后新区间吞掉原区间）
+</div>""",
+    },
 }
 
 

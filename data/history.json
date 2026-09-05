@@ -467,5 +467,12 @@
     "title": "合并区间",
     "type": "区间合并",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-05",
+    "slug": "insert-interval",
+    "title": "插入区间",
+    "type": "区间合并",
+    "difficulty": "中等"
   }
 ]
