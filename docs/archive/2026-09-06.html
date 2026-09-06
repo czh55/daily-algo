@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最后一个单词的长度 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-09-06</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#58</span>
+                    <span class="problem-type tag-string-sim">字符串模拟</span>
+                    <span class="problem-difficulty difficulty-easy">简单</span>
+                </div>
+                <h1 class="problem-title">最后一个单词的长度</h1>
+                <a href="https://leetcode.cn/problems/length-of-last-word/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-09-06">
+                        <source src="../audio/2026-09-06.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-09-06', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-09-06', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-09-06', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-09-06', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你一个字符串 <code>s</code>，由若干单词组成，单词前后用一些空格字符隔开。返回字符串中 <strong>最后一个</strong> 单词的长度。</p>
+<p><strong>单词</strong> 是指仅由字母组成、不包含任何空格字符的最大子字符串。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "Hello World"</div>
+    <div class="example-output">输出：5</div>
+    <div class="example-explain">最后一个单词是「World」，长度为 5。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "   fly me   to   the moon  "</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain">末尾有多余空格，最后一个单词是「moon」，长度为 4。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "luffy is still joyboy"</div>
+    <div class="example-output">输出：6</div>
+    <div class="example-explain">最后一个单词是长度为 6 的「joyboy」。</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 最直接：按空格 <code>split</code> 成单词数组，取最后一个元素的长度——逻辑正确，但会构造中间数组，空间 O(n)，且从左到右处理了所有单词，而我们只关心最后一个。</p>
+<p class="thinking-step">2. 重复在哪里？从左扫描需要区分「当前在第几个单词」，末尾还有多余空格时还要额外判断「是否已越过最后一个单词」；其实答案只取决于<strong>从右往左第一个连续字母段</strong>的长度。</p>
+<p class="thinking-step">3. 关键转化：指针 <code>i</code> 从末尾出发，先跳过所有尾部空格，再统计连续非空格字符个数即为最后一个单词长度。</p>
+<p class="thinking-step">4. 手推 <code>"   fly me   to   the moon  "</code>：<code>i</code> 从末尾跳过两个空格，停在 <code>'n'</code>，依次数 <code>m,o,o,n</code> 得 <code>cnt=4</code>，再遇到空格停止。</p>
+<p class="thinking-step">5. 只需一次线性扫描，时间 O(n)、额外空间 O(1)；题面保证至少有一个单词，故跳过尾部空格后一定能数到至少一个字母。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：从字符串末尾向左扫描的下标指针<br><b>维护</b>：初始为 <code>len(s) - 1</code>，单调递减，每个字符最多访问一次<br><b>更新</b>：跳过尾部空格时 <code>i--</code>；统计单词长度时每遇到一个字母 <code>i--</code> 且 <code>cnt++</code></td></tr>
+    <tr><td><code>cnt</code></td><td>int</td><td><b>定义</b>：当前已扫描到的最后一个单词的字符个数<br><b>维护</b>：初始为 0；仅在「连续非空格段」内递增<br><b>更新</b>：当 <code>s[i] != ' '</code> 时 <code>cnt += 1</code>；遇到空格或 <code>i &lt; 0</code> 时停止，<code>cnt</code> 即为答案</td></tr>
+    <tr><td><code>s</code></td><td>str</td><td><b>定义</b>：输入字符串，由英文字母与空格组成，至少含一个单词<br><b>维护</b>：只读，通过 <code>s[i]</code> 判断当前字符是字母还是空格<br><b>更新</b>：不修改原串；尾部空格与单词间空格均通过 <code>i</code> 的左移跳过</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 令 <code>i = len(s) - 1</code>，<code>cnt = 0</code></p>
+<p class="code-step">2. <strong>跳过尾部空格</strong>：当 <code>i &gt;= 0</code> 且 <code>s[i] == ' '</code> 时，<code>i -= 1</code></p>
+<p class="code-step">3. <strong>统计最后一个单词</strong>：当 <code>i &gt;= 0</code> 且 <code>s[i] != ' '</code> 时，<code>cnt += 1</code>，<code>i -= 1</code></p>
+<p class="code-step">4. 返回 <code>cnt</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def lengthOfLastWord(self, s: str) -&gt; int:
+        i = len(s) - 1
+        # 跳过末尾空格
+        while i &gt;= 0 and s[i] == ' ':
+            i -= 1
+        cnt = 0
+        # 统计最后一个单词长度
+        while i &gt;= 0 and s[i] != ' ':
+            cnt += 1
+            i -= 1
+        return cnt</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    int lengthOfLastWord(string s) {
+        int i = (int)s.size() - 1;
+        // 跳过末尾空格
+        while (i &gt;= 0 &amp;&amp; s[i] == ' ') --i;
+        int cnt = 0;
+        // 统计最后一个单词长度
+        while (i &gt;= 0 &amp;&amp; s[i] != ' ') {
+            ++cnt;
+            --i;
+        }
+        return cnt;
+    }
+};
+// 时间 O(n)，空间 O(1)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(1)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记跳过<strong>尾部空格</strong>：若直接从末尾计数，会把末尾空格也算进长度，如 <code>"moon  "</code> 会错成 2 而非 4。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用 <code>split()</code> 时写成 <code>split(' ')</code>：连续空格会产生空串，最后一个「单词」可能是空字符串，导致长度为 0。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 从左扫描时 off-by-one：需要额外状态判断「是否已进入最后一个单词」，逻辑比从右扫描更绕，容易写错边界。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：标准两词</div>
+    <code>s = "Hello World" → 5</code>（最后一个单词 World）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：末尾多余空格</div>
+    <code>s = "   fly me   to   the moon  " → 4</code>（必须先跳过尾部空格再计数）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：仅一个单词</div>
+    <code>s = "a" → 1</code>；<code>s = "word" → 4</code>（跳过空格循环 0 次，直接进入计数）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单词间多空格</div>
+    <code>s = "a   b" → 1</code>（只数最后一个字母段 b）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：较长单词</div>
+    <code>s = "luffy is still joyboy" → 6</code>（joyboy 共 6 个字母）
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

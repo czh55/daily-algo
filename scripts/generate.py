@@ -7111,6 +7111,102 @@ public:
     <code>intervals = [[3,5]], newInterval = [1,10] → [[1,10]]</code>（合并后新区间吞掉原区间）
 </div>""",
     },
+    "length-of-last-word": {
+        "type": "字符串模拟",
+        "difficulty": "简单",
+        "frontend_id": "58",
+        "title": "最后一个单词的长度",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个字符串 <code>s</code>，由若干单词组成，单词前后用一些空格字符隔开。返回字符串中 <strong>最后一个</strong> 单词的长度。</p>
+<p><strong>单词</strong> 是指仅由字母组成、不包含任何空格字符的最大子字符串。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "Hello World"</div>
+    <div class="example-output">输出：5</div>
+    <div class="example-explain">最后一个单词是「World」，长度为 5。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "   fly me   to   the moon  "</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain">末尾有多余空格，最后一个单词是「moon」，长度为 4。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "luffy is still joyboy"</div>
+    <div class="example-output">输出：6</div>
+    <div class="example-explain">最后一个单词是长度为 6 的「joyboy」。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：从字符串末尾向左扫描的下标指针<br><b>维护</b>：初始为 <code>len(s) - 1</code>，单调递减，每个字符最多访问一次<br><b>更新</b>：跳过尾部空格时 <code>i--</code>；统计单词长度时每遇到一个字母 <code>i--</code> 且 <code>cnt++</code></td></tr>
+    <tr><td><code>cnt</code></td><td>int</td><td><b>定义</b>：当前已扫描到的最后一个单词的字符个数<br><b>维护</b>：初始为 0；仅在「连续非空格段」内递增<br><b>更新</b>：当 <code>s[i] != ' '</code> 时 <code>cnt += 1</code>；遇到空格或 <code>i &lt; 0</code> 时停止，<code>cnt</code> 即为答案</td></tr>
+    <tr><td><code>s</code></td><td>str</td><td><b>定义</b>：输入字符串，由英文字母与空格组成，至少含一个单词<br><b>维护</b>：只读，通过 <code>s[i]</code> 判断当前字符是字母还是空格<br><b>更新</b>：不修改原串；尾部空格与单词间空格均通过 <code>i</code> 的左移跳过</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：按空格 <code>split</code> 成单词数组，取最后一个元素的长度——逻辑正确，但会构造中间数组，空间 O(n)，且从左到右处理了所有单词，而我们只关心最后一个。</p>
+<p class="thinking-step">2. 重复在哪里？从左扫描需要区分「当前在第几个单词」，末尾还有多余空格时还要额外判断「是否已越过最后一个单词」；其实答案只取决于<strong>从右往左第一个连续字母段</strong>的长度。</p>
+<p class="thinking-step">3. 关键转化：指针 <code>i</code> 从末尾出发，先跳过所有尾部空格，再统计连续非空格字符个数即为最后一个单词长度。</p>
+<p class="thinking-step">4. 手推 <code>"   fly me   to   the moon  "</code>：<code>i</code> 从末尾跳过两个空格，停在 <code>'n'</code>，依次数 <code>m,o,o,n</code> 得 <code>cnt=4</code>，再遇到空格停止。</p>
+<p class="thinking-step">5. 只需一次线性扫描，时间 O(n)、额外空间 O(1)；题面保证至少有一个单词，故跳过尾部空格后一定能数到至少一个字母。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>i = len(s) - 1</code>，<code>cnt = 0</code></p>
+<p class="code-step">2. <strong>跳过尾部空格</strong>：当 <code>i &gt;= 0</code> 且 <code>s[i] == ' '</code> 时，<code>i -= 1</code></p>
+<p class="code-step">3. <strong>统计最后一个单词</strong>：当 <code>i &gt;= 0</code> 且 <code>s[i] != ' '</code> 时，<code>cnt += 1</code>，<code>i -= 1</code></p>
+<p class="code-step">4. 返回 <code>cnt</code></p>""",
+        "code_python": """class Solution:
+    def lengthOfLastWord(self, s: str) -> int:
+        i = len(s) - 1
+        # 跳过末尾空格
+        while i >= 0 and s[i] == ' ':
+            i -= 1
+        cnt = 0
+        # 统计最后一个单词长度
+        while i >= 0 and s[i] != ' ':
+            cnt += 1
+            i -= 1
+        return cnt""",
+        "code_cpp": """class Solution {
+public:
+    int lengthOfLastWord(string s) {
+        int i = (int)s.size() - 1;
+        // 跳过末尾空格
+        while (i >= 0 && s[i] == ' ') --i;
+        int cnt = 0;
+        // 统计最后一个单词长度
+        while (i >= 0 && s[i] != ' ') {
+            ++cnt;
+            --i;
+        }
+        return cnt;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记跳过<strong>尾部空格</strong>：若直接从末尾计数，会把末尾空格也算进长度，如 <code>"moon  "</code> 会错成 2 而非 4。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用 <code>split()</code> 时写成 <code>split(' ')</code>：连续空格会产生空串，最后一个「单词」可能是空字符串，导致长度为 0。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 从左扫描时 off-by-one：需要额外状态判断「是否已进入最后一个单词」，逻辑比从右扫描更绕，容易写错边界。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：标准两词</div>
+    <code>s = "Hello World" → 5</code>（最后一个单词 World）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：末尾多余空格</div>
+    <code>s = "   fly me   to   the moon  " → 4</code>（必须先跳过尾部空格再计数）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：仅一个单词</div>
+    <code>s = "a" → 1</code>；<code>s = "word" → 4</code>（跳过空格循环 0 次，直接进入计数）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单词间多空格</div>
+    <code>s = "a   b" → 1</code>（只数最后一个字母段 b）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：较长单词</div>
+    <code>s = "luffy is still joyboy" → 6</code>（joyboy 共 6 个字母）
+</div>""",
+    },
 }
 
 
