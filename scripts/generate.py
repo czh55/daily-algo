@@ -6804,6 +6804,141 @@ public:
 </div>""",
     },
 
+    "spiral-matrix-ii": {
+        "type": "矩阵操作",
+        "difficulty": "中等",
+        "frontend_id": "59",
+        "title": "螺旋矩阵 II",
+        "time_complexity": "O(n²)",
+        "space_complexity": "O(1)（不计输出矩阵）",
+        "description": """<p>给你一个正整数 <code>n</code>，生成一个包含 <code>1</code> 到 <code>n²</code> 所有元素，且元素按<strong>顺时针螺旋顺序</strong>排列的 <code>n × n</code> 正方形矩阵 <code>matrix</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 3</div>
+    <div class="example-output">输出：[[1,2,3],[8,9,4],[7,6,5]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 1</div>
+    <div class="example-output">输出：[[1]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>matrix</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：待填充的 <code>n×n</code> 结果矩阵，初始为 0<br><b>维护</b>：按顺时针螺旋顺序，从外圈到内圈逐格写入 <code>1..n²</code><br><b>更新</b>：每写入一格 <code>matrix[i][j] = num</code> 后 <code>num++</code>，直至 <code>num &gt; n²</code></td></tr>
+    <tr><td><code>num</code></td><td>int</td><td><b>定义</b>：下一个要写入矩阵的整数，初始为 1<br><b>维护</b>：沿当前圈的顶行→右列→底行→左列顺序递增赋值<br><b>更新</b>：每填一格 <code>num += 1</code>；当 <code>num &gt; n²</code> 时全部填完，可结束</td></tr>
+    <tr><td><code>top, bottom</code></td><td>int</td><td><b>定义</b>：当前待填充子矩阵的上、下边界行号（含端点）<br><b>维护</b>：每完成一圈螺旋后 <code>top++</code>、<code>bottom--</code>，向内收缩一行<br><b>更新</b>：初始 <code>top=0, bottom=n-1</code>；循环条件 <code>num ≤ n²</code> 自然终止</td></tr>
+    <tr><td><code>left, right</code></td><td>int</td><td><b>定义</b>：当前待填充子矩阵的左、右边界列号（含端点）<br><b>维护</b>：每完成一圈螺旋后 <code>left++</code>、<code>right--</code>，向内收缩一列<br><b>更新</b>：初始 <code>left=0, right=n-1</code>；与 <code>top/bottom</code> 共同框定当前「洋葱圈」</td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：沿当前边扫描时的行、列下标<br><b>维护</b>：四条边分别用 <code>for</code> 推进——上从左到右、右从上到下、下从右到左、左从下到上<br><b>更新</b>：每步写入 <code>matrix[i][j]</code> 并递增 <code>num</code>，与 #54 读螺旋顺序的遍历方向完全一致，只是从「读」变为「写」</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：模拟螺旋路径——从 <code>(0,0)</code> 出发，方向依次为右、下、左、上，遇边界或已填格就转向；需要 <code>visited[n][n]</code> 或判 0，时间 O(n²)，额外空间 O(n²)。</p>
+<p class="thinking-step">2. 重复在哪里？方向数组写法每步都要判「是否出界 / 是否已填」，<code>n=1</code> 或单行单列时转向逻辑容易写错，调试成本高。</p>
+<p class="thinking-step">3. 关键转化：本题与 #54「螺旋矩阵」互为逆过程——#54 按边界剥洋葱<strong>读</strong>元素，本题按同样顺序<strong>写</strong>数字；复用「四边 + 边界收缩」框架，把 <code>ans.append</code> 换成 <code>matrix[i][j]=num; num++</code> 即可。</p>
+<p class="thinking-step">4. 手推 n=3：第一圈写入 1,2,3 → 4 → 5 → 6 → 7,8；收缩后第二圈只剩中心，顶行写入 9，得到 [[1,2,3],[8,9,4],[7,6,5]]。</p>
+<p class="thinking-step">5. 边界条件：底行仅在 <code>top &lt; bottom</code> 时填充（避免与顶行重复）；左列仅在 <code>left &lt; right</code> 时填充（避免与右列重复）。<code>n=1</code> 时只走顶边一圈即结束。</p>""",
+        "code_steps": """<p class="code-step">1. 创建 <code>n×n</code> 的零矩阵，初始化 <code>num=1</code>，<code>top=0, bottom=n-1, left=0, right=n-1</code></p>
+<p class="code-step">2. 当 <code>num ≤ n²</code> 时循环（还有数字待填）</p>
+<p class="code-step">3. <strong>上边</strong>：<code>for j in range(left, right+1)</code>，依次 <code>matrix[top][j]=num; num+=1</code></p>
+<p class="code-step">4. <strong>右边</strong>：<code>for i in range(top+1, bottom+1)</code>，依次 <code>matrix[i][right]=num; num+=1</code></p>
+<p class="code-step">5. 若 <code>top &lt; bottom</code>，<strong>下边</strong>从 <code>right-1</code> 到 <code>left</code> 逆序填充 <code>matrix[bottom][j]</code></p>
+<p class="code-step">6. 若 <code>left &lt; right</code>，<strong>左边</strong>从 <code>bottom-1</code> 到 <code>top+1</code> 逆序填充 <code>matrix[i][left]</code></p>
+<p class="code-step">7. 收缩边界 <code>top++, bottom--, left++, right--</code>，进入下一圈</p>
+<p class="code-step">8. 返回 <code>matrix</code></p>""",
+        "code_python": """class Solution:
+    def generateMatrix(self, n: int) -> List[List[int]]:
+        matrix = [[0] * n for _ in range(n)]
+        num = 1
+        top, bottom = 0, n - 1
+        left, right = 0, n - 1
+
+        while num <= n * n:
+            # 上边：从左到右
+            for j in range(left, right + 1):
+                matrix[top][j] = num
+                num += 1
+            # 右边：从上到下（跳过顶角，已在上边填入）
+            for i in range(top + 1, bottom + 1):
+                matrix[i][right] = num
+                num += 1
+            # 下边：从右到左（仅当还有多行时）
+            if top < bottom:
+                for j in range(right - 1, left - 1, -1):
+                    matrix[bottom][j] = num
+                    num += 1
+            # 左边：从下到上（仅当还有多列时）
+            if left < right:
+                for i in range(bottom - 1, top, -1):
+                    matrix[i][left] = num
+                    num += 1
+            top += 1
+            bottom -= 1
+            left += 1
+            right -= 1
+
+        return matrix""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> generateMatrix(int n) {
+        vector<vector<int>> matrix(n, vector<int>(n, 0));
+        int num = 1;
+        int top = 0, bottom = n - 1, left = 0, right = n - 1;
+
+        while (num <= n * n) {
+            // 上边：从左到右
+            for (int j = left; j <= right; j++) {
+                matrix[top][j] = num++;
+            }
+            // 右边：从上到下
+            for (int i = top + 1; i <= bottom; i++) {
+                matrix[i][right] = num++;
+            }
+            // 下边：从右到左（仅当还有多行时）
+            if (top < bottom) {
+                for (int j = right - 1; j >= left; j--) {
+                    matrix[bottom][j] = num++;
+                }
+            }
+            // 左边：从下到上（仅当还有多列时）
+            if (left < right) {
+                for (int i = bottom - 1; i > top; i--) {
+                    matrix[i][left] = num++;
+                }
+            }
+            top++;
+            bottom--;
+            left++;
+            right--;
+        }
+        return matrix;
+    }
+};
+// 时间 O(n²)，空间 O(1)（不计输出）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记「单行/单列」判断：走完顶行和右列后，若 <code>top == bottom</code> 仍填底行，会把同一格重复写入；必须用 <code>if (top &lt; bottom)</code> 和 <code>if (left &lt; right)</code> 保护。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与 #54 混淆方向：#54 是读已有矩阵，本题是写新矩阵；遍历顺序相同，但 #54 用 <code>append</code>，本题用递增 <code>num</code> 赋值。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 右边循环应从 <code>top+1</code> 开始、左边从 <code>bottom-1</code> 到 <code>top+1</code>，否则四个角的数字会被重复写入或覆盖。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：n = 1</div>
+    <code>n = 1 → [[1]]</code>（只填顶边一格，循环一次即结束）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：n = 2</div>
+    <code>n = 2 → [[1,2],[4,3]]</code>（两圈：外圈 1,2,3,4 中缺中心？实际 2×2 一圈填完 4 个数）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：n = 3 奇数方阵</div>
+    <code>n = 3 → [[1,2,3],[8,9,4],[7,6,5]]</code>（中心 9 在第二圈单独填入）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：n = 4 偶数方阵</div>
+    <code>外圈填 1..12，内圈填 13..16</code>（无单独中心格，全靠边界收缩）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：n = 20 上限</div>
+    <code>共 400 格</code>，<code>O(n²)</code> 四边循环仍高效，无需担心超时
+</div>""",
+    },
+
     "jump-game": {
         "type": "贪心",
         "difficulty": "中等",

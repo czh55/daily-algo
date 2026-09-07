@@ -481,5 +481,12 @@
     "title": "最后一个单词的长度",
     "type": "字符串模拟",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-09-07",
+    "slug": "spiral-matrix-ii",
+    "title": "螺旋矩阵 II",
+    "type": "矩阵操作",
+    "difficulty": "中等"
   }
 ]
