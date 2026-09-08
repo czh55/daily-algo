@@ -488,5 +488,12 @@
     "title": "螺旋矩阵 II",
     "type": "矩阵操作",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-08",
+    "slug": "permutation-sequence",
+    "title": "排列序列",
+    "type": "数学模拟",
+    "difficulty": "困难"
   }
 ]

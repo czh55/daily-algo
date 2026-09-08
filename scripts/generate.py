@@ -7342,6 +7342,128 @@ public:
     <code>s = "luffy is still joyboy" → 6</code>（joyboy 共 6 个字母）
 </div>""",
     },
+
+    "permutation-sequence": {
+        "type": "数学模拟",
+        "difficulty": "困难",
+        "frontend_id": "60",
+        "title": "排列序列",
+        "time_complexity": "O(n²)",
+        "space_complexity": "O(n)",
+        "description": """<p>给出集合 <code>[1,2,3,...,n]</code>，其所有元素共有 <code>n!</code> 种排列。</p>
+<p>按大小顺序列出所有排列情况，并一一标记，当 <code>n = 3</code> 时，所有排列如下：</p>
+<ol>
+<li><code>"123"</code></li>
+<li><code>"132"</code></li>
+<li><code>"213"</code></li>
+<li><code>"231"</code></li>
+<li><code>"312"</code></li>
+<li><code>"321"</code></li>
+</ol>
+<p>给定 <code>n</code> 和 <code>k</code>，返回第 <code>k</code> 个排列。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 3, k = 3</div>
+    <div class="example-output">输出："213"</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 4, k = 9</div>
+    <div class="example-output">输出："2314"</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：n = 3, k = 1</div>
+    <div class="example-output">输出："123"</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>fact</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：阶乘表，<code>fact[i] = i!</code>，用于计算「固定前若干位后，剩余位有多少种排列」<br><b>维护</b>：预处理 <code>fact[0]=1</code>，递推 <code>fact[i]=fact[i-1]*i</code>，最大用到 <code>fact[n-1]</code><br><b>更新</b>：只读；第 <code>i</code> 位（0-indexed）每个候选数字对应 <code>fact[n-1-i]</code> 种后续排列</td></tr>
+    <tr><td><code>k</code></td><td>int</td><td><b>定义</b>：目标排列在字典序中的<strong>排名</strong>（题面从 1 开始）<br><b>维护</b>：进入循环前先 <code>k -= 1</code> 转为 0-indexed，便于整除取商<br><b>更新</b>：每确定一位数字后 <code>k %= fact[n-1-i]</code>，把问题缩小到该前缀下的第 <code>k</code> 个子排列</td></tr>
+    <tr><td><code>available</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：尚未使用的数字集合，初始为 <code>[1,2,...,n]</code><br><b>维护</b>：按字典序排列；每确定一位就从列表中<strong>删除</strong>已选数字<br><b>更新</b>：第 <code>i</code> 位选 <code>available[idx]</code> 后 <code>pop(idx)</code>，保证后续只在剩余数字中选</td></tr>
+    <tr><td><code>idx</code></td><td>int</td><td><b>定义</b>：当前位应选 <code>available</code> 中第几个数字（0-indexed）<br><b>维护</b>：<code>idx = k // fact[n-1-i]</code>——每块大小为 <code>fact[n-1-i]</code>，商即块编号<br><b>更新</b>：每轮重新计算；<code>n=3,k=3</code> 时第一位 <code>idx=1</code> 选数字 2</td></tr>
+    <tr><td><code>ans</code></td><td>str</td><td><b>定义</b>：已确定前缀的排列字符串<br><b>维护</b>：从左到右逐位追加 <code>available[idx]</code> 的字符<br><b>更新</b>：循环 <code>n</code> 次后 <code>len(ans)==n</code>，即为第 <code>k</code> 个排列</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：用 #46「全排列」回溯生成全部 <code>n!</code> 个排列，排序后取第 <code>k</code> 个——<code>n=9</code> 时 <code>9!≈36万</code> 尚可，但思路笨重且浪费。</p>
+<p class="thinking-step">2. 重复在哪里？我们不需要列出所有排列，只需<strong>定位第 k 个</strong>——字典序排列有固定规律：以 1 开头的有 <code>(n-1)!</code> 个，以 2 开头的也有 <code>(n-1)!</code> 个，以此类推。</p>
+<p class="thinking-step">3. 关键转化：逐位确定——第 1 位选第 <code>k // (n-1)!</code> 小的可用数字；更新 <code>k %= (n-1)!</code> 后在剩余数字中重复，直到填完 <code>n</code> 位。</p>
+<p class="thinking-step">4. 手推 <code>n=3, k=3</code>：<code>k</code> 转 0-index 得 2；第 1 位块大小 <code>2!=2</code>，<code>idx=2//2=1</code> 选 2；<code>k=0</code>，剩余 [1,3] 依次填得 "213"。</p>
+<p class="thinking-step">5. 与 #31「下一个排列」对比：#31 给定排列求下一个，本题给定排名求排列——本质都是<strong>字典序与阶乘分解</strong>的互逆操作。</p>""",
+        "code_steps": """<p class="code-step">1. 预处理阶乘表 <code>fact[0..n]</code>，其中 <code>fact[i]=i!</code></p>
+<p class="code-step">2. 初始化 <code>available = [1,2,...,n]</code>，<code>ans = ""</code>，令 <code>k -= 1</code>（转为 0-indexed）</p>
+<p class="code-step">3. 循环 <code>i</code> 从 0 到 <code>n-1</code>（逐位填第 <code>i</code> 个字符）</p>
+<p class="code-step">4. 计算块大小 <code>block = fact[n - 1 - i]</code></p>
+<p class="code-step">5. <code>idx = k // block</code>，将 <code>available[idx]</code> 追加到 <code>ans</code></p>
+<p class="code-step">6. 从 <code>available</code> 中删除已选数字，更新 <code>k = k % block</code></p>
+<p class="code-step">7. 循环结束后返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def getPermutation(self, n: int, k: int) -> str:
+        fact = [1] * (n + 1)
+        for i in range(2, n + 1):
+            fact[i] = fact[i - 1] * i
+
+        available = list(range(1, n + 1))
+        k -= 1  # 转为 0-indexed
+        ans = []
+
+        for i in range(n):
+            block = fact[n - 1 - i]
+            idx = k // block
+            ans.append(str(available[idx]))
+            available.pop(idx)
+            k %= block
+
+        return "".join(ans)""",
+        "code_cpp": """class Solution {
+public:
+    string getPermutation(int n, int k) {
+        vector<int> fact(n + 1, 1);
+        for (int i = 2; i <= n; i++) {
+            fact[i] = fact[i - 1] * i;
+        }
+
+        vector<int> available(n);
+        iota(available.begin(), available.end(), 1);
+        k--;  // 转为 0-indexed
+        string ans;
+
+        for (int i = 0; i < n; i++) {
+            int block = fact[n - 1 - i];
+            int idx = k / block;
+            ans += to_string(available[idx]);
+            available.erase(available.begin() + idx);
+            k %= block;
+        }
+        return ans;
+    }
+};
+// 时间 O(n²)（erase 为 O(n)），空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>k -= 1</code>：题面 <code>k</code> 从 1 开始，不转换会导致第 1 个排列算成第 2 个，如 <code>n=3,k=1</code> 会错成 "132" 而非 "123"。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 块大小用错下标：第 <code>i</code> 位（0-indexed）的块大小是 <code>fact[n-1-i]</code>，不是 <code>fact[n-i]</code> 或 <code>fact[i]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与 #46「全排列」混淆：#46 是枚举所有排列，本题是<strong>按排名直接构造</strong>一个排列，不需要回溯或 <code>used</code> 数组。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：第 1 个排列</div>
+    <code>n = 3, k = 1 → "123"</code>（字典序最小，<code>k-1=0</code> 每位 <code>idx=0</code>）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：最后一个排列</div>
+    <code>n = 3, k = 6 → "321"</code>（<code>3!=6</code>，<code>k-1=5</code> 每位选最大可用数字）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：中间排名</div>
+    <code>n = 4, k = 9 → "2314"</code>（验证阶乘分块：<code>8//6=1</code> 选 2，<code>2//2=1</code> 选 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：n = 1</div>
+    <code>n = 1, k = 1 → "1"</code>（仅一种排列，循环一次即结束）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：n = 9 上限</div>
+    <code>9! = 362880</code>，<code>fact[8]</code> 在 int 范围内；<code>O(n²)</code> 共 81 次操作，远低于时限
+</div>""",
+    },
 }
 
 
