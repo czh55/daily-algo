@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旋转链表 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-09-09</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#61</span>
+                    <span class="problem-type tag-linked-list">链表指针</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">旋转链表</h1>
+                <a href="https://leetcode.cn/problems/rotate-list/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-09-09">
+                        <source src="../audio/2026-09-09.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-09-09', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-09-09', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-09-09', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-09-09', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你一个链表的头节点 <code>head</code>，旋转链表，将链表每个节点向右移动 <code>k</code> 个位置。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,2,3,4,5], k = 2</div>
+    <div class="example-output">输出：[4,5,1,2,3]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [0,1,2], k = 4</div>
+    <div class="example-output">输出：[2,0,1]</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 最直接：把每个节点向右移 k 次，每次把尾节点摘下来插到头部——能过但 <code>O(n·k)</code>，<code>k</code> 可达 <code>2×10⁹</code> 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？右移 k 步等价于「最后 k 个节点整体搬到前面」；若链表长为 n，实际只需旋转 <code>k % n</code> 步，<code>k ≥ n</code> 时效果与 <code>k % n</code> 相同（示例 2：<code>k=4, n=3</code> → 有效 k=1）。</p>
+<p class="thinking-step">3. 关键观察：新头是原链表中<strong>正数第 n-k+1 个</strong>节点（0-indexed 为第 <code>n-k</code> 个）。例如 <code>[1,2,3,4,5], k=2</code>：新头为 4，即走 <code>5-2=3</code> 步。</p>
+<p class="thinking-step">4. 成环技巧：把 <code>tail.next = head</code> 连成环后，从 head 走 <code>n-k</code> 步即到新头；新尾是新头的前驱，断环 <code>new_tail.next = None</code> 即可。</p>
+<p class="thinking-step">5. 与 #19「删除倒数第 N 个」对比：#19 用双指针间距定位节点，本题用「先数长度、再成环一次定位」——都是 O(n) 一遍或两遍，核心都是<strong>利用长度信息避免重复遍历</strong>。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>n</code></td><td>int</td><td><b>定义</b>：链表节点总数<br><b>维护</b>：一遍遍历从 1 累加到尾节点，同时记录 <code>tail</code><br><b>更新</b>：遍历结束后只读；用于 <code>k %= n</code> 和定位新头位置 <code>n - k</code></td></tr>
+    <tr><td><code>tail</code></td><td>ListNode*</td><td><b>定义</b>：原链表的最后一个节点<br><b>维护</b>：遍历时 <code>cur</code> 每次前进，最终停在末尾<br><b>更新</b>：执行 <code>tail.next = head</code> 把链表首尾相接成环，为「一次走到新头」创造条件</td></tr>
+    <tr><td><code>k</code></td><td>int</td><td><b>定义</b>：题面给出的右移步数<br><b>维护</b>：先 <code>k %= n</code> 取有效旋转量；若 <code>k == 0</code> 则无需旋转<br><b>更新</b>：有效步数决定新头在环上距原头 <code>n - k</code> 步的位置</td></tr>
+    <tr><td><code>cur</code></td><td>ListNode*</td><td><b>定义</b>：环上行走指针，初始为 <code>head</code><br><b>维护</b>：从原头出发，在成环后向前走 <code>n - k</code> 步<br><b>更新</b>：停下时 <code>cur</code> 即为新头 <code>new_head</code>；其前驱 <code>new_tail</code> 负责断环</td></tr>
+    <tr><td><code>new_tail</code></td><td>ListNode*</td><td><b>定义</b>：旋转后新链表的尾节点，即新头的前驱<br><b>维护</b>：在环上走到 <code>new_head</code> 的前一个节点（走 <code>n - k - 1</code> 步）<br><b>更新</b>：执行 <code>new_tail.next = None</code> 断开环，返回 <code>new_head</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 若 <code>head</code> 为空或只有一个节点，直接返回</p>
+<p class="code-step">2. 一遍遍历：统计长度 <code>n</code>，记录尾节点 <code>tail</code></p>
+<p class="code-step">3. 有效旋转量：<code>k %= n</code>；若 <code>k == 0</code> 返回 <code>head</code></p>
+<p class="code-step">4. 成环：<code>tail.next = head</code></p>
+<p class="code-step">5. 从 <code>head</code> 走 <code>n - k - 1</code> 步得到 <code>new_tail</code></p>
+<p class="code-step">6. <code>new_head = new_tail.next</code>，断环 <code>new_tail.next = None</code></p>
+<p class="code-step">7. 返回 <code>new_head</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python"># Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def rotateRight(self, head: Optional[ListNode], k: int) -&gt; Optional[ListNode]:
+        if not head or not head.next:
+            return head
+
+        # 统计长度并找到尾节点
+        n = 1
+        tail = head
+        while tail.next:
+            tail = tail.next
+            n += 1
+
+        k %= n
+        if k == 0:
+            return head
+
+        # 成环，定位新尾（新头的前驱）
+        tail.next = head
+        cur = head
+        for _ in range(n - k - 1):
+            cur = cur.next
+
+        new_head = cur.next
+        cur.next = None  # 断环
+        return new_head</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    ListNode* rotateRight(ListNode* head, int k) {
+        if (!head || !head-&gt;next) return head;
+
+        int n = 1;
+        ListNode* tail = head;
+        while (tail-&gt;next) {
+            tail = tail-&gt;next;
+            n++;
+        }
+
+        k %= n;
+        if (k == 0) return head;
+
+        tail-&gt;next = head;  // 成环
+        ListNode* cur = head;
+        for (int i = 0; i &lt; n - k - 1; i++)
+            cur = cur-&gt;next;
+
+        ListNode* newHead = cur-&gt;next;
+        cur-&gt;next = nullptr;  // 断环
+        return newHead;
+    }
+};
+// 时间 O(n)，空间 O(1)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(1)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>k %= n</code>：<code>k</code> 可达 <code>2×10⁹</code>，且 <code>k ≥ n</code> 时旋转等价于 <code>k % n</code>（如 <code>k=4, n=3</code> 只需转 1 步）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>k == 0</code> 时未提前返回：有效旋转量为 0 时链表不变，无需成环断环，直接返回 <code>head</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 走路步数错误：新尾在环上距原头 <code>n - k - 1</code> 步（不是 <code>n - k</code> 或 <code>k</code>），走多了新头会错位。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：k 大于链表长度</div>
+    <code>head = [0,1,2], k = 4 → [2,0,1]</code>（<code>4 % 3 = 1</code>，等价于右移 1 步）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：k 为 0 或 n 的倍数</div>
+    <code>head = [1,2,3], k = 3 → [1,2,3]</code>（<code>3 % 3 = 0</code>，链表不变）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：空链表 / 单节点</div>
+    <code>head = [], k = 0 → []</code>；<code>head = [1], k = 5 → [1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：k = 1（最小有效旋转）</div>
+    <code>head = [1,2,3,4,5], k = 1 → [5,1,2,3,4]</code>（尾节点 5 移到头部）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：k = n - 1（几乎全部旋转）</div>
+    <code>head = [1,2,3,4,5], k = 4 → [2,3,4,5,1]</code>（仅首节点移到末尾）
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

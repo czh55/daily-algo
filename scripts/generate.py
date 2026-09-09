@@ -7464,6 +7464,128 @@ public:
     <code>9! = 362880</code>，<code>fact[8]</code> 在 int 范围内；<code>O(n²)</code> 共 81 次操作，远低于时限
 </div>""",
     },
+
+    "rotate-list": {
+        "type": "链表指针",
+        "difficulty": "中等",
+        "frontend_id": "61",
+        "title": "旋转链表",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个链表的头节点 <code>head</code>，旋转链表，将链表每个节点向右移动 <code>k</code> 个位置。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,2,3,4,5], k = 2</div>
+    <div class="example-output">输出：[4,5,1,2,3]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [0,1,2], k = 4</div>
+    <div class="example-output">输出：[2,0,1]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>n</code></td><td>int</td><td><b>定义</b>：链表节点总数<br><b>维护</b>：一遍遍历从 1 累加到尾节点，同时记录 <code>tail</code><br><b>更新</b>：遍历结束后只读；用于 <code>k %= n</code> 和定位新头位置 <code>n - k</code></td></tr>
+    <tr><td><code>tail</code></td><td>ListNode*</td><td><b>定义</b>：原链表的最后一个节点<br><b>维护</b>：遍历时 <code>cur</code> 每次前进，最终停在末尾<br><b>更新</b>：执行 <code>tail.next = head</code> 把链表首尾相接成环，为「一次走到新头」创造条件</td></tr>
+    <tr><td><code>k</code></td><td>int</td><td><b>定义</b>：题面给出的右移步数<br><b>维护</b>：先 <code>k %= n</code> 取有效旋转量；若 <code>k == 0</code> 则无需旋转<br><b>更新</b>：有效步数决定新头在环上距原头 <code>n - k</code> 步的位置</td></tr>
+    <tr><td><code>cur</code></td><td>ListNode*</td><td><b>定义</b>：环上行走指针，初始为 <code>head</code><br><b>维护</b>：从原头出发，在成环后向前走 <code>n - k</code> 步<br><b>更新</b>：停下时 <code>cur</code> 即为新头 <code>new_head</code>；其前驱 <code>new_tail</code> 负责断环</td></tr>
+    <tr><td><code>new_tail</code></td><td>ListNode*</td><td><b>定义</b>：旋转后新链表的尾节点，即新头的前驱<br><b>维护</b>：在环上走到 <code>new_head</code> 的前一个节点（走 <code>n - k - 1</code> 步）<br><b>更新</b>：执行 <code>new_tail.next = None</code> 断开环，返回 <code>new_head</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：把每个节点向右移 k 次，每次把尾节点摘下来插到头部——能过但 <code>O(n·k)</code>，<code>k</code> 可达 <code>2×10⁹</code> 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？右移 k 步等价于「最后 k 个节点整体搬到前面」；若链表长为 n，实际只需旋转 <code>k % n</code> 步，<code>k ≥ n</code> 时效果与 <code>k % n</code> 相同（示例 2：<code>k=4, n=3</code> → 有效 k=1）。</p>
+<p class="thinking-step">3. 关键观察：新头是原链表中<strong>正数第 n-k+1 个</strong>节点（0-indexed 为第 <code>n-k</code> 个）。例如 <code>[1,2,3,4,5], k=2</code>：新头为 4，即走 <code>5-2=3</code> 步。</p>
+<p class="thinking-step">4. 成环技巧：把 <code>tail.next = head</code> 连成环后，从 head 走 <code>n-k</code> 步即到新头；新尾是新头的前驱，断环 <code>new_tail.next = None</code> 即可。</p>
+<p class="thinking-step">5. 与 #19「删除倒数第 N 个」对比：#19 用双指针间距定位节点，本题用「先数长度、再成环一次定位」——都是 O(n) 一遍或两遍，核心都是<strong>利用长度信息避免重复遍历</strong>。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>head</code> 为空或只有一个节点，直接返回</p>
+<p class="code-step">2. 一遍遍历：统计长度 <code>n</code>，记录尾节点 <code>tail</code></p>
+<p class="code-step">3. 有效旋转量：<code>k %= n</code>；若 <code>k == 0</code> 返回 <code>head</code></p>
+<p class="code-step">4. 成环：<code>tail.next = head</code></p>
+<p class="code-step">5. 从 <code>head</code> 走 <code>n - k - 1</code> 步得到 <code>new_tail</code></p>
+<p class="code-step">6. <code>new_head = new_tail.next</code>，断环 <code>new_tail.next = None</code></p>
+<p class="code-step">7. 返回 <code>new_head</code></p>""",
+        "code_python": """# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def rotateRight(self, head: Optional[ListNode], k: int) -> Optional[ListNode]:
+        if not head or not head.next:
+            return head
+
+        # 统计长度并找到尾节点
+        n = 1
+        tail = head
+        while tail.next:
+            tail = tail.next
+            n += 1
+
+        k %= n
+        if k == 0:
+            return head
+
+        # 成环，定位新尾（新头的前驱）
+        tail.next = head
+        cur = head
+        for _ in range(n - k - 1):
+            cur = cur.next
+
+        new_head = cur.next
+        cur.next = None  # 断环
+        return new_head""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* rotateRight(ListNode* head, int k) {
+        if (!head || !head->next) return head;
+
+        int n = 1;
+        ListNode* tail = head;
+        while (tail->next) {
+            tail = tail->next;
+            n++;
+        }
+
+        k %= n;
+        if (k == 0) return head;
+
+        tail->next = head;  // 成环
+        ListNode* cur = head;
+        for (int i = 0; i < n - k - 1; i++)
+            cur = cur->next;
+
+        ListNode* newHead = cur->next;
+        cur->next = nullptr;  // 断环
+        return newHead;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>k %= n</code>：<code>k</code> 可达 <code>2×10⁹</code>，且 <code>k ≥ n</code> 时旋转等价于 <code>k % n</code>（如 <code>k=4, n=3</code> 只需转 1 步）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>k == 0</code> 时未提前返回：有效旋转量为 0 时链表不变，无需成环断环，直接返回 <code>head</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 走路步数错误：新尾在环上距原头 <code>n - k - 1</code> 步（不是 <code>n - k</code> 或 <code>k</code>），走多了新头会错位。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：k 大于链表长度</div>
+    <code>head = [0,1,2], k = 4 → [2,0,1]</code>（<code>4 % 3 = 1</code>，等价于右移 1 步）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：k 为 0 或 n 的倍数</div>
+    <code>head = [1,2,3], k = 3 → [1,2,3]</code>（<code>3 % 3 = 0</code>，链表不变）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：空链表 / 单节点</div>
+    <code>head = [], k = 0 → []</code>；<code>head = [1], k = 5 → [1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：k = 1（最小有效旋转）</div>
+    <code>head = [1,2,3,4,5], k = 1 → [5,1,2,3,4]</code>（尾节点 5 移到头部）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：k = n - 1（几乎全部旋转）</div>
+    <code>head = [1,2,3,4,5], k = 4 → [2,3,4,5,1]</code>（仅首节点移到末尾）
+</div>""",
+    },
 }
 
 
