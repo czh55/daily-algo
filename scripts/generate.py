@@ -7586,6 +7586,97 @@ public:
     <code>head = [1,2,3,4,5], k = 4 → [2,3,4,5,1]</code>（仅首节点移到末尾）
 </div>""",
     },
+
+    "unique-paths": {
+        "type": "二维DP",
+        "difficulty": "中等",
+        "frontend_id": "62",
+        "title": "不同路径",
+        "time_complexity": "O(m × n)",
+        "space_complexity": "O(n)（滚动数组）",
+        "description": """<p>一个机器人位于一个 <code>m x n</code> 网格的左上角（起始点标记为「Start」）。</p>
+<p>机器人每次只能向下或者向右移动一步。机器人试图达到网格的右下角（标记为「Finish」）。</p>
+<p>问总共有多少条不同的路径？</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：m = 3, n = 7</div>
+    <div class="example-output">输出：28</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：m = 3, n = 2</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain">从左上角开始，总共有 3 条路径可以到达右下角：右→下→下、下→下→右、下→右→下。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：m = 3, n = 3</div>
+    <div class="example-output">输出：6</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i][j]</code></td><td>int[][]</td><td><b>定义</b>：从左上角 <code>(0,0)</code> 走到格子 <code>(i,j)</code> 的不同路径条数<br><b>维护</b>：每个格子只能从上方或左方来，故 <code>dp[i][j] = dp[i-1][j] + dp[i][j-1]</code><br><b>更新</b>：按行优先双重循环，<code>i</code> 从 0 到 <code>m-1</code>、<code>j</code> 从 0 到 <code>n-1</code> 递增填表</td></tr>
+    <tr><td><code>dp[0][*]</code> / <code>dp[*][0]</code></td><td>int</td><td><b>定义</b>：第一行、第一列格子的路径数边界<br><b>维护</b>：起点到同行/同列任意格只能一直向右或一直向下，每条路径唯一<br><b>更新</b>：全部初始化为 1；若 <code>i==0</code> 或 <code>j==0</code> 时直接设 <code>dp[i][j]=1</code>，无需递推</td></tr>
+    <tr><td><code>prev</code> / <code>cur</code></td><td>int[]</td><td><b>定义</b>：空间优化时的一维滚动数组，<code>cur[j]</code> 表示当前行第 <code>j</code> 列的路径数<br><b>维护</b>：每算完一行，<code>prev = cur</code> 作为下一行的「上方」来源<br><b>更新</b>：<code>cur[j] = prev[j] + cur[j-1]</code>（上方 + 左方），首列 <code>cur[0]=1</code></td></tr>
+    <tr><td><code>m, n</code></td><td>int</td><td><b>定义</b>：网格的行数与列数<br><b>维护</b>：只读输入，决定 DP 表规模和最终答案位置 <code>dp[m-1][n-1]</code><br><b>更新</b>：范围 <code>1 ≤ m,n ≤ 100</code>，答案不超过 <code>2×10⁹</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：从起点 DFS/BFS 枚举所有「只向右或向下」的路径，每走到右下角计数 +1——正确但指数级，<code>m,n</code> 可达 100 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？到达 <code>(i,j)</code> 的路径，最后一步要么从 <code>(i-1,j)</code> 来，要么从 <code>(i,j-1)</code> 来；两种来源的路径条数互不相交，可以相加——典型的最优子结构。</p>
+<p class="thinking-step">3. 子问题定义：设 <code>dp[i][j]</code> = 到 <code>(i,j)</code> 的路径数。递推 <code>dp[i][j] = dp[i-1][j] + dp[i][j-1]</code>；边界第一行/列全为 1（只能一直走一个方向）。</p>
+<p class="thinking-step">4. 手推 <code>m=3, n=2</code>：DP 表为 [[1,1],[1,2],[1,3]]，右下角 <code>dp[2][1]=3</code>，与示例 2 一致。</p>
+<p class="thinking-step">5. 组合数学视角：总共走 <code>m+n-2</code> 步，其中 <code>m-1</code> 步向下，答案为 <code>C(m+n-2, m-1)</code>；但 DP 思路更通用（#63 有障碍物时组合公式不好直接套）。</p>""",
+        "code_steps": """<p class="code-step">1. 创建 <code>dp[m][n]</code>，第一行、第一列全部填 1</p>
+<p class="code-step">2. 双重循环 <code>i</code> 从 1 到 <code>m-1</code>，<code>j</code> 从 1 到 <code>n-1</code></p>
+<p class="code-step">3. <code>dp[i][j] = dp[i-1][j] + dp[i][j-1]</code></p>
+<p class="code-step">4. 返回 <code>dp[m-1][n-1]</code></p>
+<p class="code-step">5. （可选）空间优化：用长度 <code>n</code> 的一维数组滚动，每行更新 <code>cur[j] = prev[j] + cur[j-1]</code></p>""",
+        "code_python": """class Solution:
+    def uniquePaths(self, m: int, n: int) -> int:
+        # dp[j]：当前行第 j 列的路径数（滚动数组）
+        dp = [1] * n
+        for i in range(1, m):
+            for j in range(1, n):
+                dp[j] += dp[j - 1]  # 上方(prev[j]) + 左方(dp[j-1])
+        return dp[n - 1]""",
+        "code_cpp": """class Solution {
+public:
+    int uniquePaths(int m, int n) {
+        vector<int> dp(n, 1);  // 第一行全为 1
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                dp[j] += dp[j - 1];  // 上方 + 左方
+            }
+        }
+        return dp[n - 1];
+    }
+};
+// 时间 O(mn)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边界未初始化：第一行、第一列的路径数都是 1，不是 0；若漏初始化，<code>dp[1][1]</code> 会从 0 递推出错。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 递推方向错误：必须从左到右、从上到下填表，保证 <code>dp[i-1][j]</code> 和 <code>dp[i][j-1]</code> 已算好；倒序遍历会得到错误答案。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 滚动数组时覆盖顺序：内层 <code>j</code> 必须从 1 到 <code>n-1</code> 递增，<code>dp[j] += dp[j-1]</code> 中的 <code>dp[j-1]</code> 是本行左邻（已更新），<code>dp[j]</code> 更新前保存的是上一行同列值。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单行</div>
+    <code>m = 1, n = 5 → 1</code>（只能一直向右，唯一路径）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单列</div>
+    <code>m = 5, n = 1 → 1</code>（只能一直向下，唯一路径）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：最小网格</div>
+    <code>m = 1, n = 1 → 1</code>（起点即终点）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：正方形</div>
+    <code>m = 3, n = 3 → 6</code>（对称情形，验证递推正确性）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：扁长网格</div>
+    <code>m = 3, n = 7 → 28</code>（示例 1，路径数 = C(8,2) = 28）
+</div>""",
+    },
 }
 
 
