@@ -7677,6 +7677,106 @@ public:
     <code>m = 3, n = 7 → 28</code>（示例 1，路径数 = C(8,2) = 28）
 </div>""",
     },
+
+    "unique-paths-ii": {
+        "type": "二维DP",
+        "difficulty": "中等",
+        "frontend_id": "63",
+        "title": "不同路径 II",
+        "time_complexity": "O(m × n)",
+        "space_complexity": "O(n)（滚动数组）",
+        "description": """<p>给定一个 <code>m x n</code> 的整数数组 <code>grid</code>。一个机器人初始位于 <strong>左上角</strong>（即 <code>grid[0][0]</code>）。机器人尝试移动到 <strong>右下角</strong>（即 <code>grid[m - 1][n - 1]</code>）。机器人每次只能向下或者向右移动一步。</p>
+<p>网格中的障碍物和空位置分别用 <code>1</code> 和 <code>0</code> 来表示。机器人的移动路径中不能包含 <strong>任何</strong> 有障碍物的方格。</p>
+<p>返回机器人能够到达右下角的不同路径数量。</p>
+<p>测试用例保证答案小于等于 <code>2 × 10<sup>9</sup></code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：obstacleGrid = [[0,0,0],[0,1,0],[0,0,0]]</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">3×3 网格正中间有障碍物。从左上角到右下角共 2 条路径：右→右→下→下、下→下→右→右。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：obstacleGrid = [[0,1],[0,0]]</div>
+    <div class="example-output">输出：1</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i][j]</code></td><td>int[][]</td><td><b>定义</b>：从左上角 <code>(0,0)</code> 走到格子 <code>(i,j)</code> 且路径不经过障碍的不同路径条数<br><b>维护</b>：若 <code>grid[i][j]==1</code> 则 <code>dp[i][j]=0</code>；否则 <code>dp[i][j]=dp[i-1][j]+dp[i][j-1]</code><br><b>更新</b>：按行优先双重循环，<code>i</code> 从 0 到 <code>m-1</code>、<code>j</code> 从 0 到 <code>n-1</code> 递增填表</td></tr>
+    <tr><td><code>grid[i][j]</code></td><td>int</td><td><b>定义</b>：格子状态，<code>0</code> 可通行、<code>1</code> 为障碍物<br><b>维护</b>：只读输入，决定当前格子能否作为路径终点<br><b>更新</b>：遇到 <code>1</code> 时直接将 <code>dp[i][j]</code> 置 0，不再累加上方/左方</td></tr>
+    <tr><td><code>dp[0][*]</code> / <code>dp[*][0]</code></td><td>int</td><td><b>定义</b>：第一行、第一列格子的路径数边界<br><b>维护</b>：从起点沿同行/同列只能一直向右或向下；途中遇障碍则该格及之后同向格子均为 0<br><b>更新</b>：<code>dp[0][0]=1</code>（若起点非障碍）；<code>i==0</code> 时 <code>dp[0][j]=dp[0][j-1]</code>（遇障为 0）；<code>j==0</code> 时 <code>dp[i][0]=dp[i-1][0]</code></td></tr>
+    <tr><td><code>prev</code> / <code>cur</code></td><td>int[]</td><td><b>定义</b>：空间优化时的一维滚动数组，<code>cur[j]</code> 表示当前行第 <code>j</code> 列的路径数<br><b>维护</b>：每算完一行，<code>prev = cur</code> 作为下一行的「上方」来源<br><b>更新</b>：障碍格 <code>cur[j]=0</code>；否则 <code>cur[j] += prev[j]</code>（左方已在上一轮循环累加）</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：DFS/BFS 枚举所有「只向右或向下」的路径，跳过障碍格，每走到右下角计数 +1——正确但指数级，<code>m,n</code> 可达 100 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？到达 <code>(i,j)</code> 的路径，最后一步要么从 <code>(i-1,j)</code> 来，要么从 <code>(i,j-1)</code> 来——与 #62 相同的最优子结构；但障碍格不能站脚，到达它的路径数为 0。</p>
+<p class="thinking-step">3. 子问题定义：设 <code>dp[i][j]</code> = 到 <code>(i,j)</code> 的路径数。若 <code>grid[i][j]==1</code>，<code>dp[i][j]=0</code>；否则 <code>dp[i][j]=dp[i-1][j]+dp[i][j-1]</code>。边界：第一行/列只能从起点单向延伸，遇障碍则后续同向格子全为 0。</p>
+<p class="thinking-step">4. 手推示例 1：中间 <code>(1,1)</code> 为障碍 <code>dp[1][1]=0</code>，<code>dp[2][2]=dp[1][2]+dp[2][1]=1+1=2</code>，与输出一致。</p>
+<p class="thinking-step">5. 特判起点：若 <code>grid[0][0]==1</code>，机器人无法出发，直接返回 0——这是 #62 没有的额外边界。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>grid[0][0]==1</code>，返回 0</p>
+<p class="code-step">2. 创建 <code>dp[n]</code> 滚动数组，<code>dp[0]=1</code>，按行遍历 <code>i</code> 从 0 到 <code>m-1</code></p>
+<p class="code-step">3. 内层 <code>j</code> 从 0 到 <code>n-1</code>：若 <code>grid[i][j]==1</code>，设 <code>dp[j]=0</code>；否则若 <code>j>0</code>，<code>dp[j]+=dp[j-1]</code>（上方值已在 <code>dp[j]</code> 中）</p>
+<p class="code-step">4. 返回 <code>dp[n-1]</code></p>
+<p class="code-step">5. 二维写法：双重循环填 <code>dp[i][j]</code>，边界行/列单独处理「遇障截断」逻辑</p>""",
+        "code_python": """class Solution:
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        if obstacleGrid[0][0] == 1:
+            return 0
+        m, n = len(obstacleGrid), len(obstacleGrid[0])
+        dp = [0] * n
+        dp[0] = 1
+        for i in range(m):
+            for j in range(n):
+                if obstacleGrid[i][j] == 1:
+                    dp[j] = 0
+                elif j > 0:
+                    dp[j] += dp[j - 1]  # 上方(旧dp[j]) + 左方(dp[j-1])
+        return dp[n - 1]""",
+        "code_cpp": """class Solution {
+public:
+    int uniquePathsWithObstacles(vector<vector<int>>& obstacleGrid) {
+        if (obstacleGrid[0][0] == 1) return 0;
+        int m = obstacleGrid.size(), n = obstacleGrid[0].size();
+        vector<int> dp(n, 0);
+        dp[0] = 1;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (obstacleGrid[i][j] == 1) {
+                    dp[j] = 0;
+                } else if (j > 0) {
+                    dp[j] += dp[j - 1];  // 上方 + 左方
+                }
+            }
+        }
+        return dp[n - 1];
+    }
+};
+// 时间 O(mn)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 起点有障碍未特判：<code>grid[0][0]==1</code> 时应返回 0，否则 <code>dp[0][0]</code> 会被错误地当作 1。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 障碍格仍做递推：遇到 <code>grid[i][j]==1</code> 必须将 <code>dp[i][j]</code> 置 0，不能累加上方/左方，否则会把「经过障碍」的路径计入。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 第一行/列边界照抄 #62 全填 1：有障碍时同向后续格子应为 0（路径被截断），需用 <code>dp[0][j]=dp[0][j-1]</code> 而非固定 1。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：起点即障碍</div>
+    <code>[[1,0],[0,0]] → 0</code>（机器人无法出发）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：终点有障碍</div>
+    <code>[[0,0],[0,1]] → 0</code>（无法到达终点格）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：无障碍</div>
+    <code>[[0,0],[0,0]] → 2</code>（退化为 #62 的 2×2 网格）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单行遇障截断</div>
+    <code>[[0,1,0,0]] → 0</code>（障碍阻断向右延伸，无法到达最右格）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：仅一条通路</div>
+    <code>[[0,1],[0,0]] → 1</code>（示例 2，必须绕开第一行障碍）
+</div>""",
+    },
 }
 
 
