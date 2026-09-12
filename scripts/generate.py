@@ -7777,6 +7777,95 @@ public:
     <code>[[0,1],[0,0]] → 1</code>（示例 2，必须绕开第一行障碍）
 </div>""",
     },
+    "minimum-path-sum": {
+        "type": "二维DP",
+        "difficulty": "中等",
+        "frontend_id": "64",
+        "title": "最小路径和",
+        "time_complexity": "O(m × n)",
+        "space_complexity": "O(n)（滚动数组）",
+        "description": """<p>给定一个包含非负整数的 <code>m x n</code> 网格 <code>grid</code>，请找出一条从左上角到右下角的路径，使得路径上的数字总和为最小。</p>
+<p><strong>说明：</strong>每次只能向下或者向右移动一步。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：grid = [[1,3,1],[1,5,1],[4,2,1]]</div>
+    <div class="example-output">输出：7</div>
+    <div class="example-explain">路径 1→3→1→1→1 的总和最小，为 7。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：grid = [[1,2,3],[4,5,6]]</div>
+    <div class="example-output">输出：12</div>
+    <div class="example-explain">路径 1→2→3→6，总和 12。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i][j]</code></td><td>int[][]</td><td><b>定义</b>：从左上角 <code>(0,0)</code> 走到 <code>(i,j)</code> 且路径数字总和的最小值<br><b>维护</b>：<code>dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])</code>（第一行/列只有单一来源）<br><b>更新</b>：按行优先双重循环，<code>i</code> 从 0 到 <code>m-1</code>、<code>j</code> 从 0 到 <code>n-1</code> 递增填表</td></tr>
+    <tr><td><code>grid[i][j]</code></td><td>int</td><td><b>定义</b>：格子代价，路径经过该格时必须累加此值<br><b>维护</b>：只读输入，作为递推的「当前步花费」<br><b>更新</b>：每次计算 <code>dp[i][j]</code> 时加上 <code>grid[i][j]</code></td></tr>
+    <tr><td><code>dp[0][*]</code> / <code>dp[*][0]</code></td><td>int</td><td><b>定义</b>：第一行、第一列格子的最小路径和边界<br><b>维护</b>：从起点只能一直向右或向下延伸，无分支可选<br><b>更新</b>：<code>dp[0][0]=grid[0][0]</code>；<code>dp[0][j]=dp[0][j-1]+grid[0][j]</code>；<code>dp[i][0]=dp[i-1][0]+grid[i][0]</code></td></tr>
+    <tr><td><code>dp[j]</code>（滚动）</td><td>int[]</td><td><b>定义</b>：空间优化时的一维数组，<code>dp[j]</code> 表示当前行第 <code>j</code> 列的最小路径和<br><b>维护</b>：遍历每行时，<code>dp[j]</code> 先代表「来自上方」的值，再与左方取 min 并加当前格代价<br><b>更新</b>：<code>dp[j] = grid[i][j] + (j>0 ? min(dp[j], dp[j-1]) : dp[j])</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：DFS/BFS 枚举所有「只向右或向下」的路径，每条路径累加格子数字求和，取最小——正确但指数级，<code>m,n</code> 可达 200 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？到达 <code>(i,j)</code> 的最优路径，最后一步要么从 <code>(i-1,j)</code> 来，要么从 <code>(i,j-1)</code> 来——与 #62、#63 相同的网格 DP 结构，但子问题从「计数」变成「求最小和」。</p>
+<p class="thinking-step">3. 子问题定义：设 <code>dp[i][j]</code> = 到 <code>(i,j)</code> 的最小路径和。则 <code>dp[i][j] = grid[i][j] + min(dp[i-1][j], dp[i][j-1])</code>。边界：第一行只能从左边来，第一列只能从上边来。</p>
+<p class="thinking-step">4. 手推示例 1：<code>dp[2][2]=grid[2][2]+min(dp[1][2],dp[2][1])=1+min(7,7)=7</code>，与输出一致。</p>
+<p class="thinking-step">5. 可原地修改 <code>grid</code> 当 DP 表（题目允许修改输入时），或保留一维滚动数组将空间压到 <code>O(n)</code>。</p>""",
+        "code_steps": """<p class="code-step">1. 取 <code>m, n</code>；可直接在 <code>grid</code> 上原地 DP，或新建 <code>dp[n]</code> 滚动数组</p>
+<p class="code-step">2. 初始化第一行：从左到右累加 <code>grid[0][j] += grid[0][j-1]</code></p>
+<p class="code-step">3. 从第 2 行起遍历 <code>i</code>：先处理第一列 <code>grid[i][0] += grid[i-1][0]</code></p>
+<p class="code-step">4. 内层 <code>j</code> 从 1 到 <code>n-1</code>：<code>grid[i][j] += min(grid[i-1][j], grid[i][j-1])</code></p>
+<p class="code-step">5. 返回 <code>grid[m-1][n-1]</code>（或滚动数组的 <code>dp[n-1]</code>）</p>""",
+        "code_python": """class Solution:
+    def minPathSum(self, grid: List[List[int]]) -> int:
+        m, n = len(grid), len(grid[0])
+        for j in range(1, n):
+            grid[0][j] += grid[0][j - 1]
+        for i in range(1, m):
+            grid[i][0] += grid[i - 1][0]
+            for j in range(1, n):
+                grid[i][j] += min(grid[i - 1][j], grid[i][j - 1])
+        return grid[m - 1][n - 1]""",
+        "code_cpp": """class Solution {
+public:
+    int minPathSum(vector<vector<int>>& grid) {
+        int m = grid.size(), n = grid[0].size();
+        for (int j = 1; j < n; j++)
+            grid[0][j] += grid[0][j - 1];
+        for (int i = 1; i < m; i++) {
+            grid[i][0] += grid[i - 1][0];
+            for (int j = 1; j < n; j++)
+                grid[i][j] += min(grid[i - 1][j], grid[i][j - 1]);
+        }
+        return grid[m - 1][n - 1];
+    }
+};
+// 时间 O(mn)，空间 O(1)（原地修改 grid）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边界行/列未单独处理：第一行只能从左累加、第一列只能从上累加，不能直接套 <code>min(上,左)</code>，否则 <code>dp[0][0]</code> 会被错误地加两次。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与 #62 混淆用加法计数：本题是「最小和」，递推是 <code>grid[i][j] + min(...)</code>，不是路径条数相加。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 滚动数组方向搞反：按行滚动时 <code>dp[j]</code> 更新前保存的是「上方」，更新后与 <code>dp[j-1]</code>（左方）取 min，顺序不能颠倒。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：1×1 网格</div>
+    <code>[[5]] → 5</code>（起点即终点，无移动）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单行</div>
+    <code>[[1,2,3]] → 6</code>（只能一直向右）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单列</div>
+    <code>[[1],[2],[3]] → 6</code>（只能一直向下）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：全零代价</div>
+    <code>[[0,0],[0,0]] → 0</code>（任意路径和均为 0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：大数累加</div>
+    <code>[[200,200],[200,200]] → 800</code>（验证 int 范围内不溢出，本题代价 ≤200、路径 ≤400 格）
+</div>""",
+    },
 }
 
 
