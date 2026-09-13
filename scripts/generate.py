@@ -7866,6 +7866,140 @@ public:
     <code>[[200,200],[200,200]] → 800</code>（验证 int 范围内不溢出，本题代价 ≤200、路径 ≤400 格）
 </div>""",
     },
+
+    "valid-number": {
+        "type": "字符串模拟",
+        "difficulty": "困难",
+        "frontend_id": "65",
+        "title": "有效数字",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给定一个字符串 <code>s</code>，返回 <code>s</code> 是否是一个<strong>有效数字</strong>。</p>
+<p>例如，下面的都是有效数字：<code>"2"</code>、<code>"0089"</code>、<code>"-0.1"</code>、<code>"+3.14"</code>、<code>"4."</code>、<code>"-.9"</code>、<code>"2e10"</code>、<code>"-90E3"</code>、<code>"3e+7"</code>、<code>"+6e-1"</code>、<code>"53.5e93"</code>、<code>"-123.456e789"</code>，而接下来的不是：<code>"abc"</code>、<code>"1a"</code>、<code>"1e"</code>、<code>"e3"</code>、<code>"99e2.5"</code>、<code>"--6"</code>、<code>"-+3"</code>、<code>"95a54e53"</code>。</p>
+<p>有效数字可由「整数 + 可选指数」或「小数 + 可选指数」构成；指数部分为 <code>e</code>/<code>E</code> 后跟整数。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "0"</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "e"</div>
+    <div class="example-output">输出：false</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "."</div>
+    <div class="example-output">输出：false</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>state</code></td><td>int</td><td><b>定义</b>：当前解析所处的 DFA 状态（0 起始 → 1 已见符号 → 2 整数 → 3 仅小数点 → 4 小数 → 5 已见 e → 6 指数符号 → 7 指数整数）<br><b>维护</b>：每读一个字符，按转移表查下一状态；非法转移置 <code>-1</code><br><b>更新</b>：遍历完整个字符串后，<code>state ∈ {2, 4, 7}</code> 才为有效数字</td></tr>
+    <tr><td><code>TRANS[state]</code></td><td>dict</td><td><b>定义</b>：状态转移表，键为字符类别（<code>sign</code>/<code>digit</code>/<code>dot</code>/<code>e</code>）<br><b>维护</b>：编码题目规则——如状态 2 可读数字/小数点/指数，状态 3 只能接数字（<code>".5"</code> 型）<br><b>更新</b>：只读常量，不随输入改变；当前字符映射到类别后查表得下一 <code>state</code></td></tr>
+    <tr><td><code>c</code></td><td>char</td><td><b>定义</b>：当前扫描的字符<br><b>维护</b>：按 <code>+-</code>、<code>eE</code>、<code>.</code>、数字四类分发到转移键<br><b>更新</b>：从左到右逐字符处理，遇未知字符直接返回 false</td></tr>
+    <tr><td><code>VALID</code></td><td>set</td><td><b>定义</b>：合法终态集合 <code>{2, 4, 7}</code>（纯整数、小数、带指数）<br><b>维护</b>：状态 1/3/5/6 不能作为结尾——如 <code>"+"</code>、<code>"."</code>、<code>"1e"</code>、<code>"1e+"</code> 均非法<br><b>更新</b>：遍历结束后用 <code>state in VALID</code> 判定</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：用正则或语言内置解析（如 Python <code>float(s)</code>）——面试/竞赛通常不允许，且手写正则极易漏边界（如 <code>"4."</code>、<code>"-.9"</code>）。</p>
+<p class="thinking-step">2. 重复在哪里？每读一个字符，「当前已读前缀是否仍可能是有效数字的一部分」只取决于当前所处阶段（有没有符号、整数、小数点、指数等），与更早细节无关——适合有限状态机。</p>
+<p class="thinking-step">3. 拆成 8 个状态：起始(0) → 可选符号(1) → 整数(2) → 仅点(3) → 小数(4) → 指数 e(5) → 指数符号(6) → 指数整数(7)。合法结尾必须是 2、4 或 7（至少读过一位数字）。</p>
+<p class="thinking-step">4. 手推 <code>"-.9"</code>：'-' 0→1，'.' 1→3，'9' 3→4，结束 state=4 ∈ VALID → true。手推 <code>"1e"</code>：'1' 0→2，'e' 2→5，结束 state=5 ∉ VALID → false。</p>
+<p class="thinking-step">5. 也可用 <code>seen_digit / seen_dot / seen_e</code> 三旗标逐字符模拟，但状态机转移表更不易漏 case；本题困难主要体现在边界枚举完整。</p>""",
+        "code_steps": """<p class="code-step">1. 定义 8 行转移表 <code>TRANS</code> 与合法终态 <code>VALID = {2, 4, 7}</code></p>
+<p class="code-step">2. <code>state = 0</code>，从左到右遍历 <code>s</code> 每个字符 <code>c</code></p>
+<p class="code-step">3. 将 <code>c</code> 映射为类别：数字 → <code>digit</code>，<code>+-</code> → <code>sign</code>，<code>.</code> → <code>dot</code>，<code>eE</code> → <code>e</code>；未知字符返回 false</p>
+<p class="code-step">4. <code>state = TRANS[state].get(类别, -1)</code>，若为 -1 说明非法转移，返回 false</p>
+<p class="code-step">5. 遍历结束后返回 <code>state in VALID</code></p>""",
+        "code_python": """class Solution:
+    def isNumber(self, s: str) -> bool:
+        # 状态: 0起始 1符号 2整数 3仅点 4小数 5指数e 6指数符号 7指数整数
+        TRANS = [
+            {'sign': 1, 'dot': 3, 'digit': 2},           # 0
+            {'digit': 2, 'dot': 3},                       # 1
+            {'digit': 2, 'dot': 4, 'e': 5},               # 2
+            {'digit': 4},                                  # 3
+            {'digit': 4, 'e': 5},                         # 4
+            {'sign': 6, 'digit': 7},                       # 5
+            {'digit': 7},                                  # 6
+            {'digit': 7},                                  # 7
+        ]
+        VALID = {2, 4, 7}
+        state = 0
+        for c in s:
+            if c.isdigit():
+                kind = 'digit'
+            elif c in '+-':
+                kind = 'sign'
+            elif c == '.':
+                kind = 'dot'
+            elif c in 'eE':
+                kind = 'e'
+            else:
+                return False
+            state = TRANS[state].get(kind, -1)
+            if state == -1:
+                return False
+        return state in VALID""",
+        "code_cpp": """class Solution {
+public:
+    bool isNumber(string s) {
+        // 状态: 0起始 1符号 2整数 3仅点 4小数 5指数e 6指数符号 7指数整数
+        vector<unordered_map<string, int>> trans = {
+            {{"sign",1}, {"dot",3}, {"digit",2}},
+            {{"digit",2}, {"dot",3}},
+            {{"digit",2}, {"dot",4}, {"e",5}},
+            {{"digit",4}},
+            {{"digit",4}, {"e",5}},
+            {{"sign",6}, {"digit",7}},
+            {{"digit",7}},
+            {{"digit",7}},
+        };
+        unordered_set<int> valid = {2, 4, 7};
+        int state = 0;
+        for (char c : s) {
+            string kind;
+            if (isdigit(c)) kind = "digit";
+            else if (c == '+' || c == '-') kind = "sign";
+            else if (c == '.') kind = "dot";
+            else if (c == 'e' || c == 'E') kind = "e";
+            else return false;
+            auto it = trans[state].find(kind);
+            if (it == trans[state].end()) return false;
+            state = it->second;
+        }
+        return valid.count(state);
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 终态判断遗漏：仅 <code>"+"</code>、<code>"."</code>、<code>"1e"</code>、<code>"1e+"</code> 等中间态不能返回 true，必须 <code>state ∈ {2,4,7}</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 指数后不能再有小数点：<code>"99e2.5"</code> 在读到 <code>.</code> 时状态 7 无 <code>dot</code> 转移，应判 false。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 符号位置错误：<code>"--6"</code>、<code>"-+3"</code> 在状态 2 遇到第二个 <code>sign</code> 无转移；指数符号只能在状态 5 后出现，不能出现在整数中间。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单字符合法</div>
+    <code>"0" → true</code>（示例 1，纯整数）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：仅指数符号</div>
+    <code>"e" → false</code>（示例 2，无任何数字）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：仅小数点</div>
+    <code>"." → false</code>（示例 3，点后无数字）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：点前无整数</div>
+    <code>"-.9" → true</code>，<code>"+.5" → true</code>（符号后直接小数点再接数字）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：整数后单独小数点</div>
+    <code>"4." → true</code>（状态 2 遇 <code>.</code> 进入 4，无需小数部分）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 6：指数缺整数</div>
+    <code>"1e" → false</code>，<code>"1e+" → false</code>（指数部分必须有至少一位数字）
+</div>""",
+    },
 }
 
 

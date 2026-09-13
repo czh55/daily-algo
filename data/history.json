@@ -523,5 +523,12 @@
     "title": "最小路径和",
     "type": "二维DP",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-13",
+    "slug": "valid-number",
+    "title": "有效数字",
+    "type": "字符串模拟",
+    "difficulty": "困难"
   }
 ]
