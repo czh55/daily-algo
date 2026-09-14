@@ -530,5 +530,12 @@
     "title": "有效数字",
     "type": "字符串模拟",
     "difficulty": "困难"
+  },
+  {
+    "date": "2026-09-14",
+    "slug": "plus-one",
+    "title": "加一",
+    "type": "数学模拟",
+    "difficulty": "简单"
   }
 ]

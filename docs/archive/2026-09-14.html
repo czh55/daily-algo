@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加一 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-09-14</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#66</span>
+                    <span class="problem-type tag-math-sim">数学模拟</span>
+                    <span class="problem-difficulty difficulty-easy">简单</span>
+                </div>
+                <h1 class="problem-title">加一</h1>
+                <a href="https://leetcode.cn/problems/plus-one/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-09-14">
+                        <source src="../audio/2026-09-14.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-09-14', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-09-14', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-09-14', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-09-14', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给定一个表示<strong>大整数</strong>的整数数组 <code>digits</code>，其中 <code>digits[i]</code> 是整数的第 <code>i</code> 位数字。这些数字按从左到右、从最高位到最低位排列。这个大整数不包含任何前导 <code>0</code>。</p>
+<p>将大整数加 1，并返回结果的数字数组。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：digits = [1,2,3]</div>
+    <div class="example-output">输出：[1,2,4]</div>
+    <p>解释：123 + 1 = 124。</p>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：digits = [4,3,2,1]</div>
+    <div class="example-output">输出：[4,3,2,2]</div>
+    <p>解释：4321 + 1 = 4322。</p>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：digits = [9]</div>
+    <div class="example-output">输出：[1,0]</div>
+    <p>解释：9 + 1 = 10，位数变长，首位为 1。</p>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 最直接：把数组拼成字符串或整数，加 1 再拆回数组——但长度可达 100，Python 大整数虽可行，C++ 会溢出，且没体现「按位进位」的模拟过程。</p>
+<p class="thinking-step">2. 重复在哪里？人类做竖式加法也是从<strong>最低位</strong>开始，只有当前位是 9 且还要进位时才继续向左；一旦某位加完不进位，左边所有位都不变。</p>
+<p class="thinking-step">3. 设 <code>carry=1</code>，从 <code>i=n-1</code> 往左：<code>sum = digits[i] + carry</code>，<code>digits[i] = sum % 10</code>，<code>carry = sum // 10</code>；若 <code>carry==0</code> 直接返回 <code>digits</code>。</p>
+<p class="thinking-step">4. 若扫完全部位仍有 <code>carry==1</code>（如 <code>[9,9,9]+1</code>），位数加一，结果是 <code>[1,0,0,0]</code>，不能只在原数组上改——需要多一位。</p>
+<p class="thinking-step">5. 平均情况只需改尾部少数位（如 <code>[1,2,3]</code> 只改最后一位），最坏 O(n) 当全是 9。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>carry</code></td><td>int</td><td><b>定义</b>：当前位加完后需要向高位传递的进位，本题初始为 1（表示「加一」）<br><b>维护</b>：某位处理完后，若该位和为 10 则 <code>carry=1</code> 否则 <code>carry=0</code><br><b>更新</b>：从最低位向高位扫描，每处理一位用新 <code>carry</code> 进入下一位；<code>carry==0</code> 时可提前结束</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前处理的数位下标，从 <code>len(digits)-1</code> 向 0 递减<br><b>维护</b>：只访问尚未确定最终值的尾部数字<br><b>更新</b>：每轮 <code>i -= 1</code>，直到进位消尽或遍历完最高位</td></tr>
+    <tr><td><code>digits[i]</code></td><td>int</td><td><b>定义</b>：大整数从高位到低位存储的每一位（0–9）<br><b>维护</b>：在 <code>carry&gt;0</code> 的区间内原地改写为 <code>(digits[i]+carry) % 10</code><br><b>更新</b>：若循环结束仍有 <code>carry==1</code>（全 9 进位），需新建长度为 <code>n+1</code> 的数组，首元素为 1</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. <code>n = len(digits)</code>，<code>carry = 1</code></p>
+<p class="code-step">2. <code>for i</code> 从 <code>n-1</code>  downto <code>0</code>：<code>carry += digits[i]</code>（或 <code>sum = digits[i]+carry</code>），<code>digits[i] = carry % 10</code>，<code>carry //= 10</code></p>
+<p class="code-step">3. 若 <code>carry == 0</code>，返回当前 <code>digits</code>（左侧未动，已正确）</p>
+<p class="code-step">4. 循环结束仍 <code>carry == 1</code>：返回 <code>[1] + [0]*n</code>（或 C++ 中 <code>vector</code> 前插 1）</p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def plusOne(self, digits: List[int]) -&gt; List[int]:
+        carry = 1  # 表示要加的这一「1」
+        for i in range(len(digits) - 1, -1, -1):
+            carry += digits[i]
+            digits[i] = carry % 10
+            carry //= 10
+            if carry == 0:
+                return digits
+        # 全是 9：999... + 1 → 1000...
+        return [1] + [0] * len(digits)</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    vector&lt;int&gt; plusOne(vector&lt;int&gt;&amp; digits) {
+        int carry = 1;
+        for (int i = (int)digits.size() - 1; i &gt;= 0; --i) {
+            carry += digits[i];
+            digits[i] = carry % 10;
+            carry /= 10;
+            if (carry == 0) return digits;
+        }
+        // 全是 9，最高位多一位
+        vector&lt;int&gt; ans(digits.size() + 1, 0);
+        ans[0] = 1;
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(1) 原地 / O(n) 全 9</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(1)（原地修改）/ O(n)（全 9 需新数组）</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记全 9 进位：<code>[9] → [1,0]</code>、<code>[9,9] → [1,0,0]</code>，原数组长度不够，必须新建或前插 1。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 从高位往低位加会漏进位传播；必须<strong>从最低位（数组末尾）</strong>开始。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>carry==0</code> 后仍继续改左边数字会破坏正确结果（如 <code>[1,2,3]</code> 改完末位后应立刻返回）。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：无进位传播</div>
+    <code>[1,2,3] → [1,2,4]</code>（仅末位变化，循环一次后 carry=0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：连续进位</div>
+    <code>[1,9,9] → [2,0,0]</code>（末两位变 0，最高位加 1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单元素进位变长</div>
+    <code>[9] → [1,0]</code>（示例 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：全 9</div>
+    <code>[9,9,9,9] → [1,0,0,0,0]</code>（长度 +1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：单元素无进位</div>
+    <code>[8] → [9]</code>（一位数加一）
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

@@ -8000,6 +8000,103 @@ public:
     <code>"1e" → false</code>，<code>"1e+" → false</code>（指数部分必须有至少一位数字）
 </div>""",
     },
+
+    "plus-one": {
+        "type": "数学模拟",
+        "difficulty": "简单",
+        "frontend_id": "66",
+        "title": "加一",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)（原地修改）/ O(n)（全 9 需新数组）",
+        "description": """<p>给定一个表示<strong>大整数</strong>的整数数组 <code>digits</code>，其中 <code>digits[i]</code> 是整数的第 <code>i</code> 位数字。这些数字按从左到右、从最高位到最低位排列。这个大整数不包含任何前导 <code>0</code>。</p>
+<p>将大整数加 1，并返回结果的数字数组。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：digits = [1,2,3]</div>
+    <div class="example-output">输出：[1,2,4]</div>
+    <p>解释：123 + 1 = 124。</p>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：digits = [4,3,2,1]</div>
+    <div class="example-output">输出：[4,3,2,2]</div>
+    <p>解释：4321 + 1 = 4322。</p>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：digits = [9]</div>
+    <div class="example-output">输出：[1,0]</div>
+    <p>解释：9 + 1 = 10，位数变长，首位为 1。</p>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>carry</code></td><td>int</td><td><b>定义</b>：当前位加完后需要向高位传递的进位，本题初始为 1（表示「加一」）<br><b>维护</b>：某位处理完后，若该位和为 10 则 <code>carry=1</code> 否则 <code>carry=0</code><br><b>更新</b>：从最低位向高位扫描，每处理一位用新 <code>carry</code> 进入下一位；<code>carry==0</code> 时可提前结束</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前处理的数位下标，从 <code>len(digits)-1</code> 向 0 递减<br><b>维护</b>：只访问尚未确定最终值的尾部数字<br><b>更新</b>：每轮 <code>i -= 1</code>，直到进位消尽或遍历完最高位</td></tr>
+    <tr><td><code>digits[i]</code></td><td>int</td><td><b>定义</b>：大整数从高位到低位存储的每一位（0–9）<br><b>维护</b>：在 <code>carry&gt;0</code> 的区间内原地改写为 <code>(digits[i]+carry) % 10</code><br><b>更新</b>：若循环结束仍有 <code>carry==1</code>（全 9 进位），需新建长度为 <code>n+1</code> 的数组，首元素为 1</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：把数组拼成字符串或整数，加 1 再拆回数组——但长度可达 100，Python 大整数虽可行，C++ 会溢出，且没体现「按位进位」的模拟过程。</p>
+<p class="thinking-step">2. 重复在哪里？人类做竖式加法也是从<strong>最低位</strong>开始，只有当前位是 9 且还要进位时才继续向左；一旦某位加完不进位，左边所有位都不变。</p>
+<p class="thinking-step">3. 设 <code>carry=1</code>，从 <code>i=n-1</code> 往左：<code>sum = digits[i] + carry</code>，<code>digits[i] = sum % 10</code>，<code>carry = sum // 10</code>；若 <code>carry==0</code> 直接返回 <code>digits</code>。</p>
+<p class="thinking-step">4. 若扫完全部位仍有 <code>carry==1</code>（如 <code>[9,9,9]+1</code>），位数加一，结果是 <code>[1,0,0,0]</code>，不能只在原数组上改——需要多一位。</p>
+<p class="thinking-step">5. 平均情况只需改尾部少数位（如 <code>[1,2,3]</code> 只改最后一位），最坏 O(n) 当全是 9。</p>""",
+        "code_steps": """<p class="code-step">1. <code>n = len(digits)</code>，<code>carry = 1</code></p>
+<p class="code-step">2. <code>for i</code> 从 <code>n-1</code>  downto <code>0</code>：<code>carry += digits[i]</code>（或 <code>sum = digits[i]+carry</code>），<code>digits[i] = carry % 10</code>，<code>carry //= 10</code></p>
+<p class="code-step">3. 若 <code>carry == 0</code>，返回当前 <code>digits</code>（左侧未动，已正确）</p>
+<p class="code-step">4. 循环结束仍 <code>carry == 1</code>：返回 <code>[1] + [0]*n</code>（或 C++ 中 <code>vector</code> 前插 1）</p>""",
+        "code_python": """class Solution:
+    def plusOne(self, digits: List[int]) -> List[int]:
+        carry = 1  # 表示要加的这一「1」
+        for i in range(len(digits) - 1, -1, -1):
+            carry += digits[i]
+            digits[i] = carry % 10
+            carry //= 10
+            if carry == 0:
+                return digits
+        # 全是 9：999... + 1 → 1000...
+        return [1] + [0] * len(digits)""",
+        "code_cpp": """class Solution {
+public:
+    vector<int> plusOne(vector<int>& digits) {
+        int carry = 1;
+        for (int i = (int)digits.size() - 1; i >= 0; --i) {
+            carry += digits[i];
+            digits[i] = carry % 10;
+            carry /= 10;
+            if (carry == 0) return digits;
+        }
+        // 全是 9，最高位多一位
+        vector<int> ans(digits.size() + 1, 0);
+        ans[0] = 1;
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(1) 原地 / O(n) 全 9""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记全 9 进位：<code>[9] → [1,0]</code>、<code>[9,9] → [1,0,0]</code>，原数组长度不够，必须新建或前插 1。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 从高位往低位加会漏进位传播；必须<strong>从最低位（数组末尾）</strong>开始。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>carry==0</code> 后仍继续改左边数字会破坏正确结果（如 <code>[1,2,3]</code> 改完末位后应立刻返回）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：无进位传播</div>
+    <code>[1,2,3] → [1,2,4]</code>（仅末位变化，循环一次后 carry=0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：连续进位</div>
+    <code>[1,9,9] → [2,0,0]</code>（末两位变 0，最高位加 1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单元素进位变长</div>
+    <code>[9] → [1,0]</code>（示例 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：全 9</div>
+    <code>[9,9,9,9] → [1,0,0,0,0]</code>（长度 +1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：单元素无进位</div>
+    <code>[8] → [9]</code>（一位数加一）
+</div>""",
+    },
 }
 
 
