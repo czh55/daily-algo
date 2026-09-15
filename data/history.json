@@ -537,5 +537,12 @@
     "title": "加一",
     "type": "数学模拟",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-09-15",
+    "slug": "add-binary",
+    "title": "二进制求和",
+    "type": "数学模拟",
+    "difficulty": "简单"
   }
 ]

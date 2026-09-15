@@ -8097,6 +8097,101 @@ public:
     <code>[8] → [9]</code>（一位数加一）
 </div>""",
     },
+
+    "add-binary": {
+        "type": "数学模拟",
+        "difficulty": "简单",
+        "frontend_id": "67",
+        "title": "二进制求和",
+        "time_complexity": "O(max(m,n))",
+        "space_complexity": "O(max(m,n))（结果字符串）",
+        "description": """<p>给你两个二进制字符串 <code>a</code> 和 <code>b</code>，以二进制字符串的形式返回它们的和。</p>
+<p>字符串仅由 <code>'0'</code> 或 <code>'1'</code> 组成；若不是 <code>\"0\"</code> 则不含前导零。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：a = \"11\", b = \"1\"</div>
+    <div class="example-output">输出：\"100\"</div>
+    <p>解释：3 + 1 = 4，二进制为 100。</p>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：a = \"1010\", b = \"1011\"</div>
+    <div class="example-output">输出：\"10101\"</div>
+    <p>解释：10 + 11 = 21，二进制为 10101。</p>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>carry</code></td><td>int</td><td><b>定义</b>：当前列相加后向更高位传递的进位，取值 0 或 1，初始为 0<br><b>维护</b>：每位处理完后，若 <code>bit_a + bit_b + carry &gt;= 2</code> 则 <code>carry=1</code> 否则 <code>carry=0</code><br><b>更新</b>：从两串末尾同步向左扫描，用新 <code>carry</code> 进入下一列；两串都扫完后若 <code>carry==1</code> 再补一位</td></tr>
+    <tr><td><code>i</code> / <code>j</code></td><td>int</td><td><b>定义</b>：<code>a</code>、<code>b</code> 当前正在处理的字符下标，分别从 <code>len(a)-1</code>、<code>len(b)-1</code> 开始<br><b>维护</b>：某串已扫完时，该侧当前位视为 0（相当于前导补零对齐）<br><b>更新</b>：每轮若 <code>i&gt;=0</code> 则取 <code>a[i]</code> 并 <code>i-=1</code>，同理 <code>j</code></td></tr>
+    <tr><td><code>ans</code>（或逆序收集）</td><td>str / list</td><td><b>定义</b>：从低位到高位依次得到的和位字符<br><b>维护</b>：每列的和位为 <code>(bit_a + bit_b + carry) % 2</code>，追加到结果尾部（或先 push 再最后反转）<br><b>更新</b>：循环结束后若仍有进位，再追加 <code>'1'</code>，最后反转得到最高位在左的字符串</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：把两个二进制串转成整数相加再转回二进制——Python 可用 <code>bin(int(a,2)+int(b,2))</code>，但长度可达 10<sup>4</sup>，且面试要的是「模拟竖式」过程。</p>
+<p class="thinking-step">2. 重复在哪里？和十进制加法一样：从<strong>最低位（字符串末尾）</strong>对齐，每位只有 0/1，和为 0/1/2/3，当前位写下 <code>sum % 2</code>，进位 <code>sum // 2</code>。</p>
+<p class="thinking-step">3. 两串长度不同（如 <code>\"11\" + \"1\"</code>）时，较短串左侧视为补 0，只需在指针走出边界后把该侧位当作 0。</p>
+<p class="thinking-step">4. 两串都扫完若 <code>carry==1</code>（如 <code>\"1\"+\"1\"→\"10\"</code>），结果比较长串多一位，不能忘记最高位的 1。</p>
+<p class="thinking-step">5. 从低位往高位收集字符，最后反转（或头插）才符合「无前导零」的输出习惯。</p>""",
+        "code_steps": """<p class="code-step">1. <code>carry = 0</code>，<code>i = len(a)-1</code>，<code>j = len(b)-1</code>，用列表 <code>bits</code> 收集结果位</p>
+<p class="code-step">2. 当 <code>i &gt;= 0</code> 或 <code>j &gt;= 0</code> 或 <code>carry</code>：取当前位 <code>da = int(a[i]) if i&gt;=0 else 0</code>，<code>db</code> 同理；<code>sum = da + db + carry</code></p>
+<p class="code-step">3. <code>bits.append(str(sum % 2))</code>，<code>carry = sum // 2</code>，<code>i--</code>，<code>j--</code></p>
+<p class="code-step">4. 将 <code>bits</code> 反转拼接为字符串返回（或循环中用 <code>result = str(sum%2) + result</code> 正序构建）</p>""",
+        "code_python": """class Solution:
+    def addBinary(self, a: str, b: str) -> str:
+        i, j = len(a) - 1, len(b) - 1
+        carry = 0
+        bits = []
+        while i >= 0 or j >= 0 or carry:
+            da = int(a[i]) if i >= 0 else 0
+            db = int(b[j]) if j >= 0 else 0
+            s = da + db + carry
+            bits.append(str(s % 2))
+            carry = s // 2
+            i -= 1
+            j -= 1
+        return "".join(reversed(bits))""",
+        "code_cpp": """class Solution {
+public:
+    string addBinary(string a, string b) {
+        int i = (int)a.size() - 1, j = (int)b.size() - 1;
+        int carry = 0;
+        string ans;
+        while (i >= 0 || j >= 0 || carry) {
+            int da = i >= 0 ? a[i--] - '0' : 0;
+            int db = j >= 0 ? b[j--] - '0' : 0;
+            int s = da + db + carry;
+            ans.push_back(char('0' + s % 2));
+            carry = s / 2;
+        }
+        reverse(ans.begin(), ans.end());
+        return ans;
+    }
+};
+// 时间 O(max(m,n))，空间 O(max(m,n))""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 从字符串<strong>头部</strong>开始加：低位在末尾，必须从 <code>len-1</code> 向 0 扫描。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记最终进位：<code>\"1\"+\"1\"</code> 循环结束后 <code>carry==1</code>，需再写入一位 <code>'1'</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> C++ 中 <code>char + char</code> 是 ASCII 相加，应写成 <code>a[i]-'0'</code> 得到 0/1。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：长度不等</div>
+    <code>\"11\" + \"1\" → \"100\"</code>（较短串左侧补 0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：等长全进位</div>
+    <code>\"1111\" + \"1\" → \"10000\"</code>（结果位数 +1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单比特</div>
+    <code>\"0\" + \"0\" → \"0\"</code>，<code>\"1\" + \"0\" → \"1\"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：较长串</div>
+    <code>\"1010\" + \"1011\" → \"10101\"</code>（示例 2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：仅进位传播</div>
+    <code>\"111\" + \"111\" → \"1110\"</code>（每位都产生进位）
+</div>""",
+    },
 }
 
 
