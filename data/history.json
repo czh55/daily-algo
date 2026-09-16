@@ -544,5 +544,12 @@
     "title": "二进制求和",
     "type": "数学模拟",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-09-16",
+    "slug": "text-justification",
+    "title": "文本左右对齐",
+    "type": "贪心",
+    "difficulty": "困难"
   }
 ]

@@ -8192,6 +8192,144 @@ public:
     <code>\"111\" + \"111\" → \"1110\"</code>（每位都产生进位）
 </div>""",
     },
+
+    "text-justification": {
+        "type": "贪心",
+        "difficulty": "困难",
+        "frontend_id": "68",
+        "title": "文本左右对齐",
+        "time_complexity": "O(n · maxWidth)（n 为单词数，每词至多参与一行划分）",
+        "space_complexity": "O(n)（结果行列表）",
+        "description": """<p>给定单词数组 <code>words</code> 和行宽 <code>maxWidth</code>，重新排版使每行恰好 <code>maxWidth</code> 个字符，且除最后一行外左右两端对齐。</p>
+<p>使用<strong>贪心</strong>：每行尽可能多放单词；行间用空格填充至行宽。若空格不能均分，<strong>左侧间隙</strong>比右侧多。最后一行<strong>左对齐</strong>，单词间仅一个空格，行尾用空格补齐至 <code>maxWidth</code>。</p>
+<p>单词由非空格字符组成；每个单词长度在 <code>(0, maxWidth]</code>；<code>words</code> 非空。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：words = [\"This\", \"is\", \"an\", \"example\", \"of\", \"text\", \"justification.\"], maxWidth = 16</div>
+    <div class="example-output">输出：[\"This    is    an\", \"example  of text\", \"justification.  \"]</div>
+    <p>第一行两端对齐；最后一行左对齐且末尾补空格。</p>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：words = [\"What\",\"must\",\"be\",\"acknowledgment\",\"shall\",\"be\"], maxWidth = 16</div>
+    <div class="example-output">输出：[\"What   must   be\", \"acknowledgment  \", \"shall be        \"]</div>
+    <p>仅一个单词的行（如第二行）左对齐；最后一行单词间单空格，尾部补空格。</p>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：words = [\"Science\",\"is\",\"what\",\"we\",\"understand\",\"well\",\"enough\",\"to\",\"explain\",\"to\",\"a\",\"computer.\",\"Art\",\"is\",\"everything\",\"else\",\"we\",\"do\"], maxWidth = 20</div>
+    <div class="example-output">输出：6 行，每行长度均为 20（见 LeetCode 题面）。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前待排版行的<strong>第一个单词</strong>在 <code>words</code> 中的下标，初始为 0<br><b>维护</b>：每输出一行后，<code>i</code> 跳到该行最后一个单词的下一位置<br><b>更新</b>：<code>i = j</code>，其中 <code>j</code> 为本行贪心选出的单词区间右端点（不含）</td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：本行单词区间的右边界（开区间），即本行单词为 <code>words[i..j-1]</code><br><b>维护</b>：从 <code>i+1</code> 起贪心扩展：若再加入 <code>words[j]</code> 后「字符 + 单词间至少 1 空格」仍 ≤ <code>maxWidth</code>，则 <code>j++</code><br><b>更新</b>：无法再放单词时停止，用 <code>[i, j)</code> 构造当前行</td></tr>
+    <tr><td><code>num_words</code> / <code>gaps</code></td><td>int</td><td><b>定义</b>：<code>num_words = j - i</code>；两端对齐时单词间间隙数为 <code>gaps = num_words - 1</code><br><b>维护</b>：本行字符总长 <code>total_chars = sum(len(words[k]) for k in range(i,j))</code>，待分配空格 <code>total_spaces = maxWidth - total_chars</code><br><b>更新</b>：均分 <code>base = total_spaces // gaps</code>，前 <code>extra = total_spaces % gaps</code> 个间隙各多 1 个空格（左侧优先）</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举所有「在哪断行」的组合，对每种方案检查能否填满每行并评分——组合数指数级，不可行。</p>
+<p class="thinking-step">2. 题目要求<strong>贪心放词</strong>：每行在不超过 <code>maxWidth</code> 的前提下尽量多放单词（单词间至少 1 空格）。断行方式因此唯一确定，只需模拟排版。</p>
+<p class="thinking-step">3. 重复在哪里？每一行的构造逻辑相同：先贪心定 <code>[i,j)</code>，再按「是否最后一行 / 是否单词数为 1」分支处理空格。</p>
+<p class="thinking-step">4. <strong>最后一行</strong>或<strong>本行只有一个单词</strong>：左对齐，单词间单空格，行尾补空格至 <code>maxWidth</code>（不能两端对齐）。</p>
+<p class="thinking-step">5. 否则两端对齐：总空格均分到 <code>gaps</code> 个间隙，余数 <code>extra</code> 从左到右前 <code>extra</code> 个间隙各 +1，保证左侧空格不少于右侧。</p>""",
+        "code_steps": """<p class="code-step">1. <code>res = []</code>，<code>i = 0</code>；当 <code>i &lt; n</code> 时处理一行</p>
+<p class="code-step">2. 贪心：令 <code>line_len = len(words[i])</code>，<code>j = i+1</code>；当 <code>j &lt; n</code> 且 <code>line_len + 1 + len(words[j]) &lt;= maxWidth</code> 时更新 <code>line_len</code> 并 <code>j++</code></p>
+<p class="code-step">3. 若 <code>j == n</code>（最后一行）或 <code>j - i == 1</code>：行串 <code>\" \".join(words[i:j])</code>，末尾补 <code>\" \" * (maxWidth - len(line))</code></p>
+<p class="code-step">4. 否则：计算 <code>total_spaces</code> 与 <code>gaps</code>，循环拼接单词与 <code>base + (1 if k &lt; extra else 0)</code> 个空格</p>
+<p class="code-step">5. <code>res.append(line)</code>，<code>i = j</code>，直至单词用完</p>""",
+        "code_python": """class Solution:
+    def fullJustify(self, words: list[str], maxWidth: int) -> list[str]:
+        res = []
+        i, n = 0, len(words)
+        while i < n:
+            line_len = len(words[i])
+            j = i + 1
+            while j < n and line_len + 1 + len(words[j]) <= maxWidth:
+                line_len += 1 + len(words[j])
+                j += 1
+            cnt = j - i
+            if j == n or cnt == 1:
+                line = " ".join(words[i:j])
+                line += " " * (maxWidth - len(line))
+            else:
+                chars = sum(len(w) for w in words[i:j])
+                spaces = maxWidth - chars
+                gaps = cnt - 1
+                base, extra = divmod(spaces, gaps)
+                parts = []
+                for k in range(cnt - 1):
+                    parts.append(words[i + k])
+                    parts.append(" " * (base + (1 if k < extra else 0)))
+                parts.append(words[j - 1])
+                line = "".join(parts)
+            res.append(line)
+            i = j
+        return res""",
+        "code_cpp": """class Solution {
+public:
+    vector<string> fullJustify(vector<string>& words, int maxWidth) {
+        vector<string> res;
+        int n = (int)words.size();
+        for (int i = 0; i < n; ) {
+            int lineLen = (int)words[i].size();
+            int j = i + 1;
+            while (j < n && lineLen + 1 + (int)words[j].size() <= maxWidth) {
+                lineLen += 1 + (int)words[j].size();
+                ++j;
+            }
+            int cnt = j - i;
+            string line;
+            if (j == n || cnt == 1) {
+                for (int k = i; k < j; ++k) {
+                    if (k > i) line += ' ';
+                    line += words[k];
+                }
+                line += string(maxWidth - (int)line.size(), ' ');
+            } else {
+                int chars = 0;
+                for (int k = i; k < j; ++k) chars += (int)words[k].size();
+                int spaces = maxWidth - chars;
+                int gaps = cnt - 1;
+                int base = spaces / gaps, extra = spaces % gaps;
+                for (int k = 0; k < cnt - 1; ++k) {
+                    line += words[i + k];
+                    int s = base + (k < extra ? 1 : 0);
+                    line += string(s, ' ');
+                }
+                line += words[j - 1];
+            }
+            res.push_back(line);
+            i = j;
+        }
+        return res;
+    }
+};
+// 时间 O(n·maxWidth)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 最后一行仍做两端对齐：必须判断 <code>j == n</code>，最后一行只能左对齐 + 尾部补空格。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 单行只有一个单词时误用均分空格：该行同样左对齐，右侧用空格填满。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 贪心放词时忘记单词间至少 1 空格：扩展条件应是 <code>line_len + 1 + len(words[j]) &lt;= maxWidth</code>，不是直接加单词长度。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：仅一个词</div>
+    <code>words=[\"a\"], maxWidth=5 → \"a    \"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：最后一行多词</div>
+    <code>\"shall be\"</code> 在行宽 16 下为 <code>\"shall be        \"</code>（词间单空格，尾部补满）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：空格余数偏左</div>
+    <code>\"What must be\"</code>：3 词 2 间隙，多余空格给左侧间隙
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：整行一词占满</div>
+    <code>\"acknowledgment\"</code> 在行宽 16 → 词后补 2 个空格
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：行宽等于单词长</div>
+    每行只能放一个单词，全部左对齐补尾空格
+</div>""",
+    },
 }
 
 
