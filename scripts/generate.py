@@ -8330,6 +8330,100 @@ public:
     每行只能放一个单词，全部左对齐补尾空格
 </div>""",
     },
+
+    "sqrtx": {
+        "type": "二分查找",
+        "difficulty": "简单",
+        "frontend_id": "69",
+        "title": "x 的平方根",
+        "time_complexity": "O(log x)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个非负整数 <code>x</code>，计算并返回 <code>x</code> 的<strong>算术平方根</strong>。</p>
+<p>由于返回类型是整数，结果只保留<strong>整数部分</strong>，小数部分将被舍去。</p>
+<p><strong>注意：</strong>不允许使用任何内置指数函数和算符，例如 <code>pow(x, 0.5)</code> 或者 <code>x ** 0.5</code>。</p>
+<p><code>0 &lt;= x &lt;= 2<sup>31</sup> - 1</code></p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：x = 4</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain"><code>2 × 2 = 4</code>，整数部分为 2。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：x = 8</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">8 的算术平方根约为 2.828…，舍去小数得 2。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>l, r</code></td><td>int</td><td><b>定义</b>：待考察的「候选整数根」的左右边界，初始 <code>l=0</code>、<code>r=x</code>（<code>x≥1</code> 时可缩为 <code>r=x//2</code>）<br><b>维护</b>：真实答案（最大整数 <code>ans</code> 满足 <code>ans² ≤ x</code>）始终在 <code>[l, r]</code> 内<br><b>更新</b>：根据 <code>mid²</code> 与 <code>x</code> 比较，每轮排除约一半候选</td></tr>
+    <tr><td><code>mid</code></td><td>int</td><td><b>定义</b>：当前候选根 <code>(l + r) // 2</code><br><b>维护</b>：将整数区间切成左段 <code>[l, mid]</code> 与右段 <code>[mid+1, r]</code><br><b>更新</b>：若 <code>mid² ≤ x</code> 说明 <code>mid</code> 可行且可能还有更大根，记录 <code>ans=mid</code> 并令 <code>l=mid+1</code>；否则 <code>r=mid-1</code></td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：目前为止找到的「最大整数根」，满足 <code>ans² ≤ x</code><br><b>维护</b>：随二分推进单调不降；循环结束时即为题目要求的整数平方根<br><b>更新</b>：每当 <code>mid² ≤ x</code> 时令 <code>ans = mid</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：从 0 开始逐个试 <code>k</code>，直到 <code>(k+1)² &gt; x</code>，返回 <code>k</code>——最坏 O(√x)，在 <code>x</code> 接近 2³¹ 时太慢。</p>
+<p class="thinking-step">2. 重复在哪里？候选答案是一串<strong>升序整数</strong> <code>0,1,2,…</code>，满足「<code>k² ≤ x</code>」的性质在 <code>k</code> 增大时从真变假——等价于找最大的 <code>k</code> 使 <code>k² ≤ x</code>，和有序数组上找边界一样适合二分。</p>
+<p class="thinking-step">3. 关键转化：在 <code>[0, x]</code>（或 <code>[0, x//2]</code>）上二分 <code>mid</code>：若 <code>mid*mid ≤ x</code>，说明 <code>mid</code> 可行且答案至少为 <code>mid</code>，记录 <code>ans</code> 并向右搜；否则 <code>mid</code> 太大，向左缩。</p>
+<p class="thinking-step">4. 例 <code>x=8</code>：<code>mid=4</code> 时 16&gt;8 缩左；<code>mid=2</code> 时 4≤8 记 <code>ans=2</code> 再试更大；<code>mid=3</code> 时 9&gt;8 结束，返回 2。</p>
+<p class="thinking-step">5. 乘法用 <code>mid * mid</code> 时注意 Python 无限精度；C++ 可用 <code>(long long)mid * mid</code> 防溢出。整体 O(log x) 次判定，空间 O(1)。</p>""",
+        "code_steps": """<p class="code-step">1. 特判 <code>x &lt; 2</code> 直接返回 <code>x</code>（0→0，1→1）</p>
+<p class="code-step">2. 初始化 <code>l=2</code>、<code>r=x//2</code>、<code>ans=1</code></p>
+<p class="code-step">3. 当 <code>l &lt;= r</code>：取 <code>mid = (l + r) // 2</code></p>
+<p class="code-step">4. 若 <code>mid * mid &lt;= x</code>：令 <code>ans = mid</code>，<code>l = mid + 1</code>（尝试更大的根）</p>
+<p class="code-step">5. 否则 <code>r = mid - 1</code>；循环结束返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def mySqrt(self, x: int) -> int:
+        if x < 2:
+            return x
+        l, r = 2, x // 2
+        ans = 1
+        while l <= r:
+            mid = (l + r) // 2
+            if mid * mid <= x:
+                ans = mid          # mid 可行，记录并往更大试
+                l = mid + 1
+            else:
+                r = mid - 1          # mid 太大
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int mySqrt(int x) {
+        if (x < 2) return x;
+        int l = 2, r = x / 2, ans = 1;
+        while (l <= r) {
+            long long mid = l + (r - l) / 2;
+            if (mid * mid <= x) {
+                ans = (int)mid;    // mid 可行，记录并往更大试
+                l = (int)mid + 1;
+            } else {
+                r = (int)mid - 1;  // mid 太大
+            }
+        }
+        return ans;
+    }
+};
+// 时间 O(log x)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> C++ 中 <code>mid * mid</code> 用 <code>int</code> 相乘可能溢出，应转 <code>long long</code> 再比 <code>x</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 题目要的是<strong>整数部分</strong>（向下取整），不是四舍五入；<code>x=8</code> 应返回 2 而非 3。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 二分写法要维护「最大可行 <code>ans</code>」并在 <code>mid² ≤ x</code> 时 <code>l = mid + 1</code>；若误用「找第一个 <code>mid² &gt; x</code>」需记得返回 <code>mid - 1</code>，与本题语义一致但易写错边界。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：x = 0</div>
+    <code>0 → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：完全平方数</div>
+    <code>x = 4 → 2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：非完全平方</div>
+    <code>x = 8 → 2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：大整数</div>
+    <code>x = 2147483647 → 46340</code>（验证不溢出、不调用内置 pow）
+</div>""",
+    },
 }
 
 

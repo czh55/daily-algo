@@ -551,5 +551,12 @@
     "title": "文本左右对齐",
     "type": "贪心",
     "difficulty": "困难"
+  },
+  {
+    "date": "2026-09-17",
+    "slug": "sqrtx",
+    "title": "x 的平方根",
+    "type": "二分查找",
+    "difficulty": "简单"
   }
 ]
