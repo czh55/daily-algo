@@ -558,5 +558,12 @@
     "title": "x 的平方根",
     "type": "二分查找",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-09-18",
+    "slug": "climbing-stairs",
+    "title": "爬楼梯",
+    "type": "一维DP",
+    "difficulty": "简单"
   }
 ]

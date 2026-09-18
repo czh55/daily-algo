@@ -8424,6 +8424,91 @@ public:
     <code>x = 2147483647 → 46340</code>（验证不溢出、不调用内置 pow）
 </div>""",
     },
+
+    "climbing-stairs": {
+        "type": "一维DP",
+        "difficulty": "简单",
+        "frontend_id": "70",
+        "title": "爬楼梯",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>假设你正在爬楼梯。需要 <code>n</code> 阶你才能到达楼顶。</p>
+<p>每次你可以爬 <code>1</code> 或 <code>2</code> 个台阶。你有多少种不同的方法可以爬到楼顶呢？</p>
+<p><code>1 &lt;= n &lt;= 45</code></p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 2</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">有两种方法：1 阶 + 1 阶；或一次爬 2 阶。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 3</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain">三种方法：1+1+1；1+2；2+1。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i]</code>（或 <code>prev, cur</code>）</td><td>int</td><td><b>定义</b>：到达第 <code>i</code> 阶台阶的方法总数（<code>i</code> 从 0 到 <code>n</code>，其中 <code>dp[0]=1</code> 表示站在地面）<br><b>维护</b>：最后一跳要么从 <code>i-1</code> 跨 1 阶上来，要么从 <code>i-2</code> 跨 2 阶上来，两种来源的方法数相加<br><b>更新</b>：<code>dp[i] = dp[i-1] + dp[i-2]</code>；滚动数组时 <code>cur = prev + cur</code> 再整体前移</td></tr>
+    <tr><td><code>prev</code></td><td>int</td><td><b>定义</b>：上一阶（相当于 <code>dp[i-2]</code>）的方法数<br><b>维护</b>：每推进一步，原来的 <code>cur</code> 变成新的 <code>prev</code><br><b>更新</b>：初始 <code>prev=1</code>（对应 <code>dp[0]</code> 或 <code>dp[1]</code> 的上一状态，依实现从 <code>n=1</code> 或 <code>n=2</code> 起循环）</td></tr>
+    <tr><td><code>cur</code></td><td>int</td><td><b>定义</b>：当前阶（相当于 <code>dp[i-1]</code> 或正在计算的 <code>dp[i]</code>）的方法数<br><b>维护</b>：每轮用 <code>prev + cur</code> 得到下一阶，再滚动赋值<br><b>更新</b>：初始 <code>cur=1</code>（<code>n=1</code> 只有一种爬法）；循环 <code>n-2</code> 或 <code>n-1</code> 次后 <code>cur</code> 即为答案</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：从低阶向第 <code>n</code> 阶推进的循环计数<br><b>维护</b>：<code>for _ in range(2, n+1)</code> 或等价次数，每轮只依赖前两阶状态<br><b>更新</b>：每轮计算新 <code>cur</code> 并滚动 <code>prev</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：对每一步枚举「下一步走 1 阶还是 2 阶」，用 DFS 回溯数所有路径，指数级分支，<code>n=45</code> 必超时。</p>
+<p class="thinking-step">2. 重复在哪里？到达第 <code>i</code> 阶的路径数，只取决于「到达 <code>i-1</code> 再迈 1 步」和「到达 <code>i-2</code> 再迈 2 步」——子问题 <code>f(i)</code> 与具体路径无关，只与阶数有关，大量子树重复计算。</p>
+<p class="thinking-step">3. 关键转化：定义 <code>f(i)</code> = 到第 <code>i</code> 阶的方法数，则 <code>f(i) = f(i-1) + f(i-2)</code>，边界 <code>f(1)=1, f(2)=2</code>（或 <code>f(0)=1, f(1)=1</code> 再推）。这就是斐波那契数列，与 #509 同源。</p>
+<p class="thinking-step">4. 手推 <code>n=3</code>：<code>f(1)=1, f(2)=2, f(3)=f(2)+f(1)=3</code>，对应 1+1+1、1+2、2+1，与样例一致。</p>
+<p class="thinking-step">5. 数组版 O(n) 空间可压成两个变量 <code>prev, cur</code> 滚动，每阶 O(1) 更新，总时间 O(n)、空间 O(1)。</p>""",
+        "code_steps": """<p class="code-step">1. 特判 <code>n &lt;= 2</code>：直接返回 <code>n</code>（1→1 种，2→2 种）</p>
+<p class="code-step">2. 初始化 <code>prev = 1</code>、<code>cur = 2</code>（分别表示到第 1、2 阶的方法数）</p>
+<p class="code-step">3. 循环 <code>i</code> 从 3 到 <code>n</code>：令 <code>nxt = prev + cur</code></p>
+<p class="code-step">4. 滚动：<code>prev = cur</code>，<code>cur = nxt</code></p>
+<p class="code-step">5. 循环结束返回 <code>cur</code>（即到第 <code>n</code> 阶的方法数）</p>""",
+        "code_python": """class Solution:
+    def climbStairs(self, n: int) -> int:
+        if n <= 2:
+            return n
+        prev, cur = 1, 2
+        for _ in range(3, n + 1):
+            nxt = prev + cur
+            prev, cur = cur, nxt
+        return cur""",
+        "code_cpp": """class Solution {
+public:
+    int climbStairs(int n) {
+        if (n <= 2) return n;
+        int prev = 1, cur = 2;
+        for (int i = 3; i <= n; ++i) {
+            int nxt = prev + cur;
+            prev = cur;
+            cur = nxt;
+        }
+        return cur;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边界下标：若用 <code>dp[0]=1, dp[1]=1</code> 推斐波那契，注意循环起点与最终返回的是 <code>dp[n]</code> 还是 <code>dp[n-1]</code>，不要与「<code>n=2</code> 返回 2」的题意搞混。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 递归不加记忆化会重复计算同一阶，<code>n=45</code> 会栈/时间爆炸；要么 memo，要么改迭代滚动。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 滚动更新顺序：须先算 <code>nxt = prev + cur</code> 再赋值，不能在同一行错误覆盖导致少加一项。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：n = 1</div>
+    <code>1 → 1</code>（只能一步一阶）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：n = 2</div>
+    <code>2 → 2</code>（1+1 或 2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：n = 3</div>
+    <code>3 → 3</code>（官方示例 2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：较大 n</div>
+    <code>n = 45</code>（题目上限，验证 O(n) 迭代在 int 范围内：结果 1836311903）
+</div>""",
+    },
 }
 
 
