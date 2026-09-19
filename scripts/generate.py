@@ -8509,6 +8509,126 @@ public:
     <code>n = 45</code>（题目上限，验证 O(n) 迭代在 int 范围内：结果 1836311903）
 </div>""",
     },
+
+    "simplify-path": {
+        "type": "栈",
+        "difficulty": "中等",
+        "frontend_id": "71",
+        "title": "简化路径",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "description": """<p>给你一个字符串 <code>path</code>，表示指向某一文件或目录的 Unix 风格<strong>绝对路径</strong>（以 <code>'/'</code> 开头），请你将其转化为<strong>更加简洁的规范路径</strong>。</p>
+<p>Unix 规则简要：</p>
+<ul>
+<li><code>'.'</code> 表示当前目录；<code>'..'</code> 表示上一级（父目录）。</li>
+<li>任意多个连续斜杠视为单个 <code>'/'</code>。</li>
+<li><code>'...'</code> 等多点形式是合法目录名，不是 <code>'..'</code>。</li>
+</ul>
+<p>返回路径须以 <code>'/'</code> 开头、目录间仅一个斜杠、末尾无多余斜杠，且不含 <code>'.'</code> / <code>'..'</code> 分量。</p>
+<p><code>1 &lt;= path.length &lt;= 3000</code></p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：path = "/home/"</div>
+    <div class="example-output">输出："/home"</div>
+    <div class="example-explain">删除尾随斜杠。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：path = "/home//foo/"</div>
+    <div class="example-output">输出："/home/foo"</div>
+    <div class="example-explain">连续斜杠合并为一个。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：path = "/home/user/Documents/../Pictures"</div>
+    <div class="example-output">输出："/home/user/Pictures"</div>
+    <div class="example-explain"><code>..</code> 回退一级，去掉 <code>Documents</code>。</div>
+</div>
+<div class="example-block">
+    <h4>示例 4</h4>
+    <div class="example-input">输入：path = "/../"</div>
+    <div class="example-output">输出："/"</div>
+    <div class="example-explain">已在根目录，无法再向上一级。</div>
+</div>
+<div class="example-block">
+    <h4>示例 5</h4>
+    <div class="example-input">输入：path = "/.../a/../b/c/../d/./"</div>
+    <div class="example-output">输出："/.../b/d"</div>
+    <div class="example-explain"><code>...</code> 是合法目录名，不是 <code>..</code>。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>stk</code></td><td>list / stack</td><td><b>定义</b>：从根到当前位置的路径上，各层目录名（不含斜杠）<br><b>维护</b>：栈底是根下第一层目录，栈顶是当前最深目录<br><b>更新</b>：遇普通目录名 <code>push</code>；遇 <code>..</code> 且栈非空则 <code>pop</code>；遇 <code>.</code> 或空串不操作</td></tr>
+    <tr><td><code>part</code></td><td>str</td><td><b>定义</b>：按 <code>'/'</code> 切分后当前处理的一个路径分量<br><b>维护</b>：从左到右依次处理每个非空逻辑段（空段来自连续斜杠）<br><b>更新</b>：每轮循环取下一个 <code>part</code>，严格用 <code>==</code> 区分 <code>..</code> 与 <code>...</code></td></tr>
+    <tr><td><code>parts</code></td><td>list[str]</td><td><b>定义</b>：<code>path.split('/')</code> 得到的片段序列<br><b>维护</b>：首元素因绝对路径常为 <code>''</code>，遍历时跳过空串即可<br><b>更新</b>：一次性切分，不在此步做 <code>..</code> 语义</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力思路：按规则手写状态机，遇到 <code>..</code> 就字符串里找上一段目录删掉——要处理尾随斜杠、连续斜杠、根边界，字符串反复切片拼接，又慢又易错。</p>
+<p class="thinking-step">2. 重复在哪里？每次 <code>..</code> 都是「撤销最近进入的一层目录」——后进先出，和括号匹配一样，天然是栈。</p>
+<p class="thinking-step">3. 先把 <code>path</code> 按 <code>'/'</code> 切开，连续斜杠会产生空串，直接跳过；<code>.</code> 表示留在当前层，也跳过；普通名字入栈；<code>..</code> 则栈非空时弹出栈顶（根目录不能再退）。</p>
+<p class="thinking-step">4. 手推 <code>/home/user/Documents/../Pictures</code>：栈依次 <code>home → user → Documents</code>，<code>..</code> 弹出 <code>Documents</code>，再入 <code>Pictures</code>，拼接得 <code>/home/user/Pictures</code>。</p>
+<p class="thinking-step">5. 最后用 <code>'/' + '/'.join(stk)</code> 输出；栈空表示只有根，返回 <code>'/'</code>。每个字符参与切分与入栈出栈各常数次，总 O(n)。</p>""",
+        "code_steps": """<p class="code-step">1. <code>parts = path.split('/')</code>，初始化空栈 <code>stk = []</code></p>
+<p class="code-step">2. 遍历每个 <code>part</code>：若 <code>part == ''</code> 或 <code>part == '.'</code>，<code>continue</code></p>
+<p class="code-step">3. 若 <code>part == '..'</code>：若 <code>stk</code> 非空则 <code>stk.pop()</code>（根目录不 pop）</p>
+<p class="code-step">4. 否则（普通目录名，含 <code>...</code> 等）：<code>stk.append(part)</code></p>
+<p class="code-step">5. 返回 <code>'/' + '/'.join(stk)</code>（<code>stk</code> 空时即为 <code>'/'</code>）</p>""",
+        "code_python": """class Solution:
+    def simplifyPath(self, path: str) -> str:
+        stk: list[str] = []
+        for part in path.split('/'):
+            if not part or part == '.':
+                continue
+            if part == '..':
+                if stk:
+                    stk.pop()
+            else:
+                stk.append(part)
+        return '/' + '/'.join(stk)""",
+        "code_cpp": """class Solution {
+public:
+    string simplifyPath(string path) {
+        vector<string> stk;
+        string part;
+        stringstream ss(path);
+        while (getline(ss, part, '/')) {
+            if (part.empty() || part == ".") continue;
+            if (part == "..") {
+                if (!stk.empty()) stk.pop_back();
+            } else {
+                stk.push_back(part);
+            }
+        }
+        string res = "/";
+        for (size_t i = 0; i < stk.size(); ++i) {
+            if (i) res += "/";
+            res += stk[i];
+        }
+        return res.empty() ? "/" : res;
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把 <code>...</code> 当成 <code>..</code>：必须用 <code>part == ".."</code> 精确匹配，不能用前缀或点数判断。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 根目录再 <code>..</code>：栈已空时不能再 pop，结果应仍为 <code>/</code>，不能变成空串。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 拼接结果多写尾随斜杠：规范路径除单独的 <code>/</code> 外，末尾不能带 <code>/</code>；用 <code>join</code> 而非手动在每项后加斜杠。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：仅根目录</div>
+    <code>path = "/" → "/"</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：根上无法回退</div>
+    <code>path = "/../" → "/"</code>（官方示例 4）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：多点目录名</div>
+    <code>path = "/.../a/../b/c/../d/./" → "/.../b/d"</code>（官方示例 5）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：连续斜杠与尾随斜杠</div>
+    <code>path = "/home//foo/" → "/home/foo"</code>（官方示例 1、2）
+</div>""",
+    },
 }
 
 

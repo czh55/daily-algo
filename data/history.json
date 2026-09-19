@@ -565,5 +565,12 @@
     "title": "爬楼梯",
     "type": "一维DP",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-09-19",
+    "slug": "simplify-path",
+    "title": "简化路径",
+    "type": "栈",
+    "difficulty": "中等"
   }
 ]
