@@ -572,5 +572,12 @@
     "title": "简化路径",
     "type": "栈",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-20",
+    "slug": "set-matrix-zeroes",
+    "title": "矩阵置零",
+    "type": "矩阵操作",
+    "difficulty": "中等"
   }
 ]

@@ -8629,6 +8629,132 @@ public:
     <code>path = "/home//foo/" → "/home/foo"</code>（官方示例 1、2）
 </div>""",
     },
+
+    "set-matrix-zeroes": {
+        "type": "矩阵操作",
+        "difficulty": "中等",
+        "frontend_id": "73",
+        "title": "矩阵置零",
+        "time_complexity": "O(m × n)",
+        "space_complexity": "O(1)（不计输入）",
+        "description": """<p>给定一个 <code>m × n</code> 的矩阵，如果一个元素为 <strong>0</strong>，则将其所在<strong>行和列</strong>的所有元素都设为 <strong>0</strong>。请使用<strong><a href="https://baike.baidu.com/item/%E5%8E%9F%E5%9C%B0%E7%AE%97%E6%B3%95" target="_blank">原地</a></strong>算法。</p>
+<p><code>1 &lt;= m, n &lt;= 200</code>，元素取值在 32 位有符号整数范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：matrix = [[1,1,1],[1,0,1],[1,1,1]]</div>
+    <div class="example-output">输出：[[1,0,1],[0,0,0],[1,0,1]]</div>
+    <div class="example-explain">中间 <code>0</code> 使第 2 行、第 2 列全部置零。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]</div>
+    <div class="example-output">输出：[[0,0,0,0],[0,4,5,0],[0,3,1,0]]</div>
+    <div class="example-explain">首行、末列原本就有 <code>0</code>，扩散后整行整列变零。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>matrix[i][0]</code></td><td>int（复用）</td><td><b>定义</b>：第 <code>i</code> 行最左格，扫描阶段同时是真实元素；标记阶段表示「第 <code>i</code> 行是否需要整行置零」<br><b>维护</b>：内层扫描发现 <code>matrix[i][j]==0</code> 时置 <code>matrix[i][0]=0</code>（<code>i≥1</code>）<br><b>更新</b>：第二遍若 <code>matrix[i][0]==0</code> 则将该行 <code>j=1..n-1</code> 清零；最后若 <code>col0</code> 再清整列 0</td></tr>
+    <tr><td><code>matrix[0][j]</code></td><td>int（复用）</td><td><b>定义</b>：第 <code>j</code> 列最上格，扫描阶段是真实元素；标记阶段表示「第 <code>j</code> 列是否需要整列置零」<br><b>维护</b>：内层发现 <code>matrix[i][j]==0</code> 时置 <code>matrix[0][j]=0</code>（<code>j≥1</code>）<br><b>更新</b>：第二遍若 <code>matrix[0][j]==0</code> 则将该列 <code>i=1..m-1</code> 清零；最后若 <code>row0</code> 再清整行 0</td></tr>
+    <tr><td><code>row0</code></td><td>bool</td><td><b>定义</b>：第一行在<strong>原始</strong>矩阵中是否曾出现 <code>0</code><br><b>维护</b>：首行不能单靠 <code>matrix[0][j]</code> 当标记（会与列标记互相覆盖），故用独立布尔量<br><b>更新</b>：预处理扫 <code>matrix[0][j]</code> 得到；所有内层操作完成后，若真则把第一行全部置 <code>0</code></td></tr>
+    <tr><td><code>col0</code></td><td>bool</td><td><b>定义</b>：第一列在原始矩阵中是否曾出现 <code>0</code><br><b>维护</b>：与 <code>row0</code> 对称，保护第一列不被 <code>matrix[i][0]</code> 行标记误伤<br><b>更新</b>：预处理扫 <code>matrix[i][0]</code> 得到；最后若真则把第一列全部置 <code>0</code></td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：矩阵下标，<code>m=len(matrix)</code>，<code>n=len(matrix[0])</code><br><b>维护</b>：标记扫描只走 <code>i=1..m-1, j=1..n-1</code>，避免用尚未稳定的首行首列当依据<br><b>更新</b>：双重循环递增，驱动「找零 → 打标记 → 按标记清零」三阶段</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：先扫一遍把所有该清零的行列坐标放进两个集合，第二遍按集合改矩阵——正确，但需要 <code>O(m+n)</code> 额外空间，进阶要求还要压到 <code>O(1)</code>。</p>
+<p class="thinking-step">2. 重复在哪里？每个 <code>0</code> 都在重复声明「我这一行、这一列都要变零」——信息可以压缩成「哪些行、哪些列需要清零」两个 bitmask；在 <code>m,n≤200</code> 时甚至可以用整型位集，但题目更经典的写法是<strong>复用矩阵 的第一行和第一列</strong>当标记数组。</p>
+<p class="thinking-step">3. 陷阱：若第一行/第一列本身就有 <code>0</code>，它们的标记格会被提前污染。做法是先单独用 <code>row0</code>、<code>col0</code> 记录首行首列是否该清零，内层只从 <code>(1,1)</code> 扫描，用 <code>matrix[i][0]</code>、<code>matrix[0][j]</code> 记录第 <code>i</code> 行、第 <code>j</code> 列是否要清零。</p>
+<p class="thinking-step">4. 手推示例 1：仅 <code>matrix[1][1]=0</code>，标记后 <code>matrix[1][0]=0</code>、<code>matrix[0][1]=0</code>；按行标记清第 2 行，按列标记清第 2 列，首行首列无 <code>row0/col0</code>，得到目标矩阵。</p>
+<p class="thinking-step">5. 三阶段顺序不能乱：① 记录 <code>row0/col0</code> → ② 内层扫 <code>0</code> 写标记 → ③ 按标记清内部 → ④ 最后处理首行首列。遍历时若边扫边立刻清零，会把尚未扫描到的真实 <code>0</code>「抹掉」，漏标行列。</p>""",
+        "code_steps": """<p class="code-step">1. <code>m, n = len(matrix), len(matrix[0])</code>；扫描第一行得 <code>row0</code>，扫描第一列得 <code>col0</code></p>
+<p class="code-step">2. 对 <code>i=1..m-1, j=1..n-1</code>：若 <code>matrix[i][j]==0</code>，令 <code>matrix[i][0]=0</code> 且 <code>matrix[0][j]=0</code></p>
+<p class="code-step">3. 对 <code>i=1..m-1</code>：若 <code>matrix[i][0]==0</code>，将该行 <code>j=1..n-1</code> 全部置 <code>0</code></p>
+<p class="code-step">4. 对 <code>j=1..n-1</code>：若 <code>matrix[0][j]==0</code>，将该列 <code>i=1..m-1</code> 全部置 <code>0</code></p>
+<p class="code-step">5. 若 <code>row0</code> 则清零第一行；若 <code>col0</code> 则清零第一列（原地修改，无返回值）</p>""",
+        "code_python": """class Solution:
+    def setZeroes(self, matrix: List[List[int]]) -> None:
+        m, n = len(matrix), len(matrix[0])
+        row0 = any(matrix[0][j] == 0 for j in range(n))
+        col0 = any(matrix[i][0] == 0 for i in range(m))
+        for i in range(1, m):
+            for j in range(1, n):
+                if matrix[i][j] == 0:
+                    matrix[i][0] = 0
+                    matrix[0][j] = 0
+        for i in range(1, m):
+            if matrix[i][0] == 0:
+                for j in range(1, n):
+                    matrix[i][j] = 0
+        for j in range(1, n):
+            if matrix[0][j] == 0:
+                for i in range(1, m):
+                    matrix[i][j] = 0
+        if row0:
+            for j in range(n):
+                matrix[0][j] = 0
+        if col0:
+            for i in range(m):
+                matrix[i][0] = 0""",
+        "code_cpp": """class Solution {
+public:
+    void setZeroes(vector<vector<int>>& matrix) {
+        int m = matrix.size(), n = matrix[0].size();
+        bool row0 = false, col0 = false;
+        for (int j = 0; j < n; ++j)
+            if (matrix[0][j] == 0) row0 = true;
+        for (int i = 0; i < m; ++i)
+            if (matrix[i][0] == 0) col0 = true;
+        for (int i = 1; i < m; ++i) {
+            for (int j = 1; j < n; ++j) {
+                if (matrix[i][j] == 0) {
+                    matrix[i][0] = 0;
+                    matrix[0][j] = 0;
+                }
+            }
+        }
+        for (int i = 1; i < m; ++i) {
+            if (matrix[i][0] == 0) {
+                for (int j = 1; j < n; ++j) matrix[i][j] = 0;
+            }
+        }
+        for (int j = 1; j < n; ++j) {
+            if (matrix[0][j] == 0) {
+                for (int i = 1; i < m; ++i) matrix[i][j] = 0;
+            }
+        }
+        if (row0) {
+            for (int j = 0; j < n; ++j) matrix[0][j] = 0;
+        }
+        if (col0) {
+            for (int i = 0; i < m; ++i) matrix[i][0] = 0;
+        }
+    }
+};
+// 时间 O(m×n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边扫描边立即把整行整列清零：会把后面的真实 <code>0</code> 提前抹掉，漏标应清零的行列。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记单独处理第一行/第一列：直接用 <code>matrix[0][j]</code>、<code>matrix[i][0]</code> 记录首行首列是否该清零，会与标记阶段互相覆盖，必须用 <code>row0</code> / <code>col0</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 标记与清零顺序颠倒：须先完成全部「写标记」，再按标记批量清零，最后才处理 <code>row0/col0</code> 对应的首行首列。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单格矩阵</div>
+    <code>matrix = [[0]] → [[0]]</code>（<code>row0</code>、<code>col0</code> 均为真，结果仍为 0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：无零元素</div>
+    <code>matrix = [[1,2],[3,4]] → 不变</code>（标记阶段不写任何 0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：首行含零</div>
+    <code>matrix = [[0,1,2,0],...] → 首行全 0</code>（官方示例 2，依赖 <code>row0</code>）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：首列含零</div>
+    <code>某行第一列为 0 → 整列清零</code>（依赖 <code>col0</code> 与 <code>matrix[i][0]</code> 标记配合）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：中心单点零</div>
+    <code>[[1,1,1],[1,0,1],[1,1,1]] → 第 2 行第 2 列全 0</code>（官方示例 1）
+</div>""",
+    },
 }
 
 
