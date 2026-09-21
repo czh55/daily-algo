@@ -579,5 +579,12 @@
     "title": "矩阵置零",
     "type": "矩阵操作",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-21",
+    "slug": "search-a-2d-matrix",
+    "title": "搜索二维矩阵",
+    "type": "二分查找",
+    "difficulty": "中等"
   }
 ]

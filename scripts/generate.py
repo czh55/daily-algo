@@ -4425,6 +4425,104 @@ public:
 </div>""",
     },
 
+    "search-a-2d-matrix": {
+        "type": "二分查找",
+        "difficulty": "中等",
+        "frontend_id": "74",
+        "title": "搜索二维矩阵",
+        "time_complexity": "O(log(m × n))",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个满足下述两条属性的 <code>m × n</code> 整数矩阵：</p>
+<ul>
+<li>每行中的整数从左到右按非严格递增顺序排列。</li>
+<li>每行的第一个整数大于前一行的最后一个整数。</li>
+</ul>
+<p>给你一个整数 <code>target</code>，如果 <code>target</code> 在矩阵中，返回 <code>true</code>；否则，返回 <code>false</code>。</p>
+<p>你必须编写一个时间复杂度为 <code>O(log(m × n))</code> 的解决方案。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 13</div>
+    <div class="example-output">输出：false</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>l, r</code></td><td>int</td><td><b>定义</b>：把矩阵看成一维有序数组后，当前二分区间的左右下标，范围 <code>[0, m×n-1]</code><br><b>维护</b>：若 <code>target</code> 存在，其在一维下标必落在 <code>[l, r]</code> 内<br><b>更新</b>：每轮与 <code>mid</code> 处元素比较后，排除左半或右半</td></tr>
+    <tr><td><code>mid</code></td><td>int</td><td><b>定义</b>：当前一维下标 <code>(l + r) // 2</code><br><b>维护</b>：对应矩阵元素 <code>matrix[mid // n][mid % n]</code> 处于当前搜索区间正中<br><b>更新</b>：每轮重新计算；若等于 <code>target</code> 直接返回 <code>true</code></td></tr>
+    <tr><td><code>row, col</code></td><td>int</td><td><b>定义</b>：<code>row = mid // n</code>、<code>col = mid % n</code>，将一维下标映射回二维坐标<br><b>维护</b>：按行优先展开时，下标 <code>0..n-1</code> 为第一行，<code>n..2n-1</code> 为第二行，依此类推<br><b>更新</b>：仅由当前 <code>mid</code> 与列数 <code>n</code> 推导，每轮随 <code>mid</code> 变化</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：逐格扫描整个矩阵，O(m×n)——能判断是否存在，但题目要求 O(log(m×n))。</p>
+<p class="thinking-step">2. 重复在哪里？题目保证「行内升序」且「下一行首元素 &gt; 上一行末元素」，所以若按行从左到右、从上到下依次读，得到的是<strong>一条完整升序序列</strong>，与把矩阵拉平成一维数组等价。</p>
+<p class="thinking-step">3. 关键转化：在虚拟一维下标 <code>[0, m×n-1]</code> 上写普通二分；下标 <code>mid</code> 对应元素为 <code>matrix[mid // n][mid % n]</code>，无需真的复制数组。</p>
+<p class="thinking-step">4. 例 <code>target = 3</code>：拉平后序列以 1,3,5,7,10,... 开头，二分很快落在下标 1 的 3 上，返回 <code>true</code>；<code>target = 13</code> 落在 11 与 16 之间，区间收缩为空，返回 <code>false</code>。</p>
+<p class="thinking-step">5. 每轮排除一半下标，共 O(log(m×n)) 次比较；只用几个整型变量，空间 O(1)。</p>""",
+        "code_steps": """<p class="code-step">1. 若矩阵为空，返回 <code>false</code>；令 <code>m = len(matrix)</code>、<code>n = len(matrix[0])</code></p>
+<p class="code-step">2. 初始化 <code>l = 0</code>、<code>r = m * n - 1</code></p>
+<p class="code-step">3. 当 <code>l &lt;= r</code>：取 <code>mid = (l + r) // 2</code>，<code>val = matrix[mid // n][mid % n]</code></p>
+<p class="code-step">4. 若 <code>val == target</code> 返回 <code>true</code>；若 <code>val &lt; target</code> 则 <code>l = mid + 1</code>，否则 <code>r = mid - 1</code></p>
+<p class="code-step">5. 循环结束返回 <code>false</code></p>""",
+        "code_python": """class Solution:
+    def searchMatrix(self, matrix: list[list[int]], target: int) -> bool:
+        if not matrix or not matrix[0]:
+            return False
+        m, n = len(matrix), len(matrix[0])
+        l, r = 0, m * n - 1
+        while l <= r:
+            mid = (l + r) // 2
+            val = matrix[mid // n][mid % n]
+            if val == target:
+                return True
+            if val < target:
+                l = mid + 1
+            else:
+                r = mid - 1
+        return False""",
+        "code_cpp": """class Solution {
+public:
+    bool searchMatrix(vector<vector<int>>& matrix, int target) {
+        if (matrix.empty() || matrix[0].empty()) return false;
+        int m = (int)matrix.size(), n = (int)matrix[0].size();
+        int l = 0, r = m * n - 1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            int val = matrix[mid / n][mid % n];
+            if (val == target) return true;
+            if (val < target)
+                l = mid + 1;
+            else
+                r = mid - 1;
+        }
+        return false;
+    }
+};
+// 时间 O(log(m×n))，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 下标映射必须用 <code>mid // n</code> 与 <code>mid % n</code>（列数为 <code>n</code>）；误写成 <code>mid // m</code> 会访问错误格子。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 本题矩阵性质是「全局升序拉平」，不能照搬 <a href="https://leetcode.cn/problems/search-a-2d-matrix-ii/">搜索二维矩阵 II</a> 的从右上角「走楼梯」做法当作 log 解；II 题只要求 O(m+n)。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空矩阵或 <code>matrix[0]</code> 为空时要先判断，否则 <code>m * n - 1</code> 或取列数会出错。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：1×1 且命中</div>
+    <code>matrix = [[5]], target = 5 → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：1×1 未命中</div>
+    <code>matrix = [[5]], target = 3 → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：target 小于最小值</div>
+    <code>matrix = [[1,3],[10,11]], target = 0 → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：target 在最后一格</div>
+    <code>matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 60 → true</code>
+</div>""",
+    },
+
     "search-in-rotated-sorted-array": {
         "type": "二分查找",
         "difficulty": "中等",
