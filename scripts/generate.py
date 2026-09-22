@@ -4523,6 +4523,99 @@ public:
 </div>""",
     },
 
+    "sort-colors": {
+        "type": "双指针",
+        "difficulty": "中等",
+        "frontend_id": "75",
+        "title": "颜色分类",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给定一个包含红色、白色和蓝色、共 <code>n</code> 个元素的数组 <code>nums</code>，<strong>原地</strong>对它们进行排序，使得相同颜色的元素相邻，并按照红色、白色、蓝色顺序排列。</p>
+<p>我们使用整数 0、1 和 2 分别表示红色、白色和蓝色。</p>
+<p>必须在不使用库内置的 sort 函数的情况下解决这个问题。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [2,0,2,1,1,0]</div>
+    <div class="example-output">输出：[0,0,1,1,2,2]</div>
+    <div class="example-explain">所有 0 在最前，接着是所有 1，最后是所有 2。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [2,0,1]</div>
+    <div class="example-output">输出：[0,1,2]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>p0</code></td><td>int</td><td><b>定义</b>：下一段「待写入 0」的起始下标；恒有 <code>nums[0..p0-1] == 0</code><br><b>维护</b>：初始 <code>p0 = 0</code>；每确认一个 0 就扩展 0 区并右移边界<br><b>更新</b>：当 <code>nums[p1] == 0</code> 时与 <code>nums[p0]</code> 交换，然后 <code>p0 += 1</code></td></tr>
+    <tr><td><code>p1</code></td><td>int</td><td><b>定义</b>：当前扫描指针，处理区间 <code>[p1, p2]</code> 内尚未归类的元素<br><b>维护</b>：恒有 <code>nums[p0..p1-1] == 1</code>（1 区紧挨 0 区之后）<br><b>更新</b>：见 <code>nums[p1]</code> 为 0 则换到 <code>p0</code> 并 <code>p0++</code>、<code>p1++</code>；为 1 则仅 <code>p1++</code>；为 2 则与 <code>p2</code> 交换并 <code>p2--</code>（<code>p1</code> 不动，换入元素待再看）</td></tr>
+    <tr><td><code>p2</code></td><td>int</td><td><b>定义</b>：下一段「已确定为 2」的左边界；恒有 <code>nums[p2+1..n-1] == 2</code><br><b>维护</b>：初始 <code>p2 = n - 1</code>；扫描过程中 2 不断被换到数组尾部<br><b>更新</b>：当 <code>nums[p1] == 2</code> 时与 <code>nums[p2]</code> 交换，然后 <code>p2 -= 1</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：复制数组后按 0、1、2 计数再写回——O(n) 时间但用了 O(n) 额外空间；或冒泡/选择排序——O(n²)，都不满足「常数空间一趟扫描」的进阶要求。</p>
+<p class="thinking-step">2. 重复在哪里？只有三种取值，目标是把数组切成三段 0 | 1 | 2。若用两次扫描：先数出 c0、c1、c2 再按顺序覆写，逻辑清晰且 O(n) 时间 O(1) 空间——可作为基线，但还想再优化成<strong>单趟</strong>。</p>
+<p class="thinking-step">3. 荷兰国旗（三指针）：维护 0 区、1 区、2 区的边界。用 <code>p1</code> 从左扫，遇到 0 换到 <code>p0</code> 并扩 0 区；遇到 1 直接归入 1 区；遇到 2 换到 <code>p2</code> 并缩未处理区间——换下来的数可能仍是 0/1/2，所以换 2 时<strong>不能</strong>盲目 <code>p1++</code>。</p>
+<p class="thinking-step">4. 例 <code>[2,0,2,1,1,0]</code>：<code>p1</code> 遇 2 与尾部 0 交换得到 <code>[0,0,2,1,1,2]</code>，再处理两个 0 扩 0 区，中间 1 自然落在 <code>p0..p1-1</code>，最后 2 全在右端。</p>
+<p class="thinking-step">5. 循环条件 <code>p1 &lt;= p2</code>：当 <code>p1</code> 越过 <code>p2</code> 时三段已划分完毕。每个元素最多被交换常数次，时间 O(n)，仅用三个下标 O(1) 空间。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>n = len(nums)</code>，<code>p0 = 0</code>、<code>p1 = 0</code>、<code>p2 = n - 1</code></p>
+<p class="code-step">2. 当 <code>p1 &lt;= p2</code>：若 <code>nums[p1] == 0</code>，交换 <code>nums[p0]</code> 与 <code>nums[p1]</code>，<code>p0 += 1</code>、<code>p1 += 1</code></p>
+<p class="code-step">3. 若 <code>nums[p1] == 1</code>，仅 <code>p1 += 1</code></p>
+<p class="code-step">4. 若 <code>nums[p1] == 2</code>，交换 <code>nums[p1]</code> 与 <code>nums[p2]</code>，<code>p2 -= 1</code>（<code>p1</code> 不变）</p>
+<p class="code-step">5. 循环结束，<code>nums</code> 已按 0、1、2 有序（函数无返回值，原地修改）</p>""",
+        "code_python": """class Solution:
+    def sortColors(self, nums: list[int]) -> None:
+        p0 = p1 = 0
+        p2 = len(nums) - 1
+        while p1 <= p2:
+            if nums[p1] == 0:
+                nums[p0], nums[p1] = nums[p1], nums[p0]
+                p0 += 1
+                p1 += 1
+            elif nums[p1] == 1:
+                p1 += 1
+            else:
+                nums[p1], nums[p2] = nums[p2], nums[p1]
+                p2 -= 1""",
+        "code_cpp": """class Solution {
+public:
+    void sortColors(vector<int>& nums) {
+        int p0 = 0, p1 = 0, p2 = (int)nums.size() - 1;
+        while (p1 <= p2) {
+            if (nums[p1] == 0) {
+                swap(nums[p0], nums[p1]);
+                p0++;
+                p1++;
+            } else if (nums[p1] == 1) {
+                p1++;
+            } else {
+                swap(nums[p1], nums[p2]);
+                p2--;
+            }
+        }
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 遇到 2 与 <code>p2</code> 交换后<strong>不要</strong> <code>p1++</code>：换到 <code>p1</code> 的可能是 0 或 1，必须下一轮再判断。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 遇到 0 时若只 <code>p1++</code> 不交换、不移动 <code>p0</code>，0 会留在中间，三段 invariant 被破坏。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环条件是 <code>p1 &lt;= p2</code> 而非 <code>p1 &lt; n</code>：右端 2 区已归位，继续扫会重复处理已确定的 2。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>nums = [1] → [1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：已全部有序</div>
+    <code>nums = [0,0,1,1,2,2] → 不变</code>（<code>p1</code> 一路递增，无多余交换）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：逆序三色</div>
+    <code>nums = [2,1,0] → [0,1,2]</code>（多次交换仍在一趟内完成）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：全是同一颜色</div>
+    <code>nums = [2,2,2] → [2,2,2]</code>（<code>p2</code> 不断左移，<code>p1</code> 始终为 0）
+</div>""",
+    },
+
     "search-in-rotated-sorted-array": {
         "type": "二分查找",
         "difficulty": "中等",
