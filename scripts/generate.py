@@ -5353,6 +5353,115 @@ public:
 </div>""",
     },
 
+    "combinations": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "77",
+        "title": "组合",
+        "time_complexity": "O(k · C(n,k))（共 C(n,k) 组组合，每组拷贝长度 k）",
+        "space_complexity": "O(k)（递归栈深度，不计输出）",
+        "description": """<p>给定两个整数 <code>n</code> 和 <code>k</code>，返回范围 <code>[1, n]</code> 中所有可能的 <code>k</code> 个数的<strong>组合</strong>。</p>
+<p>你可以按 <strong>任意顺序</strong> 返回答案。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 4, k = 2</div>
+    <div class="example-output">输出：[[2,4],[3,4],[2,3],[1,2],[1,3],[1,4]]</div>
+    <div class="example-explain">从 1～4 中选 2 个数，共 C(4,2)=6 种组合（顺序无关）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 1, k = 1</div>
+    <div class="example-output">输出：[[1]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>path</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前已选数字组成的组合（升序片段）<br><b>维护</b>：DFS 每层在末尾追加一个比上一数更大的整数，回溯时 <code>pop</code> 撤销<br><b>更新</b>：尝试数字 <code>i</code> 时 <code>append(i)</code>；该分支探索完毕后 <code>pop</code></td></tr>
+    <tr><td><code>start</code></td><td>int</td><td><b>定义</b>：本轮可选数字的下界（含自身），候选来自 <code>[start, n]</code><br><b>维护</b>：只从 <code>start</code> 往后选，保证组合内严格递增，避免 <code>[1,2]</code> 与 <code>[2,1]</code> 重复<br><b>更新</b>：选了 <code>i</code> 后下一层传 <code>start = i + 1</code></td></tr>
+    <tr><td><code>need</code></td><td>int</td><td><b>定义</b>：距离凑满 <code>k</code> 个数还差几个（<code>k - len(path)</code>）<br><b>维护</b>：每追加一个数 <code>need</code> 减 1；为 0 时当前 <code>path</code> 即合法组合<br><b>更新</b>：循环上界剪枝：若从 <code>i</code> 到 <code>n</code> 剩余可选数不足 <code>need</code> 则 <code>break</code></td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：所有长度为 <code>k</code> 的组合<br><b>维护</b>：仅当 <code>len(path) == k</code> 时将 <code>path</code> 的副本加入<br><b>更新</b>：每到达叶子层追加一次；中途不收集半成品</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：从 <code>1..n</code> 中任意选 <code>k</code> 个数的所有子集，检查大小是否为 <code>k</code>——思路对，但子集有 <code>2^n</code> 个，<code>n=20</code> 会爆。</p>
+<p class="thinking-step">2. 重复在哪里？组合不关心顺序，<code>[1,2]</code> 与 <code>[2,1]</code> 是同一答案；若每层从 <code>1</code> 重新选，会大量生成排列等价物。</p>
+<p class="thinking-step">3. 关键转化：维护 <code>start</code>，每层只从 <code>start..n</code> 选，且递归传 <code>i+1</code>，使 <code>path</code> 内数字严格递增，自然去重；<code>len(path)==k</code> 时收集。</p>
+<p class="thinking-step">4. 剪枝：还需选 <code>need = k - len(path)</code> 个数时，若 <code>n - i + 1 &lt; need</code>，后面数字不够凑满，可直接 <code>break</code>。例 <code>n=4,k=2</code>：第一层 <code>i</code> 只需到 3，因为以 4 开头只剩一个数。</p>
+<p class="thinking-step">5. 边界 <code>n=1,k=1</code> 直接 <code>[[1]]</code>；<code>n≤20</code>、答案规模可控，回溯 + 剪枝足够。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化结果 <code>ans</code> 与当前路径 <code>path</code></p>
+<p class="code-step">2. 定义 DFS <code>backtrack(start)</code>：若 <code>len(path) == k</code>，将 <code>path[:]</code> 加入 <code>ans</code> 并返回</p>
+<p class="code-step">3. 计算 <code>need = k - len(path)</code>，对 <code>i</code> 从 <code>start</code> 到 <code>n</code>：若 <code>n - i + 1 &lt; need</code> 则 <code>break</code>（剩余数字不够）</p>
+<p class="code-step">4. 将 <code>i</code> 追加到 <code>path</code>，递归 <code>backtrack(i + 1)</code></p>
+<p class="code-step">5. 回溯：从 <code>path</code> 弹出末尾元素，继续尝试下一个 <code>i</code></p>
+<p class="code-step">6. 从 <code>backtrack(1)</code> 启动，返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def combine(self, n: int, k: int) -> list[list[int]]:
+        ans: list[list[int]] = []
+        path: list[int] = []
+
+        def backtrack(start: int) -> None:
+            if len(path) == k:
+                ans.append(path[:])
+                return
+            need = k - len(path)
+            for i in range(start, n + 1):
+                if n - i + 1 < need:
+                    break
+                path.append(i)
+                backtrack(i + 1)
+                path.pop()
+
+        backtrack(1)
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> combine(int n, int k) {
+        vector<vector<int>> ans;
+        vector<int> path;
+
+        function<void(int)> dfs = [&](int start) {
+            if ((int)path.size() == k) {
+                ans.push_back(path);
+                return;
+            }
+            int need = k - (int)path.size();
+            for (int i = start; i <= n; i++) {
+                if (n - i + 1 < need) break;
+                path.push_back(i);
+                dfs(i + 1);
+                path.pop_back();
+            }
+        };
+
+        dfs(1);
+        return ans;
+    }
+};
+// 时间 O(k·C(n,k))，空间 O(k) 递归栈""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把组合当排列：每层必须从 <code>start</code> 往后选并传 <code>i+1</code>，不能每层都从 <code>1</code> 枚举，否则会重复且漏剪枝意义。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 收集答案未拷贝 <code>path</code>：应 <code>ans.append(path[:])</code> 或在 C++ 于 <code>size==k</code> 时 push 当前 <code>path</code> 副本，否则回溯修改会污染结果。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记数量剪枝：不判断 <code>n - i + 1 &lt; need</code> 仍能通过，但在 <code>n</code> 较大时会多搜无效分支。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：k = n</div>
+    <code>n = 4, k = 4 → [[1,2,3,4]]</code>（只能全选）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：k = 1</div>
+    <code>n = 4, k = 1 → [[1],[2],[3],[4]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：最小规模</div>
+    <code>n = 1, k = 1 → [[1]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：示例 1</div>
+    <code>n = 4, k = 2 → 共 6 组，顺序任意</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：剪枝生效</div>
+    <code>第一层在 n=4,k=2 时 i 最大为 3；以 4 开头无法凑满两个数</code>
+</div>""",
+    },
+
     "combination-sum": {
         "type": "回溯",
         "difficulty": "中等",
