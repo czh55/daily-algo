@@ -600,5 +600,12 @@
     "title": "组合",
     "type": "回溯",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-24",
+    "slug": "subsets",
+    "title": "子集",
+    "type": "回溯",
+    "difficulty": "中等"
   }
 ]
