@@ -5560,6 +5560,136 @@ public:
 </div>""",
     },
 
+    "word-search": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "79",
+        "title": "单词搜索",
+        "time_complexity": "O(m·n·3^L)（L 为 word 长度；首步四向、之后每步至多 3 向，m·n 为起点枚举）",
+        "space_complexity": "O(L)（递归栈深度，不计原地改格子的临时标记）",
+        "description": """<p>给定一个 <code>m x n</code> 二维字符网格 <code>board</code> 和一个字符串单词 <code>word</code>。如果 <code>word</code> 存在于网格中，返回 <code>true</code>；否则，返回 <code>false</code>。</p>
+<p>单词必须按照字母顺序，通过<strong>水平或垂直相邻</strong>的单元格内的字母构成。同一个单元格内的字母<strong>不允许被重复使用</strong>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCCED"</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "SEE"</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCB"</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">路径不能走回头路重复使用同一格子的 'B'。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>r, c</code></td><td>int</td><td><b>定义</b>：当前正在匹配的格子坐标<br><b>维护</b>：DFS 每步只向四邻之一移动一格，且不出界<br><b>更新</b>：从起点 <code>(r,c)</code> 出发，递归时传入邻居坐标</td></tr>
+    <tr><td><code>k</code></td><td>int</td><td><b>定义</b>：下一步要匹配的字符在 <code>word</code> 中的下标（当前已匹配 <code>word[0..k-1]</code>）<br><b>维护</b>：进入格子前要求 <code>board[r][c] == word[k]</code>；匹配成功后下一层传 <code>k+1</code><br><b>更新</b>：<code>k == len(word)</code> 时整条路径匹配完成，返回成功</td></tr>
+    <tr><td><code>board[r][c]</code></td><td>char</td><td><b>定义</b>：网格字母；同时承担「是否已在本路径中使用」的标记<br><b>维护</b>：进入 DFS 时暂改为占位符（如 <code>'#'</code>），回溯时恢复原字符，避免同一路径重复踩格<br><b>更新</b>：成功探索后必须还原，否则兄弟分支无法复用该格</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：从每个格子当起点，用 DFS 尝试拼出 <code>word</code> 的每个字母——方向只有上下左右，路径长度最多 <code>L = len(word) ≤ 15</code>，网格也仅 <code>6×6</code>，回溯可行。</p>
+<p class="thinking-step">2. 重复在哪里？同一条搜索路径不能两次经过同一格子；若只记坐标集合而不「撤销」，回溯到上一层时仍会误以为该格已用，漏掉其他合法路径。</p>
+<p class="thinking-step">3. 关键转化：把「已访问」绑在格子上——匹配 <code>word[k]</code> 时暂时把 <code>board[r][c]</code> 改成 <code>'#'</code>，返回前改回去；这样同一 DFS 栈内自然满足「不重复使用格子」。</p>
+<p class="thinking-step">4. 外层枚举：凡 <code>board[r][c] == word[0]</code> 的格子都可能是起点，任一 <code>dfs(r,c,0)</code> 为真即答案为真。</p>
+<p class="thinking-step">5. 剪枝：字符不等直接返回；<code>L</code> 很小，不必再建额外 <code>visited</code> 数组，原地标记最省空间。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>word</code> 为空，按题意可视为 <code>true</code>（一般 <code>len(word) ≥ 1</code>）</p>
+<p class="code-step">2. 双重循环找所有 <code>board[r][c] == word[0]</code> 的起点，调用 <code>dfs(r, c, 0)</code></p>
+<p class="code-step">3. <code>dfs(r, c, k)</code>：越界、格子为 <code>'#'</code>、或 <code>board[r][c] != word[k]</code> 则失败</p>
+<p class="code-step">4. 若 <code>k == len(word) - 1</code>，当前格是最后一个字母，返回 <code>true</code></p>
+<p class="code-step">5. 保存 <code>ch = board[r][c]</code>，置 <code>board[r][c] = '#'</code>，四方向递归 <code>dfs(..., k+1)</code></p>
+<p class="code-step">6. 任一方向成功则返回 <code>true</code>；否则恢复 <code>board[r][c] = ch</code> 并返回 <code>false</code></p>""",
+        "code_python": """class Solution:
+    def exist(self, board: list[list[str]], word: str) -> bool:
+        m, n = len(board), len(board[0])
+
+        def dfs(r: int, c: int, k: int) -> bool:
+            if board[r][c] != word[k]:
+                return False
+            if k == len(word) - 1:
+                return True
+            ch = board[r][c]
+            board[r][c] = "#"
+            for dr, dc in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < m and 0 <= nc < n and dfs(nr, nc, k + 1):
+                    board[r][c] = ch
+                    return True
+            board[r][c] = ch
+            return False
+
+        for r in range(m):
+            for c in range(n):
+                if board[r][c] == word[0] and dfs(r, c, 0):
+                    return True
+        return False""",
+        "code_cpp": """class Solution {
+    int m, n;
+
+    bool dfs(vector<vector<char>>& board, int r, int c, const string& word, int k) {
+        if (board[r][c] != word[k])
+            return false;
+        if (k == (int)word.size() - 1)
+            return true;
+        char ch = board[r][c];
+        board[r][c] = '#';
+        const int dr[4] = {0, 0, 1, -1};
+        const int dc[4] = {1, -1, 0, 0};
+        for (int t = 0; t < 4; t++) {
+            int nr = r + dr[t], nc = c + dc[t];
+            if (nr >= 0 && nr < m && nc >= 0 && nc < n && dfs(board, nr, nc, word, k + 1)) {
+                board[r][c] = ch;
+                return true;
+            }
+        }
+        board[r][c] = ch;
+        return false;
+    }
+
+public:
+    bool exist(vector<vector<char>>& board, string word) {
+        m = board.size();
+        n = board[0].size();
+        for (int r = 0; r < m; r++) {
+            for (int c = 0; c < n; c++) {
+                if (board[r][c] == word[0] && dfs(board, r, c, word, 0))
+                    return true;
+            }
+        }
+        return false;
+    }
+};
+// 时间 O(m·n·3^L)，空间 O(L) 递归栈""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 回溯未恢复格子：忘记把 <code>'#'</code> 改回原字符，会导致其他起点或分支误判「该格已用」。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 终点判断：应在匹配当前格为 <code>word[k]</code> 后，若 <code>k == len(word)-1</code> 直接成功，避免无意义地向四邻继续搜。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用全局 <code>visited</code> 却不按层回溯：应随 DFS 撤销标记；更简洁的做法是原地改 <code>board</code>，与岛屿 DFS 类似。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单格单词</div>
+    <code>board = [["A"]], word = "A" → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：首字母不存在</div>
+    <code>board 中无 word[0] → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：示例 3 回头路</div>
+    <code>word = "ABCB" → false（不能重复用同一 B）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：共享前缀多起点</div>
+    <code>多个 'S' 作起点时，应分别 DFS，任一成功即可</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：最短失败</div>
+    <code>board = [["A"]], word = "B" → false</code>
+</div>""",
+    },
+
     "combination-sum": {
         "type": "回溯",
         "difficulty": "中等",

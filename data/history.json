@@ -607,5 +607,12 @@
     "title": "子集",
     "type": "回溯",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-26",
+    "slug": "word-search",
+    "title": "单词搜索",
+    "type": "回溯",
+    "difficulty": "中等"
   }
 ]
