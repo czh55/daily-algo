@@ -614,5 +614,12 @@
     "title": "单词搜索",
     "type": "回溯",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-27",
+    "slug": "remove-duplicates-from-sorted-array-ii",
+    "title": "删除有序数组中的重复项 II",
+    "type": "双指针",
+    "difficulty": "中等"
   }
 ]

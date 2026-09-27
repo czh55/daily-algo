@@ -3794,6 +3794,85 @@ public:
     <code>nums = [1,2,3,4] → 4, nums = [1,2,3,4]</code>（每个元素都被写入，<code>slow</code> 最终为 3）
 </div>""",
     },
+
+    "remove-duplicates-from-sorted-array-ii": {
+        "type": "双指针",
+        "difficulty": "中等",
+        "frontend_id": "80",
+        "title": "删除有序数组中的重复项 II",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个有序数组 <code>nums</code>，请你<strong>原地</strong>删除重复出现的元素，使得出现次数超过两次的元素<strong>只出现两次</strong>，返回删除后数组的新长度。</p>
+<p>不要使用额外的数组空间，你必须在<strong>原地</strong>修改输入数组并在使用 O(1) 额外空间的条件下完成。</p>
+<p>请注意，输入数组是以<strong>「引用」</strong>方式传递的：函数返回的长度 <code>k</code> 表示 <code>nums</code> 的前 <code>k</code> 个元素为修改后的有效结果，超出部分可忽略。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,1,1,2,2,3]</div>
+    <div class="example-output">输出：5, nums = [1,1,2,2,3]</div>
+    <div class="example-explain">函数应返回新长度 5，原数组前五个元素被修改为 1, 1, 2, 2, 3。不需要考虑超出新长度后面的元素。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [0,0,1,1,1,1,2,3,3]</div>
+    <div class="example-output">输出：7, nums = [0,0,1,1,2,3,3]</div>
+    <div class="example-explain">函数应返回新长度 7，原数组前七个元素被修改为 0, 0, 1, 1, 2, 3, 3。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>slow</code></td><td>int</td><td><b>定义</b>：下一个待写入位置的下标，也是当前已保留元素个数；<code>nums[0..slow-1]</code> 为「每个值最多出现 2 次」的有效前缀<br><b>维护</b>：初始可视为空前缀，扫描时按需扩展；前两个位置无条件保留（任意值最多出现两次，前两位不可能超限）<br><b>更新</b>：当判定 <code>nums[fast]</code> 可写入时，执行 <code>nums[slow] = nums[fast]; slow++</code></td></tr>
+    <tr><td><code>fast</code></td><td>int</td><td><b>定义</b>：从左到右扫描原数组的读指针<br><b>维护</b>：每轮用 <code>nums[fast]</code> 与结果区中「倒数第二个」元素比较，判断是否还能再保留一份相同值<br><b>更新</b>：每轮循环末尾 <code>fast++</code>，直到遍历完整个数组</td></tr>
+    <tr><td><code>nums[slow-2]</code>（比较锚点）</td><td>int</td><td><b>定义</b>：当 <code>slow ≥ 2</code> 时，有效前缀里「同一数值已出现次数是否已达 2」的判据：若 <code>nums[fast] == nums[slow-2]</code>，则再写入会形成第 3 个连续相同值<br><b>维护</b>：有序数组下，相同值在结果前缀中必然相邻，故看倒数第二个即可代表「该值已保留了几份」<br><b>更新</b>：仅用于条件 <code>slow &lt; 2 or nums[fast] != nums[slow-2]</code>，不单独维护变量</td></tr>
+    <tr><td><code>k</code>（返回值）</td><td>int</td><td><b>定义</b>：去重（限 2 次）后的有效长度<br><b>维护</b>：等于扫描结束后的 <code>slow</code><br><b>更新</b>：循环结束后直接返回 <code>slow</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力想法：用哈希表统计每个数出现次数，再开新数组按序填入、每个数最多写两次——正确但 O(n) 额外空间，不符合原地 O(1) 要求。</p>
+<p class="thinking-step">2. 和 #26「每个数只留一次」的关系：本题是「每个数最多留两次」。#26 用 <code>nums[fast] != nums[slow]</code> 判断新值；这里需要判断「当前值是否还能再写一次」。</p>
+<p class="thinking-step">3. 有序性：相同数字在数组中连续。若结果前缀 <code>nums[0..slow-1]</code> 里某值已出现 2 次，则这 2 次一定占据末尾两个位置，且与即将扫描的 <code>nums[fast]</code> 相等时，<code>nums[slow-2]</code> 必然等于 <code>nums[fast]</code>。</p>
+<p class="thinking-step">4. 写入条件：前两个位置直接写（<code>slow &lt; 2</code>）；否则仅当 <code>nums[fast] != nums[slow-2]</code> 时写入——等价于「该值在前缀里还不到 2 次，或 <code>nums[fast]</code> 是更大的新值」。</p>
+<p class="thinking-step">5. 一遍扫描，每个下标常数工作，返回 <code>slow</code>。与 #26 同属写指针 + 读指针，只是判等对象从 <code>nums[slow]</code> 换成 <code>nums[slow-2]</code>。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>slow = 0</code>，<code>for fast in range(len(nums))</code> 扫描每个元素</p>
+<p class="code-step">2. 若 <code>slow &lt; 2</code> 或 <code>nums[fast] != nums[slow - 2]</code>，说明允许保留 <code>nums[fast]</code>：执行 <code>nums[slow] = nums[fast]</code>，<code>slow += 1</code></p>
+<p class="code-step">3. 否则跳过 <code>nums[fast]</code>（该值在前缀中已有 2 份）</p>
+<p class="code-step">4. 扫描结束，<code>nums[0..slow-1]</code> 为符合题意的数组，返回 <code>slow</code></p>""",
+        "code_python": """class Solution:
+    def removeDuplicates(self, nums: List[int]) -> int:
+        slow = 0  # nums[0..slow-1] 为每个值最多出现 2 次的前缀
+        for fast in range(len(nums)):
+            if slow < 2 or nums[fast] != nums[slow - 2]:
+                nums[slow] = nums[fast]
+                slow += 1
+        return slow""",
+        "code_cpp": """class Solution {
+public:
+    int removeDuplicates(vector<int>& nums) {
+        int slow = 0;  // nums[0..slow-1] 为每个值最多出现 2 次的前缀
+        for (int fast = 0; fast < nums.size(); fast++) {
+            if (slow < 2 || nums[fast] != nums[slow - 2]) {
+                nums[slow] = nums[fast];
+                slow++;
+            }
+        }
+        return slow;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误用 #26 的条件 <code>nums[fast] != nums[slow]</code>：那样每个数只保留 1 次，与「最多 2 次」不符。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 比较下标写成 <code>nums[slow-1]</code>：只保证与紧邻前一个不同，仍可能写入第 3 个相同值（如 <code>1,1,1</code> 时会错误保留三个 1）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回值写成 <code>slow - 1</code> 或 <code>slow + 1</code>：本题 <code>slow</code> 本身就是已写入元素个数，应直接返回 <code>slow</code>（与 #26 的 <code>slow+1</code> 不同，因 #26 的 <code>slow</code> 是最后下标而非长度）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：长度 ≤ 2</div>
+    <code>nums = [1] → 1；nums = [1,2] → 2</code>（始终满足 <code>slow &lt; 2</code>，全部保留）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：同一值超过 2 次</div>
+    <code>nums = [1,1,1,1,1] → 2, nums = [1,1,...]</code>（第三个及以后的 1 被跳过）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：混合重复</div>
+    <code>nums = [0,0,1,1,1,1,2,3,3] → 7</code>（四个 1 只保留两个，与示例 2 一致）
+</div>""",
+    },
     "remove-element": {
         "type": "双指针",
         "difficulty": "简单",
