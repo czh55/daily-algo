@@ -4802,6 +4802,119 @@ public:
 </div>""",
     },
 
+    "search-in-rotated-sorted-array-ii": {
+        "type": "二分查找",
+        "difficulty": "中等",
+        "frontend_id": "81",
+        "title": "搜索旋转排序数组 II",
+        "time_complexity": "O(log n) 均摊，最坏 O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>已知存在一个按<strong>非降序</strong>排列的整数数组 <code>nums</code>，数组中的值<strong>不必互不相同</strong>。</p>
+<p>在传递给函数之前，<code>nums</code> 在预先未知的某个下标 <code>k</code>（<code>0 &lt;= k &lt; nums.length</code>）上进行了 <strong>旋转</strong>，使数组变为 <code>[nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]</code>。</p>
+<p>给你 <strong>旋转后</strong> 的数组 <code>nums</code> 和一个整数 <code>target</code>，请你判断 <code>target</code> 是否存在于数组中：存在返回 <code>true</code>，否则返回 <code>false</code>。请尽可能减少操作步骤。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [2,5,6,0,0,1,2], target = 0</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain"><code>0</code> 在数组中出现。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [2,5,6,0,0,1,2], target = 3</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">数组中不存在 3。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>l, r</code></td><td>int</td><td><b>定义</b>：当前待搜索区间的左右边界<br><b>维护</b>：若 <code>target</code> 存在，至少有一个下标落在 <code>[l, r]</code> 内<br><b>更新</b>：正常二分缩半；或在「三端相等」歧义时同步 <code>l += 1</code>、<code>r -= 1</code> 挤掉无法判定的重复值</td></tr>
+    <tr><td><code>mid</code></td><td>int</td><td><b>定义</b>：区间中点 <code>(l + r) // 2</code><br><b>维护</b>：将区间切成左段 <code>[l, mid]</code> 与右段 <code>[mid+1, r]</code>；在非歧义时至少一段仍为非降序<br><b>更新</b>：每轮重算；<code>nums[mid] == target</code> 时立即返回 <code>true</code></td></tr>
+    <tr><td><code>歧义收缩</code></td><td>—</td><td><b>定义</b>：当 <code>nums[l] == nums[mid] == nums[r]</code> 时，无法判断哪一半仍保持原非降序<br><b>维护</b>：此时不能安全地丢掉任一半区间，只能排除端点重复值<br><b>更新</b>：<code>l += 1</code> 且 <code>r -= 1</code> 后 <code>continue</code>，进入下一轮</td></tr>
+    <tr><td><code>有序半段判定</code></td><td>bool</td><td><b>定义</b>：若 <code>nums[l] &lt;= nums[mid]</code>，认为左半 <code>[l, mid]</code> 非降序；否则右半 <code>[mid+1, r]</code> 非降序<br><b>维护</b>：与 #33 相同，但相等元素会使「严格升序」退化为「非降序」，边界比较用 <code>&lt;=</code><br><b>更新</b>：在有序半段上用 <code>nums[l] &lt;= target &lt; nums[mid]</code> 或 <code>nums[mid] &lt; target &lt;= nums[r]</code> 决定缩哪边</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：从左到右扫一遍看有没有 <code>target</code>，O(n)——能判断存在性，但题目希望尽量快，且与旋转有序结构无关。</p>
+<p class="thinking-step">2. 重复在哪里？和 #33 一样，旋转后任意 <code>mid</code> 至少有一半仍是原数组的非降序段；可以在那一半上用二分思想缩区间。但本题允许重复，<code>nums[l] == nums[mid] == nums[r]</code> 时无法区分「左半有序」还是「右半有序」。</p>
+<p class="thinking-step">3. 关键转化：先处理三端相等——同时 <code>l++</code>、<code>r--</code>，去掉两个与 <code>mid</code> 同值的端点（它们不可能单独成为唯一答案的判据）。其余情况照 #33：判哪半非降序，再看 <code>target</code> 是否落在该半的数值范围内。</p>
+<p class="thinking-step">4. 例 <code>[2,5,6,0,0,1,2], target=0</code>：二分过程中会在右半非降序段 <code>[0,0,1,2]</code> 内命中；若遇到 <code>[1,0,1,1,1], target=0</code> 这类重复密集区间，三端相等分支会线性挤边界，最坏 O(n)。</p>
+<p class="thinking-step">5. 返回布尔值：找到任意一个 <code>nums[mid]==target</code> 即可 <code>true</code>，无需记录下标；搜完区间仍无则 <code>false</code>。</p>""",
+        "code_steps": """<p class="code-step">1. <code>l = 0</code>，<code>r = len(nums) - 1</code></p>
+<p class="code-step">2. 当 <code>l &lt;= r</code>：取 <code>mid</code>，若 <code>nums[mid] == target</code> 返回 <code>true</code></p>
+<p class="code-step">3. 若 <code>nums[l] == nums[mid] == nums[r]</code>：<code>l += 1</code>，<code>r -= 1</code>，继续下一轮</p>
+<p class="code-step">4. 若 <code>nums[l] &lt;= nums[mid]</code>（左半非降序）：<code>nums[l] &lt;= target &lt; nums[mid]</code> 则 <code>r = mid - 1</code>，否则 <code>l = mid + 1</code></p>
+<p class="code-step">5. 否则（右半非降序）：<code>nums[mid] &lt; target &lt;= nums[r]</code> 则 <code>l = mid + 1</code>，否则 <code>r = mid - 1</code></p>
+<p class="code-step">6. 循环结束返回 <code>false</code></p>""",
+        "code_python": """class Solution:
+    def search(self, nums: list[int], target: int) -> bool:
+        l, r = 0, len(nums) - 1
+        while l <= r:
+            mid = (l + r) // 2
+            if nums[mid] == target:
+                return True
+            if nums[l] == nums[mid] == nums[r]:
+                l += 1
+                r -= 1
+                continue
+            if nums[l] <= nums[mid]:          # 左半 [l, mid] 非降序
+                if nums[l] <= target < nums[mid]:
+                    r = mid - 1
+                else:
+                    l = mid + 1
+            else:                             # 右半 [mid+1, r] 非降序
+                if nums[mid] < target <= nums[r]:
+                    l = mid + 1
+                else:
+                    r = mid - 1
+        return False""",
+        "code_cpp": """class Solution {
+public:
+    bool search(vector<int>& nums, int target) {
+        int l = 0, r = (int)nums.size() - 1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (nums[mid] == target) return true;
+            if (nums[l] == nums[mid] && nums[mid] == nums[r]) {
+                l++;
+                r--;
+                continue;
+            }
+            if (nums[l] <= nums[mid]) {      // 左半 [l, mid] 非降序
+                if (nums[l] <= target && target < nums[mid])
+                    r = mid - 1;
+                else
+                    l = mid + 1;
+            } else {                         // 右半 [mid+1, r] 非降序
+                if (nums[mid] < target && target <= nums[r])
+                    l = mid + 1;
+                else
+                    r = mid - 1;
+            }
+        }
+        return false;
+    }
+};
+// 均摊 O(log n)，重复极多时最坏 O(n)；空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 漏掉三端相等分支：直接套 #33 会在 <code>nums[l]==nums[mid]==nums[r]</code> 时误判有序半段，可能错误缩区间导致漏答。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 本题是非降序而非严格升序，左半有序时仍用 <code>target &lt; nums[mid]</code>（不能写成 <code>&lt;=</code>），因为 <code>nums[mid]==target</code> 已在前面返回。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回值是布尔型：未找到应返回 <code>false</code>，不要返回 <code>-1</code>；找到一处即可 <code>true</code>，无需继续搜其他重复位置。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素命中</div>
+    <code>nums = [1], target = 1 → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全数组相同值</div>
+    <code>nums = [2,2,2,2], target = 2 → true</code>（大量三端相等，靠缩边界与命中 <code>mid</code>）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：重复值与旋转断点</div>
+    <code>nums = [2,5,6,0,0,1,2], target = 0 → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：存在相同端点导致歧义</div>
+    <code>nums = [1,0,1,1,1], target = 0 → true</code>（需三端相等时 <code>l++/r--</code> 才能继续二分）
+</div>""",
+    },
+
     "find-first-and-last-position-of-element-in-sorted-array": {
         "type": "二分查找",
         "difficulty": "中等",
