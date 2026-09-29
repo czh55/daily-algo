@@ -3873,6 +3873,109 @@ public:
     <code>nums = [0,0,1,1,1,1,2,3,3] → 7</code>（四个 1 只保留两个，与示例 2 一致）
 </div>""",
     },
+    "remove-duplicates-from-sorted-list-ii": {
+        "type": "链表指针",
+        "difficulty": "中等",
+        "frontend_id": "82",
+        "title": "删除排序链表中的重复元素 II",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给定一个<strong>已排序</strong>的链表的头节点 <code>head</code>。</p>
+<p>删除原始链表中所有<strong>重复</strong>数字的节点，只留下<strong>不同</strong>的数字。</p>
+<p>返回<strong>已排序</strong>的链表。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,2,3,3,4,4,5]</div>
+    <div class="example-output">输出：[1,2,5]</div>
+    <div class="example-explain">值为 3、4 的节点各出现两次，整段重复块都要删掉，只保留各出现一次的 1、2、5。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [1,1,1,2,3]</div>
+    <div class="example-output">输出：[2,3]</div>
+    <div class="example-explain">开头连续三个 1 全部删除，链表从 2 开始。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵头节点，<code>dummy.next = head</code><br><b>维护</b>：始终位于真实头节点之前，便于在「整段重复块含头节点」时改链<br><b>更新</b>：创建后不再移动，最终返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>prev</code></td><td>ListNode*</td><td><b>定义</b>：结果链表中「已确定保留」的最后一个节点，初始为 <code>dummy</code><br><b>维护</b>：<code>dummy.next..prev</code> 均为只出现一次的节点；遇到重复块时 <code>prev</code> 不动，只改 <code>prev.next</code> 跳过整段<br><b>更新</b>：当前节点 <code>curr</code> 无重复后继时 <code>prev = curr</code>；跳过重复块后执行 <code>prev.next = curr</code>（<code>curr</code> 已是下一段首节点）</td></tr>
+    <tr><td><code>curr</code></td><td>ListNode*</td><td><b>定义</b>：扫描指针，从 <code>head</code> 向右检查是否进入重复块<br><b>维护</b>：若 <code>curr.val == curr.next.val</code>，则从 <code>curr</code> 起整段同值节点都要删除<br><b>更新</b>：无重复时 <code>curr = curr.next</code>；有重复时 <code>while curr and curr.val == dup_val: curr = curr.next</code>，再令 <code>prev.next = curr</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：用哈希表统计每个值出现次数，再开新链表只接出现一次的节点——正确但 O(n) 额外空间，且没利用「已排序、相同值相邻」。</p>
+<p class="thinking-step">2. 和 #83（每个值只删多余份、保留一份）对比：本题是「只要出现过重复，该值的所有节点都删」。因此不能边扫边保留，而要识别「连续相同值的一段」并整段跳过。</p>
+<p class="thinking-step">3. 有序性：重复值必然形成连续块。若 <code>curr.next</code> 与 <code>curr</code> 同值，则 <code>curr</code> 所在块至少两个节点，整块作废；用 <code>while</code> 把 <code>curr</code> 推到块后第一个不同值（或 <code>null</code>）。</p>
+<p class="thinking-step">4. 谁改 <code>next</code>？删除的是「下一段要接上的位置」的前驱。用 <code>prev</code> 表示结果链尾；跳过重复块后 <code>prev.next = curr</code>，且 <code>prev</code> 不前进（因为刚删掉的块可能包含原 <code>prev</code> 的下一个节点）。仅当 <code>curr</code> 无重复后继时才 <code>prev = curr</code>。</p>
+<p class="thinking-step">5. 头节点可能是重复块（如 <code>[1,1,1,2,3]</code>）——加 <code>dummy</code>，令 <code>prev = dummy</code>，与删中间块同一套逻辑；一遍扫描 O(n)，O(1) 额外指针。</p>""",
+        "code_steps": """<p class="code-step">1. <code>dummy = ListNode(0, head)</code>，<code>prev = dummy</code>，<code>curr = head</code></p>
+<p class="code-step">2. 当 <code>curr</code> 非空：若 <code>curr.next</code> 存在且 <code>curr.val == curr.next.val</code>，记下 <code>dup_val</code>，<code>while curr and curr.val == dup_val: curr = curr.next</code>，再 <code>prev.next = curr</code></p>
+<p class="code-step">3. 否则（<code>curr</code> 在结果中保留）：<code>prev = curr</code>，<code>curr = curr.next</code></p>
+<p class="code-step">4. 返回 <code>dummy.next</code></p>""",
+        "code_python": """# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def deleteDuplicates(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        dummy = ListNode(0, head)  # 哨兵，处理头节点即重复块
+        prev, curr = dummy, head
+
+        while curr:
+            if curr.next and curr.val == curr.next.val:
+                dup_val = curr.val
+                while curr and curr.val == dup_val:  # 跳过整段重复块
+                    curr = curr.next
+                prev.next = curr
+            else:
+                prev = curr
+                curr = curr.next
+
+        return dummy.next""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* deleteDuplicates(ListNode* head) {
+        ListNode dummy(0, head);  // 哨兵，处理头节点即重复块
+        ListNode* prev = &dummy;
+        ListNode* curr = head;
+
+        while (curr) {
+            if (curr->next && curr->val == curr->next->val) {
+                int dupVal = curr->val;
+                while (curr && curr->val == dupVal)  // 跳过整段重复块
+                    curr = curr->next;
+                prev->next = curr;
+            } else {
+                prev = curr;
+                curr = curr->next;
+            }
+        }
+        return dummy.next;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 套用 #83 的「保留一份」逻辑：本题重复值要<strong>全部</strong>删除，不能把 <code>curr</code> 当作保留节点直接 <code>prev = curr</code> 再只删后继。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 跳过重复块后误执行 <code>prev = curr</code>：此时 <code>curr</code> 尚未验证是否无重复，应等下一轮循环；只有走 <code>else</code> 分支才移动 <code>prev</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>dummy</code>：头节点属于重复块时（如全 1），没有前驱可改 <code>next</code>，必须用哨兵统一接链。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空链表</div>
+    <code>head = [] → []</code>（循环不执行，返回 <code>dummy.next == null</code>）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：无重复</div>
+    <code>head = [1,2,3] → [1,2,3]</code>（始终走 else，<code>prev</code> 逐节点前进）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：全部为同一重复值</div>
+    <code>head = [1,1,1] → []</code>（<code>prev</code> 停在 dummy，<code>prev.next = null</code>）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单节点</div>
+    <code>head = [1] → [1]</code>（无 <code>curr.next</code>，直接保留）
+</div>""",
+    },
     "remove-element": {
         "type": "双指针",
         "difficulty": "简单",

@@ -628,5 +628,12 @@
     "title": "搜索旋转排序数组 II",
     "type": "二分查找",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-29",
+    "slug": "remove-duplicates-from-sorted-list-ii",
+    "title": "删除排序链表中的重复元素 II",
+    "type": "链表指针",
+    "difficulty": "中等"
   }
 ]
