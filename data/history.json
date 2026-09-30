@@ -635,5 +635,12 @@
     "title": "删除排序链表中的重复元素 II",
     "type": "链表指针",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-09-30",
+    "slug": "remove-duplicates-from-sorted-list",
+    "title": "删除排序链表中的重复元素",
+    "type": "链表指针",
+    "difficulty": "简单"
   }
 ]

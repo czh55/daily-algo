@@ -3873,6 +3873,90 @@ public:
     <code>nums = [0,0,1,1,1,1,2,3,3] → 7</code>（四个 1 只保留两个，与示例 2 一致）
 </div>""",
     },
+    "remove-duplicates-from-sorted-list": {
+        "type": "链表指针",
+        "difficulty": "简单",
+        "frontend_id": "83",
+        "title": "删除排序链表中的重复元素",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给定一个<strong>已排序</strong>的链表的头节点 <code>head</code>。</p>
+<p><strong>删除所有重复的元素</strong>，使每个元素<strong>只出现一次</strong>。返回<strong>已排序</strong>的链表。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,1,2]</div>
+    <div class="example-output">输出：[1,2]</div>
+    <div class="example-explain">两个 1 只保留第一个，接着接到 2。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [1,1,2,3,3]</div>
+    <div class="example-output">输出：[1,2,3]</div>
+    <div class="example-explain">1、3 各删去多余副本，每个值在结果中恰好出现一次。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>curr</code></td><td>ListNode*</td><td><b>定义</b>：结果链表中「已确认保留」的最后一个节点，初始为 <code>head</code>（空链表则直接返回）<br><b>维护</b>：<code>head..curr</code> 上每个值至多出现一次，且与 <code>curr.next</code> 之后的未处理段相连<br><b>更新</b>：若后继与 <code>curr.val</code> 相同则只改 <code>curr.next</code> 跳过重复节点；否则 <code>curr = curr.next</code> 前进</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：遍历链表把值放进新链表或数组，遇到与上一值相同就跳过——正确，但要额外 O(n) 节点或数组，也没利用「已排序、重复值相邻」。</p>
+<p class="thinking-step">2. 有序性：相同值必然连成一段。对当前保留节点 <code>curr</code>，只要 <code>curr.next</code> 与 <code>curr</code> 同值，就说明下一个是多余副本，应摘掉。</p>
+<p class="thinking-step">3. 摘掉方式：不移动 <code>curr</code>，令 <code>curr.next = curr.next.next</code>，可能连续多个相同值，用内层 <code>while curr.next and curr.val == curr.next.val</code> 一直跳。</p>
+<p class="thinking-step">4. 当 <code>curr.next</code> 为空或值不同，说明 <code>curr</code> 这一段去重完成，<code>curr = curr.next</code> 处理下一段。</p>
+<p class="thinking-step">5. 与 #82 对比：本题是「每个值保留一份」；#82 是「凡重复过的值整段删除」。本题通常不需要 <code>dummy</code>，因为从不删掉「当前唯一的一份」。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>head</code> 为空，直接返回</p>
+<p class="code-step">2. <code>curr = head</code>，当 <code>curr</code> 非空时循环</p>
+<p class="code-step">3. 当 <code>curr.next</code> 存在且 <code>curr.val == curr.next.val</code>：<code>curr.next = curr.next.next</code>（可连续执行，去掉所有同值后继）</p>
+<p class="code-step">4. 否则 <code>curr = curr.next</code></p>
+<p class="code-step">5. 返回 <code>head</code></p>""",
+        "code_python": """# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def deleteDuplicates(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        curr = head
+        while curr:
+            while curr.next and curr.val == curr.next.val:
+                curr.next = curr.next.next  # 跳过与 curr 同值的后继
+            curr = curr.next
+        return head""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* deleteDuplicates(ListNode* head) {
+        ListNode* curr = head;
+        while (curr) {
+            while (curr->next && curr->val == curr->next->val)
+                curr->next = curr->next->next;  // 跳过与 curr 同值的后继
+            curr = curr->next;
+        }
+        return head;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 每删一个重复就 <code>curr = curr.next</code>：会漏掉连续三个及以上同值（如 <code>[1,1,1]</code>），应在同值时只改 <code>next</code>、不前进 <code>curr</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误用 #82 的「整段删除」或 <code>dummy + prev</code>：本题保留每个值的第一个出现，单指针改 <code>next</code> 即可。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空链表未处理：<code>while curr</code> 自然不执行，直接返回 <code>head == nullptr</code>，勿对空指针访问 <code>curr.next</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空链表</div>
+    <code>head = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：无重复</div>
+    <code>head = [1,2,3] → [1,2,3]</code>（内层 while 不触发，<code>curr</code> 一路前进）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：连续多个相同值</div>
+    <code>head = [1,1,1,2] → [1,2]</code>（内层 while 需执行两次摘掉多余 1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单节点</div>
+    <code>head = [1] → [1]</code>
+</div>""",
+    },
     "remove-duplicates-from-sorted-list-ii": {
         "type": "链表指针",
         "difficulty": "中等",
