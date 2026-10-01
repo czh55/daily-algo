@@ -3957,6 +3957,101 @@ public:
     <code>head = [1] → [1]</code>
 </div>""",
     },
+    "largest-rectangle-in-histogram": {
+        "type": "单调栈",
+        "difficulty": "困难",
+        "frontend_id": "84",
+        "title": "柱状图中最大的矩形",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "description": """<p>给定 <code>n</code> 个非负整数，表示柱状图中各个柱子的高度。每个柱子彼此相邻，且宽度为 <code>1</code>。</p>
+<p>求在该柱状图中，能够勾勒出来的矩形的<strong>最大面积</strong>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：heights = [2,1,5,6,2,3]</div>
+    <div class="example-output">输出：10</div>
+    <div class="example-explain">以高度 5 为短边、宽度 2（下标 2~3）的矩形面积为 10，为最大。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：heights = [2,4]</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain">整段高度 4 的矩形，或单柱高度 4，最大面积为 4。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>st</code></td><td>stack&lt;int&gt;</td><td><b>定义</b>：存下标，栈内对应高度单调<strong>递增</strong>（栈底到栈顶高度非降）<br><b>维护</b>：尚未被「右侧更矮柱子」截断的柱子下标<br><b>更新</b>：当前高度 ≥ 栈顶高度时压入 <code>i</code>；否则弹出栈顶并结算以该柱为<strong>最短边</strong>的矩形</td></tr>
+    <tr><td><code>mid</code></td><td>int</td><td><b>定义</b>：被弹出的柱子下标，矩形高度取 <code>heights[mid]</code><br><b>维护</b>：每次 <code>heights[i] &lt; heights[st.top()]</code> 时由 <code>st.pop()</code> 得到<br><b>更新</b>：结算一次最大候选面积后可能继续弹出</td></tr>
+    <tr><td><code>left</code></td><td>int</td><td><b>定义</b>：矩形左边界的前一个下标（开区间左端）<br><b>维护</b>：<code>mid</code> 弹出后若栈非空则为 <code>st[-1]</code>，否则为 <code>-1</code><br><b>更新</b>：宽度 <code>w = i - left - 1</code>（左右均为「第一个更矮」的位置）</td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：遍历过程中见过的最大矩形面积<br><b>维护</b>：每次弹出 <code>mid</code> 时用 <code>heights[mid] * w</code> 取 max<br><b>更新</b>：<code>ans = max(ans, heights[mid] * (i - left - 1))</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举每一根柱子作为矩形「最短边」，向左右扩展到第一个更矮的柱子——正确，但单柱 O(n)，总体 O(n²)。</p>
+<p class="thinking-step">2. 重复劳动：对每根柱子「向左/向右第一个更矮」是同类区间问题；若已知每柱左右边界，面积 = 高 × (右边界 - 左边界 - 1)。</p>
+<p class="thinking-step">3. 单调栈：从左到右扫，栈里保持高度递增的下标。遇到 <code>heights[i]</code> 比栈顶矮，说明栈顶柱子的「右边界」就是 <code>i</code>，弹出并结算；左边界是弹出后新栈顶（或 -1）。</p>
+<p class="thinking-step">4. 与接雨水对比：接雨水在「变高」时弹出算凹槽；本题在「变矮」时弹出，以被弹出柱为矩形高度向左右撑满。</p>
+<p class="thinking-step">5. 收尾：末尾可在 <code>heights</code> 后补一个高度 0 的哨兵，或第二轮把栈里剩余下标全部弹出（右边界视为 <code>n</code>）。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化空栈 <code>st</code>，<code>ans = 0</code>；可选 <code>heights.append(0)</code> 作哨兵</p>
+<p class="code-step">2. 遍历下标 <code>i</code>，当栈非空且 <code>heights[i] &lt; heights[st[-1]]</code> 时循环</p>
+<p class="code-step">3. <code>mid = st.pop()</code>，<code>left = st[-1] if st else -1</code>，<code>w = i - left - 1</code></p>
+<p class="code-step">4. <code>ans = max(ans, heights[mid] * w)</code></p>
+<p class="code-step">5. 循环结束后 <code>st.append(i)</code>；全部扫完后若未用哨兵，再对栈中剩余下标重复 3~4（右边界为 <code>n</code>）</p>""",
+        "code_python": """class Solution:
+    def largestRectangleArea(self, heights: list[int]) -> int:
+        st = []  # 单调递增栈，存下标
+        ans = 0
+        heights = heights + [0]  # 哨兵：保证栈内柱子最终被结算
+
+        for i, h in enumerate(heights):
+            while st and h < heights[st[-1]]:
+                mid = st.pop()
+                left = st[-1] if st else -1
+                w = i - left - 1
+                ans = max(ans, heights[mid] * w)
+            st.append(i)
+
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int largestRectangleArea(vector<int>& heights) {
+        stack<int> st;  // 单调递增栈，存下标
+        int ans = 0;
+        heights.push_back(0);  // 哨兵
+
+        for (int i = 0; i < heights.size(); i++) {
+            while (!st.empty() && heights[i] < heights[st.top()]) {
+                int mid = st.top(); st.pop();
+                int left = st.empty() ? -1 : st.top();
+                int w = i - left - 1;
+                ans = max(ans, heights[mid] * w);
+            }
+            st.push(i);
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 宽度公式：左边界是「前一个更矮」的下标 <code>left</code>，宽度为 <code>i - left - 1</code>，不是 <code>i - mid</code>（除非左右都扩展到 mid）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 单调方向与接雨水相反：本题栈内<strong>递增</strong>，在「当前更矮」时弹出；接雨水常是递减栈在「当前更高」时弹出。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记收尾：不用哨兵时，遍历结束后栈内下标仍需以右边界 <code>n</code> 结算，否则会漏掉以末尾柱子为最短边的矩形。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单柱</div>
+    <code>heights = [5] → 5</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单调递增</div>
+    <code>heights = [1,2,3,4] → 6</code>（取中间 2×3 或 3×2 等，最大为 6）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：全相同高度</div>
+    <code>heights = [2,2,2] → 6</code>（整段宽度 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：含 0 高度</div>
+    <code>heights = [0,2] → 2</code>（0 会把矩形截断）
+</div>""",
+    },
     "remove-duplicates-from-sorted-list-ii": {
         "type": "链表指针",
         "difficulty": "中等",
