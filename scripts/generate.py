@@ -4052,6 +4052,134 @@ public:
     <code>heights = [0,2] → 2</code>（0 会把矩形截断）
 </div>""",
     },
+    "maximal-rectangle": {
+        "type": "单调栈",
+        "difficulty": "困难",
+        "frontend_id": "85",
+        "title": "最大矩形",
+        "time_complexity": "O(rows × cols)",
+        "space_complexity": "O(cols)",
+        "description": """<p>给定一个仅包含 <code>0</code> 和 <code>1</code>、大小为 <code>rows × cols</code> 的二维二进制矩阵，找出只包含 <code>1</code> 的最大矩形，并返回其<strong>面积</strong>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：matrix = [["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]]</div>
+    <div class="example-output">输出：6</div>
+    <div class="example-explain">最大矩形为 2 行 × 3 列（高度 2、宽度 3），面积 6。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：matrix = [["0"]]</div>
+    <div class="example-output">输出：0</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：matrix = [["1"]]</div>
+    <div class="example-output">输出：1</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>heights[j]</code></td><td>int[]</td><td><b>定义</b>：第 <code>i</code> 行处理完后，第 <code>j</code> 列中「以当前行为底、向上连续为 1」的柱子高度<br><b>维护</b>：扫到 <code>matrix[i][j]=='1'</code> 则 <code>heights[j]+=1</code>，否则置 <code>0</code>（0 截断竖条）<br><b>更新</b>：每处理完一行，<code>heights</code> 就是该行视角下的「柱状图」高度数组</td></tr>
+    <tr><td><code>row_ans</code></td><td>int</td><td><b>定义</b>：当前行对应柱状图上的最大矩形面积（即 #84 子问题答案）<br><b>维护</b>：对固定 <code>heights</code> 用单调递增栈求最大矩形<br><b>更新</b>：每行扫完后计算一次，并入全局 <code>ans</code></td></tr>
+    <tr><td><code>st</code></td><td>stack&lt;int&gt;</td><td><b>定义</b>：#84 同款，存下标，栈内高度单调递增<br><b>维护</b>：处理当前行 <code>heights</code> 时，在「当前更矮」处弹出并结算<br><b>更新</b>：每行重新清空或复用栈，对该行 <code>heights</code> 从左到右扫描</td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：所有行、所有合法矩形中的最大面积<br><b>维护</b>：<code>ans = max(ans, row_ans)</code><br><b>更新</b>：遍历完每一行后取 max</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举矩形的左上、右下角点，检查是否全为 1 再算面积——正确，但 O(rows²×cols²) 或带预处理的 O(rows²×cols²)，数据范围下太慢。</p>
+<p class="thinking-step">2. 固定高度：若矩形高度为 <code>h</code>、底边在第 <code>i</code> 行，则它等价于：在由「每列向上连续 1 的长度」形成的柱状图上，找高度至少为 <code>h</code> 的最大宽矩形——仍要枚举 <code>h</code>，不够干脆。</p>
+<p class="thinking-step">3. 逐行压缩：按行向下扫，维护 <code>heights[j]</code> = 以当前行为底、第 <code>j</code> 列向上连续 1 的个数。则<strong>任意底边在当前行的最大全 1 矩形</strong>，一定等于「当前 <code>heights</code> 作为柱状图」的最大矩形（LeetCode 84）。</p>
+<p class="thinking-step">4. 复用 #84：每行更新 <code>heights</code> 后，用单调栈 O(cols) 求该行柱状图最大面积；共 <code>rows</code> 行，总复杂度 O(rows×cols)。</p>
+<p class="thinking-step">5. 关键直觉：矩阵里的矩形底边只能落在某一行上；把问题拆成「底边在第 i 行」的若干子问题，子问题全是柱状图最大矩形。</p>""",
+        "code_steps": """<p class="code-step">1. 若矩阵为空返回 0；<code>heights = [0] * cols</code>，<code>ans = 0</code></p>
+<p class="code-step">2. 对每一行 <code>i</code>：遍历列 <code>j</code>，<code>matrix[i][j]=='1'</code> 则 <code>heights[j]+=1</code>，否则 <code>heights[j]=0</code></p>
+<p class="code-step">3. 调用柱状图最大矩形（单调栈 + 末尾高度 0 哨兵），得到 <code>row_ans</code></p>
+<p class="code-step">4. <code>ans = max(ans, row_ans)</code>，处理完所有行后返回 <code>ans</code></p>
+<p class="code-step">5. 栈逻辑与 #84 相同：<code>while h &lt; heights[st.top()]</code> 弹出 <code>mid</code>，宽度 <code>i - left - 1</code>，更新答案</p>""",
+        "code_python": """class Solution:
+    def maximalRectangle(self, matrix: list[list[str]]) -> int:
+        if not matrix or not matrix[0]:
+            return 0
+        rows, cols = len(matrix), len(matrix[0])
+        heights = [0] * cols
+        ans = 0
+
+        def largest_in_row(h: list[int]) -> int:
+            st = []
+            row_ans = 0
+            for i, hi in enumerate(h + [0]):  # 哨兵结算栈内剩余柱子
+                while st and hi < h[st[-1]]:
+                    mid = st.pop()
+                    left = st[-1] if st else -1
+                    w = i - left - 1
+                    row_ans = max(row_ans, h[mid] * w)
+                st.append(i)
+            return row_ans
+
+        for i in range(rows):
+            for j in range(cols):
+                if matrix[i][j] == "1":
+                    heights[j] += 1
+                else:
+                    heights[j] = 0
+            ans = max(ans, largest_in_row(heights))
+
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int maximalRectangle(vector<vector<char>>& matrix) {
+        if (matrix.empty() || matrix[0].empty()) return 0;
+        int rows = matrix.size(), cols = matrix[0].size();
+        vector<int> heights(cols, 0);
+        int ans = 0;
+
+        auto largestInRow = [&](vector<int>& h) {
+            stack<int> st;
+            int rowAns = 0;
+            h.push_back(0);  // 哨兵
+            for (int i = 0; i < (int)h.size(); i++) {
+                while (!st.empty() && h[i] < h[st.top()]) {
+                    int mid = st.top(); st.pop();
+                    int left = st.empty() ? -1 : st.top();
+                    int w = i - left - 1;
+                    rowAns = max(rowAns, h[mid] * w);
+                }
+                st.push(i);
+            }
+            h.pop_back();
+            return rowAns;
+        };
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (matrix[i][j] == '1') heights[j]++;
+                else heights[j] = 0;
+            }
+            ans = max(ans, largestInRow(heights));
+        }
+        return ans;
+    }
+};
+// 时间 O(rows×cols)，空间 O(cols)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 字符比较：矩阵元素是 <code>'0'</code>/<code>'1'</code> 字符，不是整数 1，C++/Java 要用引号。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>heights[j]=0</code>：遇到 0 必须清零该列竖条，否则会把上一段 1 错误延伸到本行。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 每行都要跑完整柱状图算法：不能只对「变化了的列」偷懒，整行 <code>heights</code> 才是当前底边的正确柱状图。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：全 0</div>
+    <code>matrix = [["0","0"],["0","0"]] → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全 1 小矩阵</div>
+    <code>matrix = [["1","1"],["1","1"]] → 4</code>（整表矩形）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单行多列</div>
+    <code>matrix = [["1","1","0","1"]] → 2</code>（底边在该行，柱状图最大宽 2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单列</div>
+    <code>matrix = [["1"],["1"],["0"],["1"]] → 2</code>（中间 0 截断，最大高度 2 的竖条）
+</div>""",
+    },
     "remove-duplicates-from-sorted-list-ii": {
         "type": "链表指针",
         "difficulty": "中等",

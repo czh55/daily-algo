@@ -649,5 +649,12 @@
     "title": "柱状图中最大的矩形",
     "type": "单调栈",
     "difficulty": "困难"
+  },
+  {
+    "date": "2026-10-02",
+    "slug": "maximal-rectangle",
+    "title": "最大矩形",
+    "type": "单调栈",
+    "difficulty": "困难"
   }
 ]
