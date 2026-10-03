@@ -4180,6 +4180,110 @@ public:
     <code>matrix = [["1"],["1"],["0"],["1"]] → 2</code>（中间 0 截断，最大高度 2 的竖条）
 </div>""",
     },
+    "partition-list": {
+        "type": "链表指针",
+        "difficulty": "中等",
+        "frontend_id": "86",
+        "title": "分隔链表",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个链表的头节点 <code>head</code> 和一个特定值 <code>x</code> ，请你对链表进行分隔，使得所有 <strong>小于</strong> <code>x</code> 的节点都出现在 <strong>大于或等于</strong> <code>x</code> 的节点之前。</p>
+<p>你应当 <strong>保留</strong> 两个分区中每个节点的初始相对位置。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,4,3,2,5,2], x = 3</div>
+    <div class="example-output">输出：[1,2,2,4,3,5]</div>
+    <div class="example-explain">小于 3 的节点按原顺序为 1、2、2；其余为 4、3、5，拼接后满足分区要求。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [2,1], x = 2</div>
+    <div class="example-output">输出：[1,2]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>small_dummy</code> / <code>large_dummy</code></td><td>ListNode*</td><td><b>定义</b>：两条结果链表的哨兵头，不存有效值<br><b>维护</b>：分别锚定「&lt;x 段」与「≥x 段」的起始位置<br><b>更新</b>：创建后不再移动，最终用 <code>small_dummy.next</code> 作为答案头</td></tr>
+    <tr><td><code>small_tail</code> / <code>large_tail</code></td><td>ListNode*</td><td><b>定义</b>：两条分区链表的尾指针<br><b>维护</b>：始终指向各自已拼接部分的最后一个节点<br><b>更新</b>：每接入一个节点后 <code>tail = tail.next</code></td></tr>
+    <tr><td><code>curr</code></td><td>ListNode*</td><td><b>定义</b>：原链表中当前待分类的节点<br><b>维护</b>：从 <code>head</code> 沿 <code>next</code> 扫完整条链<br><b>更新</b>：每轮先按 <code>curr.val</code> 挂到对应尾后，再 <code>curr = curr.next</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写暴力：把链表所有值拷进数组，按是否 &lt;x 分成两段再重建链表——正确且能保留相对顺序，但多用了 O(n) 额外数组，也没利用「只改指针」这一链表优势。</p>
+<p class="thinking-step">2. 重复在哪里？题目不要求排序，只要求「小于 x 的在前、其余在后，且各段内相对顺序不变」——等价于稳定地把节点分成两桶，再头尾相接。</p>
+<p class="thinking-step">3. 双桶尾插：维护 <code>small</code> 与 <code>large</code> 两条链，各配哨兵 + 尾指针；扫原链时，节点直接挂到对应桶尾部（尾插保证桶内顺序与原链一致）。</p>
+<p class="thinking-step">4. 扫完后把 <code>large</code> 头接到 <code>small</code> 尾后；务必令 <code>large_tail.next = None</code>，否则原链末尾可能仍指向旧后继，形成环。</p>
+<p class="thinking-step">5. 每个节点只访问一次，时间 O(n)；仅常数个指针，空间 O(1)（不计返回链表本身）。</p>""",
+        "code_steps": """<p class="code-step">1. 创建 <code>small_dummy</code>、<code>large_dummy</code>，尾指针 <code>small_tail</code>、<code>large_tail</code> 初始指向各自哨兵</p>
+<p class="code-step">2. <code>curr = head</code>，当 <code>curr</code> 非空：若 <code>curr.val &lt; x</code> 挂到 small 桶尾，否则挂到 large 桶尾；<code>curr = curr.next</code></p>
+<p class="code-step">3. <code>large_tail.next = None</code>（截断 large 段，防环）</p>
+<p class="code-step">4. <code>small_tail.next = large_dummy.next</code>，返回 <code>small_dummy.next</code></p>""",
+        "code_python": """# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def partition(self, head: Optional[ListNode], x: int) -> Optional[ListNode]:
+        small_dummy = ListNode(0)
+        large_dummy = ListNode(0)
+        small_tail = small_dummy
+        large_tail = large_dummy
+        curr = head
+
+        while curr:
+            if curr.val < x:
+                small_tail.next = curr
+                small_tail = small_tail.next
+            else:
+                large_tail.next = curr
+                large_tail = large_tail.next
+            curr = curr.next
+
+        large_tail.next = None          # 截断，避免与原链尾部成环
+        small_tail.next = large_dummy.next
+        return small_dummy.next""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* partition(ListNode* head, int x) {
+        ListNode smallDummy(0), largeDummy(0);
+        ListNode* smallTail = &smallDummy;
+        ListNode* largeTail = &largeDummy;
+        ListNode* curr = head;
+
+        while (curr) {
+            if (curr->val < x) {
+                smallTail->next = curr;
+                smallTail = smallTail->next;
+            } else {
+                largeTail->next = curr;
+                largeTail = largeTail->next;
+            }
+            curr = curr->next;
+        }
+
+        largeTail->next = nullptr;              // 截断，避免成环
+        smallTail->next = largeDummy.next;
+        return smallDummy.next;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>large_tail.next = nullptr</code>：原链表最后一个节点的 <code>next</code> 可能仍指向后续节点，拼接后会形成环或多余节点。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 比较条件写错：题目是「严格小于 x」进前段，<code>val == x</code> 应进后段（≥x）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用头插法建桶会破坏「相对顺序」——必须用尾插，与遍历顺序一致。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空链表</div>
+    <code>head = null, x = 1 → null</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全部 &lt;x 或全部 ≥x</div>
+    <code>head = [1,2], x = 5 → [1,2]；head = [3,4], x = 1 → [3,4]</code>（large 段可能为空，接尾时仍安全）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：x 与节点值相等</div>
+    <code>head = [2,1], x = 2 → [1,2]</code>（2 进后段，1 进前段）
+</div>""",
+    },
     "remove-duplicates-from-sorted-list-ii": {
         "type": "链表指针",
         "difficulty": "中等",
