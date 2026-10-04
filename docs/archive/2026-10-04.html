@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扰乱字符串 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-10-04</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#87</span>
+                    <span class="problem-type tag-dp">二维DP</span>
+                    <span class="problem-difficulty difficulty-hard">困难</span>
+                </div>
+                <h1 class="problem-title">扰乱字符串</h1>
+                <a href="https://leetcode.cn/problems/scramble-string/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-10-04">
+                        <source src="../audio/2026-10-04.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-04', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-10-04', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-04', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-04', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>使用下面描述的算法可以扰乱字符串 <code>s</code> 得到字符串 <code>t</code>：</p>
+<ol>
+<li>如果字符串的长度为 1，算法停止；</li>
+<li>如果长度 &gt; 1：在<strong>某个下标</strong>将 <code>s</code> 分成两个非空子串 <code>x</code> 和 <code>y</code>（<code>s = x + y</code>），再<strong>随机</strong>选择保持 <code>x + y</code> 或交换为 <code>y + x</code>，并对 <code>x</code>、<code>y</code> 递归执行本算法。</li>
+</ol>
+<p>给你两个<strong>长度相等</strong>的字符串 <code>s1</code> 和 <code>s2</code>，判断 <code>s2</code> 是否是 <code>s1</code> 的扰乱字符串。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s1 = "great", s2 = "rgeat"</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">可通过多次分割与（可选）交换子串，把 "great" 扰乱成 "rgeat"。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s1 = "abcde", s2 = "caebd"</div>
+    <div class="example-output">输出：false</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s1 = "a", s2 = "a"</div>
+    <div class="example-output">输出：true</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力：枚举所有分割与是否交换的递归树——状态空间巨大，但子问题重复：同样是「s1 的某连续段能否变成 s2 的某连续段」，只与起点和长度有关。</p>
+<p class="thinking-step">2. 重复在哪里？固定起点 <code>(i,j)</code> 与长度 <code>k</code>，无论上层如何分割，答案唯一 → 记忆化 <code>dfs(i,j,k)</code> 或三维 <code>dp[i][j][k]</code>。</p>
+<p class="thinking-step">3. 转移直觉：第一次把长度 <code>k</code> 切成左 <code>p</code>、右 <code>k-p</code>。若<strong>不交换</strong>，左对左、右对右；若<strong>交换</strong>，s1 的左段要对上 s2 的右段、s1 的右段对上 s2 的左段（下标用 <code>j+k-p</code> 对齐）。</p>
+<p class="thinking-step">4. 剪枝：两段字符 multiset 必须相同（排序后相等或 26 字母计数），否则直接 false，避免无效枚举。</p>
+<p class="thinking-step">5. 边界 <code>k=1</code>：单字符能否扰乱 = 是否相等。按长度从小到大填表或自顶向下记忆化，总复杂度约 O(n⁴)（n³ 状态 × 每层 O(n) 分割）。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dfs(i, j, k)</code> / <code>dp[i][j][k]</code></td><td>bool</td><td><b>定义</b>：<code>s1[i : i+k]</code> 能否经扰乱算法变成 <code>s2[j : j+k]</code><br><b>维护</b>：长度 <code>k=1</code> 时比首字符；<code>k&gt;1</code> 时枚举分割点 <code>p∈[1,k)</code>，尝试「不交换」或「交换」两段子串的两种拼接方式<br><b>更新</b>：任一 <code>p</code> 使左右子问题同时为真则当前为真；否则为假</td></tr>
+    <tr><td><code>p</code></td><td>int</td><td><b>定义</b>：当前长度 <code>k</code> 的子串在<strong>第一次分割</strong>时左段长度<br><b>维护</b>：<code>1 ≤ p &lt; k</code>，左段长 <code>p</code>、右段长 <code>k-p</code><br><b>更新</b>：不交换：<code>dfs(i,j,p)∧dfs(i+p,j+p,k-p)</code>；交换：<code>dfs(i,j+k-p,p)∧dfs(i+p,j,k-p)</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 若 <code>len(s1)≠len(s2)</code> 返回 false；令 <code>n=len(s1)</code></p>
+<p class="code-step">2. 定义 <code>dfs(i,j,k)</code>：<code>k==1</code> 时返回 <code>s1[i]==s2[j]</code>；若两段排序后不等返回 false</p>
+<p class="code-step">3. 枚举 <code>p=1..k-1</code>：若 <code>dfs(i,j,p) and dfs(i+p,j+p,k-p)</code>（不交换）或 <code>dfs(i,j+k-p,p) and dfs(i+p,j,k-p)</code>（交换）成立，返回 true</p>
+<p class="code-step">4. 全部 <code>p</code> 失败则 false；入口 <code>dfs(0,0,n)</code>（配合 <code>@cache</code> 或三维 DP 表）</p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def isScramble(self, s1: str, s2: str) -&gt; bool:
+        n = len(s1)
+        if n != len(s2):
+            return False
+
+        from functools import lru_cache
+
+        @lru_cache(maxsize=None)
+        def dfs(i: int, j: int, k: int) -&gt; bool:
+            if k == 1:
+                return s1[i] == s2[j]
+            if sorted(s1[i : i + k]) != sorted(s2[j : j + k]):
+                return False
+            for p in range(1, k):
+                # 不交换：左对左、右对右
+                if dfs(i, j, p) and dfs(i + p, j + p, k - p):
+                    return True
+                # 交换：s1 左段 ↔ s2 右段
+                if dfs(i, j + k - p, p) and dfs(i + p, j, k - p):
+                    return True
+            return False
+
+        return dfs(0, 0, n)</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    bool isScramble(string s1, string s2) {
+        int n = s1.size();
+        if (n != (int)s2.size()) return false;
+
+        vector&lt;vector&lt;vector&lt;char&gt;&gt;&gt; dp(
+            n, vector&lt;vector&lt;char&gt;&gt;(n, vector&lt;char&gt;(n + 1, 0)));
+
+        for (int i = 0; i &lt; n; i++)
+            for (int j = 0; j &lt; n; j++)
+                dp[i][j][1] = (s1[i] == s2[j]);
+
+        for (int k = 2; k &lt;= n; k++) {
+            for (int i = 0; i + k &lt;= n; i++) {
+                for (int j = 0; j + k &lt;= n; j++) {
+                    bool ok = false;
+                    for (int p = 1; p &lt; k &amp;&amp; !ok; p++) {
+                        if ((dp[i][j][p] &amp;&amp; dp[i + p][j + p][k - p]) ||
+                            (dp[i][j + k - p][p] &amp;&amp; dp[i + p][j][k - p]))
+                            ok = true;
+                    }
+                    dp[i][j][k] = ok;
+                }
+            }
+        }
+        return dp[0][0][n];
+    }
+};
+// 时间 O(n⁴)，空间 O(n³)；可在转移前加字符计数剪枝</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n⁴)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(n³)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 「交换」时 s2 左段起点是 <code>j + k - p</code>，不是 <code>j + p</code>——右段长度仍是 <code>p</code>，与 s1 左段对齐。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记字符 multiset 剪枝：字母组成不同必为 false，否则会多算大量无效 <code>p</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 分割点 <code>p</code> 必须满足 <code>1 ≤ p &lt; k</code>，两段都非空；<code>k=1</code> 不能进分割循环。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：单字符相同/不同</div>
+    <code>s1="a", s2="a" → true；s1="a", s2="b" → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：字母相同但无法扰乱</div>
+    <code>s1="abc", s2="bca" → false</code>（计数相同仍可能无解）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：完全相同</div>
+    <code>s1="abcd", s2="abcd" → true</code>（始终可选「不交换」一路到底）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：经典 true</div>
+    <code>s1="great", s2="rgeat" → true</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

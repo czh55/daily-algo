@@ -663,5 +663,12 @@
     "title": "分隔链表",
     "type": "链表指针",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-04",
+    "slug": "scramble-string",
+    "title": "扰乱字符串",
+    "type": "二维DP",
+    "difficulty": "困难"
   }
 ]
