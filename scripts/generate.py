@@ -3248,6 +3248,93 @@ public:
     <code>l1 = [1,2,4], l2 = [1,3,4] → [1,1,2,3,4,4]（相等时取 l1 即可）</code>
 </div>""",
     },
+    "merge-sorted-array": {
+        "type": "双指针",
+        "difficulty": "简单",
+        "frontend_id": "88",
+        "title": "合并两个有序数组",
+        "time_complexity": "O(m + n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你两个按 <strong>非递减顺序</strong> 排列的整数数组 <code>nums1</code> 和 <code>nums2</code>，另有两个整数 <code>m</code> 和 <code>n</code>，分别表示 <code>nums1</code> 和 <code>nums2</code> 中的元素数目。</p>
+<p>请你 <strong>合并</strong> <code>nums2</code> 到 <code>nums1</code> 中，使合并后的数组同样按 <strong>非递减顺序</strong> 排列。</p>
+<p><strong>注意：</strong>最终，合并后数组不应由函数返回，而是存储在数组 <code>nums1</code> 中。为了应对这种情况，<code>nums1</code> 的初始长度为 <code>m + n</code>，其中前 <code>m</code> 个元素表示应合并的元素，后 <code>n</code> 个元素为 <code>0</code>，应忽略。<code>nums2</code> 的长度为 <code>n</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3</div>
+    <div class="example-output">输出：[1,2,2,3,5,6]</div>
+    <div class="example-explain">合并 [1,2,3] 与 [2,5,6]，结果就地写在 nums1 中。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums1 = [1], m = 1, nums2 = [], n = 0</div>
+    <div class="example-output">输出：[1]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums1 = [0], m = 0, nums2 = [1], n = 1</div>
+    <div class="example-output">输出：[1]</div>
+    <div class="example-explain"><code>m = 0</code> 时 nums1 有效段为空，尾部占位 0 可忽略，直接把 nums2 写入即可。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>p1</code></td><td>int</td><td><b>定义</b>：<code>nums1</code> 有效段（前 <code>m</code> 个）中「尚未写入结果」的最大下标<br><b>维护</b>：初始为 <code>m - 1</code>，随较大元素从尾部落位而左移<br><b>更新</b>：当 <code>nums1[p1]</code> 被写到 <code>write</code> 后 <code>p1 -= 1</code></td></tr>
+    <tr><td><code>p2</code></td><td>int</td><td><b>定义</b>：<code>nums2</code> 中尚未合并的最大下标<br><b>维护</b>：初始为 <code>n - 1</code>，与 <code>p1</code> 比较谁更大<br><b>更新</b>：当 <code>nums2[p2]</code> 写入结果后 <code>p2 -= 1</code>；循环以 <code>p2 &gt;= 0</code> 为条件（<code>nums2</code> 全部落位即结束）</td></tr>
+    <tr><td><code>write</code></td><td>int</td><td><b>定义</b>：<code>nums1</code> 中下一个应写入「当前最大元素」的下标<br><b>维护</b>：从 <code>m + n - 1</code> 向左填，保证尚未处理的尾部始终是空闲或可被覆盖的占位<br><b>更新</b>：每写入一个数后 <code>write -= 1</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写暴力：把 <code>nums1</code> 前 <code>m</code> 个与整个 <code>nums2</code> 拷到新数组，排序后再写回 <code>nums1</code>——正确但多 O(m+n) 空间，也没利用「nums1 尾部有占位」这一条件。</p>
+<p class="thinking-step">2. 重复在哪里？若从<strong>头部</strong>像合并链表一样双指针写入 <code>nums1</code>，后移元素会覆盖还没读到的值；关键约束是<strong>只能原地</strong>，且尾部 <code>n</code> 个位置本来就是空的。</p>
+<p class="thinking-step">3. 倒着填：用 <code>write</code> 从 <code>m+n-1</code> 向左，每次在 <code>nums1[p1]</code> 与 <code>nums2[p2]</code> 中取较大者放到 <code>nums1[write]</code>。从尾部写不会踩到还没处理的 <code>nums1</code> 有效段（被写走的元素已经「归档」到更右侧）。</p>
+<p class="thinking-step">4. 当 <code>p2 &lt; 0</code> 时 <code>nums2</code> 已全部写入；<code>nums1</code> 剩余未动的前缀本身已有序且已在正确位置，无需再移动。若 <code>p1</code> 先耗尽，则持续把 <code>nums2</code> 剩余段写入即可。</p>
+<p class="thinking-step">5. 每个元素最多被比较、写入一次，时间 O(m+n)；仅用三个下标，额外空间 O(1)。</p>""",
+        "code_steps": """<p class="code-step">1. <code>p1 = m - 1</code>，<code>p2 = n - 1</code>，<code>write = m + n - 1</code></p>
+<p class="code-step">2. 当 <code>p2 &gt;= 0</code>：若 <code>p1 &gt;= 0</code> 且 <code>nums1[p1] &gt; nums2[p2]</code>，则 <code>nums1[write] = nums1[p1]</code> 并 <code>p1--</code>；否则 <code>nums1[write] = nums2[p2]</code> 并 <code>p2--</code>；然后 <code>write--</code></p>
+<p class="code-step">3. 循环结束即完成（<code>p2</code> 耗尽时 <code>nums1</code> 左侧剩余元素已在位；无需返回值）</p>""",
+        "code_python": """class Solution:
+    def merge(self, nums1: list[int], m: int, nums2: list[int], n: int) -> None:
+        p1, p2, write = m - 1, n - 1, m + n - 1
+
+        while p2 >= 0:
+            if p1 >= 0 and nums1[p1] > nums2[p2]:
+                nums1[write] = nums1[p1]
+                p1 -= 1
+            else:
+                nums1[write] = nums2[p2]
+                p2 -= 1
+            write -= 1""",
+        "code_cpp": """class Solution {
+public:
+    void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+        int p1 = m - 1, p2 = n - 1, write = m + n - 1;
+
+        while (p2 >= 0) {
+            if (p1 >= 0 && nums1[p1] > nums2[p2]) {
+                nums1[write] = nums1[p1--];
+            } else {
+                nums1[write] = nums2[p2--];
+            }
+            --write;
+        }
+    }
+};
+// 时间 O(m+n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 从数组<strong>头部</strong>合并并原地写入：会覆盖 <code>nums1</code> 里尚未参与比较的元素，除非先整体后移 O(m) 次。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 比较时忘记 <code>p1 &gt;= 0</code>：<code>m = 0</code> 时仍访问 <code>nums1[p1]</code> 会越界；<code>p1</code> 耗尽后应只从 <code>nums2</code> 继续填。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把 <code>nums1</code> 尾部占位 <code>0</code> 当成有效元素参与 <code>m</code> 计数——有效长度只看 <code>m</code>，不是 <code>len(nums1)</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：nums2 为空</div>
+    <code>nums1 = [1], m = 1, nums2 = [], n = 0 → [1]</code>（循环不进入）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：nums1 有效段为空</div>
+    <code>nums1 = [0], m = 0, nums2 = [1], n = 1 → [1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：nums1 全部大于 nums2</div>
+    <code>nums1 = [4,5,6,0,0,0], m = 3, nums2 = [1,2,3], n = 3 → [1,2,3,4,5,6]</code>（先填较大者，最终左侧小段自动就位）
+</div>""",
+    },
 
     "generate-parentheses": {
         "type": "回溯",

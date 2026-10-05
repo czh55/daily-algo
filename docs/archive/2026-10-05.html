@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合并两个有序数组 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-10-05</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#88</span>
+                    <span class="problem-type tag-two-pointer">双指针</span>
+                    <span class="problem-difficulty difficulty-easy">简单</span>
+                </div>
+                <h1 class="problem-title">合并两个有序数组</h1>
+                <a href="https://leetcode.cn/problems/merge-sorted-array/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-10-05">
+                        <source src="../audio/2026-10-05.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-05', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-10-05', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-05', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-05', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你两个按 <strong>非递减顺序</strong> 排列的整数数组 <code>nums1</code> 和 <code>nums2</code>，另有两个整数 <code>m</code> 和 <code>n</code>，分别表示 <code>nums1</code> 和 <code>nums2</code> 中的元素数目。</p>
+<p>请你 <strong>合并</strong> <code>nums2</code> 到 <code>nums1</code> 中，使合并后的数组同样按 <strong>非递减顺序</strong> 排列。</p>
+<p><strong>注意：</strong>最终，合并后数组不应由函数返回，而是存储在数组 <code>nums1</code> 中。为了应对这种情况，<code>nums1</code> 的初始长度为 <code>m + n</code>，其中前 <code>m</code> 个元素表示应合并的元素，后 <code>n</code> 个元素为 <code>0</code>，应忽略。<code>nums2</code> 的长度为 <code>n</code>。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3</div>
+    <div class="example-output">输出：[1,2,2,3,5,6]</div>
+    <div class="example-explain">合并 [1,2,3] 与 [2,5,6]，结果就地写在 nums1 中。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums1 = [1], m = 1, nums2 = [], n = 0</div>
+    <div class="example-output">输出：[1]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums1 = [0], m = 0, nums2 = [1], n = 1</div>
+    <div class="example-output">输出：[1]</div>
+    <div class="example-explain"><code>m = 0</code> 时 nums1 有效段为空，尾部占位 0 可忽略，直接把 nums2 写入即可。</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 我先写暴力：把 <code>nums1</code> 前 <code>m</code> 个与整个 <code>nums2</code> 拷到新数组，排序后再写回 <code>nums1</code>——正确但多 O(m+n) 空间，也没利用「nums1 尾部有占位」这一条件。</p>
+<p class="thinking-step">2. 重复在哪里？若从<strong>头部</strong>像合并链表一样双指针写入 <code>nums1</code>，后移元素会覆盖还没读到的值；关键约束是<strong>只能原地</strong>，且尾部 <code>n</code> 个位置本来就是空的。</p>
+<p class="thinking-step">3. 倒着填：用 <code>write</code> 从 <code>m+n-1</code> 向左，每次在 <code>nums1[p1]</code> 与 <code>nums2[p2]</code> 中取较大者放到 <code>nums1[write]</code>。从尾部写不会踩到还没处理的 <code>nums1</code> 有效段（被写走的元素已经「归档」到更右侧）。</p>
+<p class="thinking-step">4. 当 <code>p2 &lt; 0</code> 时 <code>nums2</code> 已全部写入；<code>nums1</code> 剩余未动的前缀本身已有序且已在正确位置，无需再移动。若 <code>p1</code> 先耗尽，则持续把 <code>nums2</code> 剩余段写入即可。</p>
+<p class="thinking-step">5. 每个元素最多被比较、写入一次，时间 O(m+n)；仅用三个下标，额外空间 O(1)。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>p1</code></td><td>int</td><td><b>定义</b>：<code>nums1</code> 有效段（前 <code>m</code> 个）中「尚未写入结果」的最大下标<br><b>维护</b>：初始为 <code>m - 1</code>，随较大元素从尾部落位而左移<br><b>更新</b>：当 <code>nums1[p1]</code> 被写到 <code>write</code> 后 <code>p1 -= 1</code></td></tr>
+    <tr><td><code>p2</code></td><td>int</td><td><b>定义</b>：<code>nums2</code> 中尚未合并的最大下标<br><b>维护</b>：初始为 <code>n - 1</code>，与 <code>p1</code> 比较谁更大<br><b>更新</b>：当 <code>nums2[p2]</code> 写入结果后 <code>p2 -= 1</code>；循环以 <code>p2 &gt;= 0</code> 为条件（<code>nums2</code> 全部落位即结束）</td></tr>
+    <tr><td><code>write</code></td><td>int</td><td><b>定义</b>：<code>nums1</code> 中下一个应写入「当前最大元素」的下标<br><b>维护</b>：从 <code>m + n - 1</code> 向左填，保证尚未处理的尾部始终是空闲或可被覆盖的占位<br><b>更新</b>：每写入一个数后 <code>write -= 1</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. <code>p1 = m - 1</code>，<code>p2 = n - 1</code>，<code>write = m + n - 1</code></p>
+<p class="code-step">2. 当 <code>p2 &gt;= 0</code>：若 <code>p1 &gt;= 0</code> 且 <code>nums1[p1] &gt; nums2[p2]</code>，则 <code>nums1[write] = nums1[p1]</code> 并 <code>p1--</code>；否则 <code>nums1[write] = nums2[p2]</code> 并 <code>p2--</code>；然后 <code>write--</code></p>
+<p class="code-step">3. 循环结束即完成（<code>p2</code> 耗尽时 <code>nums1</code> 左侧剩余元素已在位；无需返回值）</p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def merge(self, nums1: list[int], m: int, nums2: list[int], n: int) -&gt; None:
+        p1, p2, write = m - 1, n - 1, m + n - 1
+
+        while p2 &gt;= 0:
+            if p1 &gt;= 0 and nums1[p1] &gt; nums2[p2]:
+                nums1[write] = nums1[p1]
+                p1 -= 1
+            else:
+                nums1[write] = nums2[p2]
+                p2 -= 1
+            write -= 1</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    void merge(vector&lt;int&gt;&amp; nums1, int m, vector&lt;int&gt;&amp; nums2, int n) {
+        int p1 = m - 1, p2 = n - 1, write = m + n - 1;
+
+        while (p2 &gt;= 0) {
+            if (p1 &gt;= 0 &amp;&amp; nums1[p1] &gt; nums2[p2]) {
+                nums1[write] = nums1[p1--];
+            } else {
+                nums1[write] = nums2[p2--];
+            }
+            --write;
+        }
+    }
+};
+// 时间 O(m+n)，空间 O(1)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(m + n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(1)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 从数组<strong>头部</strong>合并并原地写入：会覆盖 <code>nums1</code> 里尚未参与比较的元素，除非先整体后移 O(m) 次。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 比较时忘记 <code>p1 &gt;= 0</code>：<code>m = 0</code> 时仍访问 <code>nums1[p1]</code> 会越界；<code>p1</code> 耗尽后应只从 <code>nums2</code> 继续填。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把 <code>nums1</code> 尾部占位 <code>0</code> 当成有效元素参与 <code>m</code> 计数——有效长度只看 <code>m</code>，不是 <code>len(nums1)</code>。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：nums2 为空</div>
+    <code>nums1 = [1], m = 1, nums2 = [], n = 0 → [1]</code>（循环不进入）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：nums1 有效段为空</div>
+    <code>nums1 = [0], m = 0, nums2 = [1], n = 1 → [1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：nums1 全部大于 nums2</div>
+    <code>nums1 = [4,5,6,0,0,0], m = 3, nums2 = [1,2,3], n = 3 → [1,2,3,4,5,6]</code>（先填较大者，最终左侧小段自动就位）
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>
