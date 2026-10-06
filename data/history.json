@@ -677,5 +677,12 @@
     "title": "合并两个有序数组",
     "type": "双指针",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-10-06",
+    "slug": "gray-code",
+    "title": "格雷编码",
+    "type": "位运算",
+    "difficulty": "中等"
   }
 ]

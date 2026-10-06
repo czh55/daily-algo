@@ -59,6 +59,7 @@ TYPE_CLASS_MAP = {
     "贪心": "greedy",
     "矩阵操作": "matrix",
     "区间合并": "interval",
+    "位运算": "bit",
 }
 
 # ─── Variable Semantics Data for Core Problem Types ───
@@ -3333,6 +3334,88 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 3：nums1 全部大于 nums2</div>
     <code>nums1 = [4,5,6,0,0,0], m = 3, nums2 = [1,2,3], n = 3 → [1,2,3,4,5,6]</code>（先填较大者，最终左侧小段自动就位）
+</div>""",
+    },
+
+    "gray-code": {
+        "type": "位运算",
+        "difficulty": "中等",
+        "frontend_id": "89",
+        "title": "格雷编码",
+        "time_complexity": "O(2^n)",
+        "space_complexity": "O(2^n)（输出序列，不计则 O(1)）",
+        "description": """<p><strong>n 位格雷码序列</strong> 是一个由 <code>2<sup>n</sup></code> 个整数组成的序列，其中：</p>
+<ul>
+<li>每个整数都在范围 <code>[0, 2<sup>n</sup> - 1]</code> 内（含 <code>0</code> 和 <code>2<sup>n</sup> - 1</code>）</li>
+<li>第一个整数是 <code>0</code></li>
+<li>一个整数在序列中出现 <strong>不超过一次</strong></li>
+<li>每对 <strong>相邻</strong> 整数的二进制表示 <strong>恰好一位不同</strong>，且</li>
+<li><strong>第一个</strong> 和 <strong>最后一个</strong> 整数的二进制表示 <strong>恰好一位不同</strong></li>
+</ul>
+<p>给你一个整数 <code>n</code>，返回任一有效的 <strong>n 位格雷码序列</strong>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 2</div>
+    <div class="example-output">输出：[0,1,3,2]</div>
+    <div class="example-explain">二进制为 [00,01,11,10]，相邻（含首尾）均仅一位不同；[0,2,3,1] 也是合法答案。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 1</div>
+    <div class="example-output">输出：[0,1]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>result</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前已构造的格雷码前缀，长度始终为 <code>2^k</code>（<code>k</code> 为已处理位数）<br><b>维护</b>：初始为 <code>[0]</code>，表示 0 位格雷码只有 0<br><b>更新</b>：每增加一位时，在末尾追加「原序列逆序 + 最高位为 1」的镜像段</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前要插入的新二进制位所在位置（从低位 0 起）<br><b>维护</b>：<code>for i in range(n)</code>，每轮把序列长度翻倍<br><b>更新</b>：每轮结束后 <code>i += 1</code>；镜像时用掩码 <code>1 &lt;&lt; i</code></td></tr>
+    <tr><td><code>mask</code></td><td>int</td><td><b>定义</b>：本轮要在旧格雷码上点亮的最高位，值为 <code>1 &lt;&lt; i</code><br><b>维护</b>：与 <code>result</code> 中每个元素按位 OR，得到镜像半段<br><b>更新</b>：随 <code>i</code> 每轮重新计算</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写暴力：用回溯枚举 <code>0..2^n-1</code> 的全排列，检查相邻与首尾是否仅一位不同——能出答案，但阶乘级搜索，<code>n=16</code> 时完全不可行。</p>
+<p class="thinking-step">2. 重复在哪里？合法的格雷码有固定构造规律：<code>n</code> 位序列总可以看成「<code>n-1</code> 位序列」与它的<strong>镜像</strong>（每位最高位翻转）首尾相接，且连接处仍只差一位。</p>
+<p class="thinking-step">3. 反射法：从 <code>result = [0]</code> 出发，对每一位 <code>i</code>，把 <code>result</code> 逆序遍历，把每个数 OR 上 <code>1&lt;&lt;i</code> 后追加到尾部——长度每轮 ×2，且相邻性由归纳保证。</p>
+<p class="thinking-step">4. 等价公式 <code>gray(i) = i ^ (i &gt;&gt; 1)</code>：按自然序 <code>i</code> 映射即得标准格雷码；实现更短，但「为什么相邻只差一位」不如反射法直观，面试可先讲反射再提公式。</p>
+<p class="thinking-step">5. 共生成 <code>2^n</code> 个数，每数 O(1) 处理，时间 O(2^n)；输出本身占 O(2^n) 空间。</p>""",
+        "code_steps": """<p class="code-step">1. <code>result = [0]</code></p>
+<p class="code-step">2. 对 <code>i = 0 .. n-1</code>：<code>mask = 1 &lt;&lt; i</code>，令 <code>result += [x | mask for x in reversed(result)]</code>（C++ 可对前半段逆序追加）</p>
+<p class="code-step">3. 返回 <code>result</code>（长度已为 <code>2^n</code>，首项为 0）</p>""",
+        "code_python": """class Solution:
+    def grayCode(self, n: int) -> list[int]:
+        result = [0]
+        for i in range(n):
+            mask = 1 << i
+            result += [x | mask for x in reversed(result)]
+        return result""",
+        "code_cpp": """class Solution {
+public:
+    vector<int> grayCode(int n) {
+        vector<int> result = {0};
+        for (int i = 0; i < n; ++i) {
+            int mask = 1 << i;
+            int m = result.size();
+            for (int j = m - 1; j >= 0; --j) {
+                result.push_back(result[j] | mask);
+            }
+        }
+        return result;
+    }
+};
+// 时间 O(2^n)，空间 O(2^n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 镜像时忘记<strong>逆序</strong>追加：若按正序 OR <code>mask</code>，相邻项可能差多位，首尾也不满足格雷性质。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把「自然二进制序」<code>0,1,2,…</code> 直接当作答案——例如 <code>n=2</code> 时 <code>[0,1,2,3]</code> 中 1 与 2 的二进制差两位。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 回溯写法未用 <code>used</code> 位集去重：同一数字出现两次会立即违反题意。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：n = 1</div>
+    <code>→ [0, 1]</code>（仅两位，反射一轮后结束）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：n = 2</div>
+    <code>→ [0, 1, 3, 2]</code>（与示例一致；[0,2,3,1] 等其它反射起点也合法）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：首尾相邻</div>
+    <code>n = 2</code> 时末项 2（10）与首项 0（00）仅最低位不同，需单独心算验证，不能只检查中间相邻对
 </div>""",
     },
 
