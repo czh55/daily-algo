@@ -6555,6 +6555,109 @@ public:
 </div>""",
     },
 
+    "subsets-ii": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "90",
+        "title": "子集 II",
+        "time_complexity": "O(n · 2^n)（最坏仍枚举全部不同子集；排序与同层去重减少重复输出）",
+        "space_complexity": "O(n)（递归栈深度与当前路径，不计输出）",
+        "description": """<p>给你一个整数数组 <code>nums</code>，其中可能包含重复元素，请你返回该数组所有可能的<strong>子集</strong>（幂集）。</p>
+<p>解集 <strong>不能</strong> 包含重复的子集。返回的解集中，子集可以按 <strong>任意顺序</strong> 排列。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [1,2,2]</div>
+    <div class="example-output">输出：[[],[1],[1,2],[1,2,2],[2],[2,2]]</div>
+    <div class="example-explain">两个 2 来自不同下标，<code>[1,2]</code> 与 <code>[2,2]</code> 各出现一次；不会出现两个相同的 <code>[1,2]</code>。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [0]</div>
+    <div class="example-output">输出：[[],[0]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>path</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前正在构造的子集（按排序后下标递增选取的元素）<br><b>维护</b>：DFS 在 <code>path</code> 末尾追加 <code>nums[i]</code>，回溯时 <code>pop</code> 撤销<br><b>更新</b>：进入一层递归前先记录当前 <code>path</code>；尝试分支时 <code>append</code>，返回后 <code>pop</code></td></tr>
+    <tr><td><code>start</code></td><td>int</td><td><b>定义</b>：本轮可选元素在<strong>排序后</strong> <code>nums</code> 中的起始下标（含自身）<br><b>维护</b>：只从 <code>start</code> 往后选，保证子集内下标单调递增，避免排列等价重复<br><b>更新</b>：选了 <code>nums[i]</code> 后下一层传 <code>start = i + 1</code></td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：幂集中全部<strong>互不相同</strong>的子集<br><b>维护</b>：每次进入 DFS 时把当前 <code>path</code> 的副本加入（与 #78 子集相同，每层都是合法状态）<br><b>更新</b>：配合排序 + 同层去重，保证不会向 <code>ans</code> 写入重复子集</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先照搬 #78「子集」：每层把当前 <code>path</code> 记入答案，用 <code>start</code> 只往后选——在 <code>[1,2,2]</code> 上会得到 <code>[1,2]</code> 两次（两个 2 各走一条分支），违反「解集不能重复」。</p>
+<p class="thinking-step">2. 重复在哪里？一是排列等价（<code>{1,2}</code> 与 <code>{2,1}</code>），<code>start</code> 已解决；二是<strong>相同数值</strong>在同一层被多次当作「第一个新选元素」，生成相同子集（如两层都先选 2）。</p>
+<p class="thinking-step">3. 关键转化：先对 <code>nums</code> 排序；回溯框架与 #78 相同，但在 <code>for i in range(start, n)</code> 里加同层去重——若 <code>i &gt; start</code> 且 <code>nums[i] == nums[i-1]</code> 则 <code>continue</code>（与 #40 组合总和 II 同款）。</p>
+<p class="thinking-step">4. 例 <code>[1,2,2]</code> 排序不变：收 <code>[]</code> → 选 1 收 <code>[1]</code> → 再选第一个 2 收 <code>[1,2]</code>、<code>[1,2,2]</code>；同层第二个 2 作为「本层起点」被跳过，但可在更深层被选中，故仍有 <code>[2]</code>、<code>[2,2]</code>。</p>
+<p class="thinking-step">5. <code>n≤10</code>，回溯足够；位运算枚举掩码也能做，但重复元素下掩码去重更绕，排序 + DFS 更直观。</p>""",
+        "code_steps": """<p class="code-step">1. 对 <code>nums</code> 排序，初始化 <code>ans</code> 与 <code>path</code></p>
+<p class="code-step">2. 定义 DFS <code>backtrack(start)</code>：先将 <code>path[:]</code> 加入 <code>ans</code></p>
+<p class="code-step">3. 对 <code>i</code> 从 <code>start</code> 到 <code>len(nums)-1</code>：若 <code>i &gt; start</code> 且 <code>nums[i] == nums[i-1]</code>，<code>continue</code>（同层去重）</p>
+<p class="code-step">4. 将 <code>nums[i]</code> 追加到 <code>path</code>，递归 <code>backtrack(i + 1)</code></p>
+<p class="code-step">5. 回溯：从 <code>path</code> 弹出末尾，继续尝试更大的 <code>i</code></p>
+<p class="code-step">6. 从 <code>backtrack(0)</code> 启动，返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def subsetsWithDup(self, nums: list[int]) -> list[list[int]]:
+        nums.sort()
+        ans: list[list[int]] = []
+        path: list[int] = []
+
+        def backtrack(start: int) -> None:
+            ans.append(path[:])
+            for i in range(start, len(nums)):
+                if i > start and nums[i] == nums[i - 1]:
+                    continue
+                path.append(nums[i])
+                backtrack(i + 1)
+                path.pop()
+
+        backtrack(0)
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> subsetsWithDup(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> ans;
+        vector<int> path;
+
+        function<void(int)> dfs = [&](int start) {
+            ans.push_back(path);
+            for (int i = start; i < (int)nums.size(); i++) {
+                if (i > start && nums[i] == nums[i - 1]) continue;
+                path.push_back(nums[i]);
+                dfs(i + 1);
+                path.pop_back();
+            }
+        };
+
+        dfs(0);
+        return ans;
+    }
+};
+// 时间 O(n·2^n)，空间 O(n) 递归栈""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 未排序就同层去重：<code>nums[i]==nums[i-1]</code> 只在<strong>相邻相等</strong>时有效，必须先 <code>sort</code>，否则重复值分散在不同位置无法跳过。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 去重条件写成 <code>i &gt; 0</code>：会误杀「不同层各选一个相同值」的合法子集（如 <code>[1,1]</code>）；必须是 <code>i &gt; start</code>，只跳过<strong>同一层</strong>的重复起点。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只在叶子收集：与 #78 相同，应在<strong>每层 DFS 入口</strong>记录 <code>path</code>，否则漏掉「不再往下选」的中间子集（如只含一个 2 的 <code>[2]</code>）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：全相同</div>
+    <code>nums = [2,2,2] → [[],[2],[2,2],[2,2,2]] 共 4 项</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：示例 1</div>
+    <code>nums = [1,2,2] → 6 个子集，无重复</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单元素</div>
+    <code>nums = [0] → [[],[0]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：空集必含</div>
+    <code>任意 nums → ans 第一项为 []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：负数与排序</div>
+    <code>nums = [-1,0,1] → 排序后回溯，子集个数仍为 2^n</code>
+</div>""",
+    },
+
     "word-search": {
         "type": "回溯",
         "difficulty": "中等",

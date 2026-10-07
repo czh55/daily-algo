@@ -684,5 +684,12 @@
     "title": "格雷编码",
     "type": "位运算",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-07",
+    "slug": "subsets-ii",
+    "title": "子集 II",
+    "type": "回溯",
+    "difficulty": "中等"
   }
 ]
