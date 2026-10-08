@@ -4837,6 +4837,115 @@ public:
 </div>""",
     },
 
+    "decode-ways": {
+        "type": "一维DP",
+        "difficulty": "中等",
+        "frontend_id": "91",
+        "title": "解码方法",
+        "time_complexity": "O(n)（n 为字符串长度，每位至多看一位与两位切分）",
+        "space_complexity": "O(1)（滚动两个状态；数组版 dp 为 O(n)）",
+        "description": """<p>一条包含字母 <code>A-Z</code> 的消息通过以下映射进行了 <strong>编码</strong>：</p>
+<p><code>"1" → 'A'</code>，<code>"2" → 'B'</code>，…，<code>"25" → 'Y'</code>，<code>"26" → 'Z'</code>。</p>
+<p>然而，在 <strong>解码</strong> 已编码的消息时，有些编码被包含在其它编码当中（如 <code>"2"</code> 与 <code>"5"</code> 也可组成 <code>"25"</code>）。</p>
+<p>给你一个只含数字的 <strong>非空</strong> 字符串 <code>s</code>，请计算并返回 <strong>解码</strong> 方法的 <strong>总数</strong>。若无法合法解码整个字符串，返回 <code>0</code>。</p>
+<p>题目数据保证答案为 32 位整数。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "12"</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">可解码为 <code>"AB"</code>（1, 2）或 <code>"L"</code>（12）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "226"</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain"><code>"BZ"</code>（2, 26）、<code>"VF"</code>（22, 6）、<code>"BBF"</code>（2, 2, 6）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "06"</div>
+    <div class="example-output">输出：0</div>
+    <div class="example-explain"><code>"06"</code> 不能作为合法两位编码（前导零），整串无法解码。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i]</code>（或 <code>prev2, prev1</code>）</td><td>int</td><td><b>定义</b>：前缀 <code>s[0..i)</code>（长度为 <code>i</code>）的合法解码方案总数<br><b>维护</b>：<code>dp[0]=1</code> 表示空前缀一种方式；推到 <code>i</code> 时只看<strong>最后一格</strong>单独解码或<strong>最后两格</strong>一起解码<br><b>更新</b>：若末位单字符合法则 <code>+= dp[i-1]</code>；若末两位在 10–26 则 <code>+= dp[i-2]</code></td></tr>
+    <tr><td><code>prev1</code></td><td>int</td><td><b>定义</b>：滚动数组中当前的 <code>dp[i-1]</code>（上一前缀的方案数）<br><b>维护</b>：每处理完位置 <code>i</code>，该值将成为下一轮的「前一项」<br><b>更新</b>：每轮先保存旧 <code>prev1</code> 到 <code>prev2</code>，再把新算出的 <code>cur</code> 赋给 <code>prev1</code></td></tr>
+    <tr><td><code>prev2</code></td><td>int</td><td><b>定义</b>：滚动数组中的 <code>dp[i-2]</code><br><b>维护</b>：与 <code>prev1</code> 同步前移，供「两位一组」转移使用<br><b>更新</b>：<code>prev2, prev1 = prev1, cur</code> 式滚动</td></tr>
+    <tr><td><code>cur</code></td><td>int</td><td><b>定义</b>：正在计算的 <code>dp[i]</code><br><b>维护</b>：每轮从 0 累加：单字符分支 + 双字符分支（各自判合法）<br><b>更新</b>：若 <code>cur==0</code> 且已无法延续，可提前结束；最终 <code>prev1</code> 即为 <code>dp[n]</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 最直接：从左到右 DFS，每位尝试切 1 个或 2 个数字，遇到非法（如前导零、&gt;26）回溯。分支在重叠子问题上爆炸，<code>n=100</code> 会超时。</p>
+<p class="thinking-step">2. 重复在哪里？「前 <code>i</code> 个字符有多少种解码」只依赖更短前缀的方案数，与具体字母路径无关——同一前缀被不同 DFS 路径反复访问。</p>
+<p class="thinking-step">3. 关键转化：设 <code>f(i)</code> = <code>s[0..i)</code> 的方案数。最后一刀要么只取 <code>s[i-1]</code>（不能是单独的 <code>'0'</code>），要么取 <code>s[i-2..i)</code> 且数值在 [10,26]（单 digit 的 1–9 走一位分支）。则 <code>f(i) = f(i-1)的合法贡献 + f(i-2)的合法贡献</code>，与 #70 爬楼梯「最后一步 1 或 2」同形，但每步要先判字符是否允许切分。</p>
+<p class="thinking-step">4. 手推 <code>"226"</code>：<code>f(0)=1</code>；<code>"2"</code>→1；<code>"22"</code> 可 2+2 或 22→2；<code>"226"</code> 末位 6 单独、或 26 一起→3，与样例一致。</p>
+<p class="thinking-step">5. <code>"06"</code>：首位单独 0 非法，两位 06 也非法，<code>f(1)=0</code> 传导使答案为 0——前导零必须在转移里挡掉，不能当普通一位数字。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>s[0]=='0'</code> 或空串，直接返回 0</p>
+<p class="code-step">2. 初始化 <code>prev2=1</code>（<code>dp[0]</code>）、<code>prev1=1</code>（<code>dp[1]</code> 在首字符非 0 时）</p>
+<p class="code-step">3. 对 <code>i</code> 从 2 到 <code>n</code>，令 <code>cur=0</code></p>
+<p class="code-step">4. 单字符：若 <code>s[i-1]!='0'</code>，则 <code>cur += prev1</code></p>
+<p class="code-step">5. 双字符：取 <code>two = int(s[i-2:i])</code>，若 <code>10 &lt;= two &lt;= 26</code>，则 <code>cur += prev2</code></p>
+<p class="code-step">6. 滚动 <code>prev2, prev1 = prev1, cur</code>；若中途 <code>cur==0</code> 可继续（后面仍可能为 0）</p>
+<p class="code-step">7. 返回 <code>prev1</code>（即 <code>dp[n]</code>）</p>""",
+        "code_python": """class Solution:
+    def numDecodings(self, s: str) -> int:
+        if not s or s[0] == "0":
+            return 0
+        n = len(s)
+        prev2, prev1 = 1, 1
+        for i in range(2, n + 1):
+            cur = 0
+            if s[i - 1] != "0":
+                cur += prev1
+            two = int(s[i - 2 : i])
+            if 10 <= two <= 26:
+                cur += prev2
+            prev2, prev1 = prev1, cur
+        return prev1""",
+        "code_cpp": """class Solution {
+public:
+    int numDecodings(string s) {
+        if (s.empty() || s[0] == '0') return 0;
+        int n = s.size();
+        long prev2 = 1, prev1 = 1;
+        for (int i = 2; i <= n; ++i) {
+            long cur = 0;
+            if (s[i - 1] != '0') cur += prev1;
+            int two = (s[i - 2] - '0') * 10 + (s[i - 1] - '0');
+            if (two >= 10 && two <= 26) cur += prev2;
+            prev2 = prev1;
+            prev1 = cur;
+        }
+        return (int)prev1;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忽略前导零：两位编码必须是 10–26；<code>"06"</code>、<code>"01"</code> 不能走双字符分支，且单独的 <code>'0'</code> 不能走单字符分支，否则会把非法串算成有解。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与爬楼梯混淆：不是无脑 <code>dp[i]=dp[i-1]+dp[i-2]</code>，每一位转移前都要判当前切分是否对应 1–26 的合法映射。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 初始化 <code>dp[1]</code>：仅当 <code>s[0]!='0'</code> 时为 1；若首字符为 0，整个答案为 0，不要默认 <code>dp[1]=1</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：示例 1</div>
+    <code>s = "12" → 2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：前导零</div>
+    <code>s = "06" → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：含 10/20 边界</div>
+    <code>s = "10" → 1</code>（只能 10，不能 1+0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：单字符</div>
+    <code>s = "8" → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：全串 0</div>
+    <code>s = "0" → 0</code>
+</div>""",
+    },
+
     "divide-two-integers": {
         "type": "数学模拟",
         "difficulty": "中等",
