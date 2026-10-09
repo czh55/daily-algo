@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反转链表 II | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-10-09</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#92</span>
+                    <span class="problem-type tag-linked-list">链表指针</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">反转链表 II</h1>
+                <a href="https://leetcode.cn/problems/reverse-linked-list-ii/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-10-09">
+                        <source src="../audio/2026-10-09.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-09', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-10-09', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-09', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-09', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你单链表的头指针 <code>head</code> 和两个整数 <code>left</code> 和 <code>right</code>，其中 <code>left &lt;= right</code>。请你反转从位置 <code>left</code> 到位置 <code>right</code> 的链表节点，返回反转后的链表。</p>
+<p>位置从 1 开始计数。例如 <code>left=2, right=4</code> 表示反转第 2、3、4 号节点。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,2,3,4,5], left = 2, right = 4</div>
+    <div class="example-output">输出：[1,4,3,2,5]</div>
+    <p>反转第 2～4 号节点（2→3→4 变为 4→3→2），第 1、5 号节点不动。</p>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [5], left = 1, right = 1</div>
+    <div class="example-output">输出：[5]</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力：把 <code>[left, right]</code> 区间节点值取出来，反转后再填回去——可行但多用了数组，且要额外处理指针。</p>
+<p class="thinking-step">2. 重复劳动：若先整体反转再反转两侧，要三次反转，边界 <code>left=1</code> 时前驱不好找。</p>
+<p class="thinking-step">3. 优化：设 <code>prev</code> 为第 <code>left-1</code> 个节点；在 <code>[left, right]</code> 内用<strong>头插法</strong>——反复把 <code>cur</code> 的下一个节点拔下来，插到 <code>prev</code> 后面。执行 <code>right-left</code> 次后，区间恰好反转，且 <code>prev</code> 仍连着区间外的前段。</p>
+<p class="thinking-step">4. 与「全链表反转」对比：全反转时 <code>cur</code> 不断前移；这里 <code>cur</code> 钉在左端点，只动它后面的节点，前段链表不用重新遍历拼接。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵节点，<code>dummy.next = head</code><br><b>维护</b>：始终挂在链表最前，方便 <code>left=1</code> 时仍有「前驱」<br><b>更新</b>：创建后不再改，最后返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>prev</code></td><td>ListNode*</td><td><b>定义</b>：待反转区间 <strong>左侧紧邻的前驱</strong>（第 <code>left-1</code> 号节点）<br><b>维护</b>：头插法中，每次被拔出的节点都插到 <code>prev.next</code> 之后<br><b>更新</b>：先走 <code>left-1</code> 步定位；反转循环内 <code>prev</code> 不动，只改 <code>prev.next</code></td></tr>
+    <tr><td><code>cur</code></td><td>ListNode*</td><td><b>定义</b>：原区间起点（第 <code>left</code> 号节点），反转后将成为区间尾<br><b>维护</b>：整个头插过程中 <code>cur</code> 指针<strong>不移动</strong>，始终指向「将要变成尾巴」的那个节点<br><b>更新</b>：定位后固定；每轮把 <code>cur.next</code> 拔出来头插，<code>cur</code> 仍指向同一节点</td></tr>
+    <tr><td><code>nxt</code></td><td>ListNode*</td><td><b>定义</b>：每轮从 <code>cur</code> 后面拔出的节点（<code>cur.next</code>）<br><b>维护</b>：被头插到 <code>prev</code> 之后，成为新区间头<br><b>更新</b>：每轮 <code>nxt = cur.next</code>，改链后 <code>nxt</code> 接到 <code>prev.next</code> 位置</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. <code>dummy = ListNode(0, head)</code>，<code>prev = dummy</code></p>
+<p class="code-step">2. <code>prev</code> 向前走 <code>left - 1</code> 步，停在区间左边界的前驱</p>
+<p class="code-step">3. <code>cur = prev.next</code>（区间第一个节点，反转后变尾）</p>
+<p class="code-step">4. 循环 <code>right - left</code> 次头插：<code>nxt = cur.next</code> → <code>cur.next = nxt.next</code> → <code>nxt.next = prev.next</code> → <code>prev.next = nxt</code></p>
+<p class="code-step">5. 返回 <code>dummy.next</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python"># Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def reverseBetween(self, head: Optional[ListNode], left: int, right: int) -&gt; Optional[ListNode]:
+        dummy = ListNode(0, head)
+        prev = dummy
+        for _ in range(left - 1):
+            prev = prev.next
+
+        cur = prev.next  # 区间左端点，头插后成为区间尾
+
+        for _ in range(right - left):
+            nxt = cur.next           # 待头插的节点
+            cur.next = nxt.next      # 从 cur 后摘下 nxt
+            nxt.next = prev.next     # nxt 指向当前区间头
+            prev.next = nxt          # nxt 成为新区间头
+
+        return dummy.next</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    ListNode* reverseBetween(ListNode* head, int left, int right) {
+        ListNode dummy(0, head);
+        ListNode* prev = &amp;dummy;
+        for (int i = 0; i &lt; left - 1; ++i) {
+            prev = prev-&gt;next;
+        }
+
+        ListNode* cur = prev-&gt;next;  // 区间左端点，头插后成为区间尾
+
+        for (int i = 0; i &lt; right - left; ++i) {
+            ListNode* nxt = cur-&gt;next;
+            cur-&gt;next = nxt-&gt;next;
+            nxt-&gt;next = prev-&gt;next;
+            prev-&gt;next = nxt;
+        }
+        return dummy.next;
+    }
+};
+// 时间 O(n)，空间 O(1)
+// 也可用：先找区间首尾，区间内标准三指针反转，再拼接前后段</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(1)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 头插循环次数是 <code>right - left</code> 而不是 <code>right - left + 1</code>：<code>cur</code> 本身已在区间内，只需把后面 <code>right-left</code> 个节点依次拔到前面。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 头插四步顺序不能乱：必须先 <code>cur.next = nxt.next</code> 再改 <code>nxt.next</code>，否则可能断链或成环。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>left=1</code> 时若没有 <code>dummy</code>，<code>prev</code> 无处安放；用哨兵后统一处理。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：区间长度为 1</div>
+    <code>head=[5], left=1, right=1 → [5]（循环 0 次）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：反转整条链</div>
+    <code>head=[1,2,3], left=1, right=3 → [3,2,1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：区间在尾部</div>
+    <code>head=[1,2,3,4,5], left=4, right=5 → [1,2,5,4,3] 中后段 [4,5]→[5,4]</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

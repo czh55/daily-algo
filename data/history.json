@@ -698,5 +698,12 @@
     "title": "解码方法",
     "type": "一维DP",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-09",
+    "slug": "reverse-linked-list-ii",
+    "title": "反转链表 II",
+    "type": "链表指针",
+    "difficulty": "中等"
   }
 ]

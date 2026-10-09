@@ -537,6 +537,105 @@ public:
 </div>""",
     },
 
+    "reverse-linked-list-ii": {
+        "type": "链表指针",
+        "difficulty": "中等",
+        "frontend_id": "92",
+        "title": "反转链表 II",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你单链表的头指针 <code>head</code> 和两个整数 <code>left</code> 和 <code>right</code>，其中 <code>left &lt;= right</code>。请你反转从位置 <code>left</code> 到位置 <code>right</code> 的链表节点，返回反转后的链表。</p>
+<p>位置从 1 开始计数。例如 <code>left=2, right=4</code> 表示反转第 2、3、4 号节点。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [1,2,3,4,5], left = 2, right = 4</div>
+    <div class="example-output">输出：[1,4,3,2,5]</div>
+    <p>反转第 2～4 号节点（2→3→4 变为 4→3→2），第 1、5 号节点不动。</p>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [5], left = 1, right = 1</div>
+    <div class="example-output">输出：[5]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dummy</code></td><td>ListNode*</td><td><b>定义</b>：哨兵节点，<code>dummy.next = head</code><br><b>维护</b>：始终挂在链表最前，方便 <code>left=1</code> 时仍有「前驱」<br><b>更新</b>：创建后不再改，最后返回 <code>dummy.next</code></td></tr>
+    <tr><td><code>prev</code></td><td>ListNode*</td><td><b>定义</b>：待反转区间 <strong>左侧紧邻的前驱</strong>（第 <code>left-1</code> 号节点）<br><b>维护</b>：头插法中，每次被拔出的节点都插到 <code>prev.next</code> 之后<br><b>更新</b>：先走 <code>left-1</code> 步定位；反转循环内 <code>prev</code> 不动，只改 <code>prev.next</code></td></tr>
+    <tr><td><code>cur</code></td><td>ListNode*</td><td><b>定义</b>：原区间起点（第 <code>left</code> 号节点），反转后将成为区间尾<br><b>维护</b>：整个头插过程中 <code>cur</code> 指针<strong>不移动</strong>，始终指向「将要变成尾巴」的那个节点<br><b>更新</b>：定位后固定；每轮把 <code>cur.next</code> 拔出来头插，<code>cur</code> 仍指向同一节点</td></tr>
+    <tr><td><code>nxt</code></td><td>ListNode*</td><td><b>定义</b>：每轮从 <code>cur</code> 后面拔出的节点（<code>cur.next</code>）<br><b>维护</b>：被头插到 <code>prev</code> 之后，成为新区间头<br><b>更新</b>：每轮 <code>nxt = cur.next</code>，改链后 <code>nxt</code> 接到 <code>prev.next</code> 位置</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：把 <code>[left, right]</code> 区间节点值取出来，反转后再填回去——可行但多用了数组，且要额外处理指针。</p>
+<p class="thinking-step">2. 重复劳动：若先整体反转再反转两侧，要三次反转，边界 <code>left=1</code> 时前驱不好找。</p>
+<p class="thinking-step">3. 优化：设 <code>prev</code> 为第 <code>left-1</code> 个节点；在 <code>[left, right]</code> 内用<strong>头插法</strong>——反复把 <code>cur</code> 的下一个节点拔下来，插到 <code>prev</code> 后面。执行 <code>right-left</code> 次后，区间恰好反转，且 <code>prev</code> 仍连着区间外的前段。</p>
+<p class="thinking-step">4. 与「全链表反转」对比：全反转时 <code>cur</code> 不断前移；这里 <code>cur</code> 钉在左端点，只动它后面的节点，前段链表不用重新遍历拼接。</p>""",
+        "code_steps": """<p class="code-step">1. <code>dummy = ListNode(0, head)</code>，<code>prev = dummy</code></p>
+<p class="code-step">2. <code>prev</code> 向前走 <code>left - 1</code> 步，停在区间左边界的前驱</p>
+<p class="code-step">3. <code>cur = prev.next</code>（区间第一个节点，反转后变尾）</p>
+<p class="code-step">4. 循环 <code>right - left</code> 次头插：<code>nxt = cur.next</code> → <code>cur.next = nxt.next</code> → <code>nxt.next = prev.next</code> → <code>prev.next = nxt</code></p>
+<p class="code-step">5. 返回 <code>dummy.next</code></p>""",
+        "code_python": """# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+
+class Solution:
+    def reverseBetween(self, head: Optional[ListNode], left: int, right: int) -> Optional[ListNode]:
+        dummy = ListNode(0, head)
+        prev = dummy
+        for _ in range(left - 1):
+            prev = prev.next
+
+        cur = prev.next  # 区间左端点，头插后成为区间尾
+
+        for _ in range(right - left):
+            nxt = cur.next           # 待头插的节点
+            cur.next = nxt.next      # 从 cur 后摘下 nxt
+            nxt.next = prev.next     # nxt 指向当前区间头
+            prev.next = nxt          # nxt 成为新区间头
+
+        return dummy.next""",
+        "code_cpp": """class Solution {
+public:
+    ListNode* reverseBetween(ListNode* head, int left, int right) {
+        ListNode dummy(0, head);
+        ListNode* prev = &dummy;
+        for (int i = 0; i < left - 1; ++i) {
+            prev = prev->next;
+        }
+
+        ListNode* cur = prev->next;  // 区间左端点，头插后成为区间尾
+
+        for (int i = 0; i < right - left; ++i) {
+            ListNode* nxt = cur->next;
+            cur->next = nxt->next;
+            nxt->next = prev->next;
+            prev->next = nxt;
+        }
+        return dummy.next;
+    }
+};
+// 时间 O(n)，空间 O(1)
+// 也可用：先找区间首尾，区间内标准三指针反转，再拼接前后段""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 头插循环次数是 <code>right - left</code> 而不是 <code>right - left + 1</code>：<code>cur</code> 本身已在区间内，只需把后面 <code>right-left</code> 个节点依次拔到前面。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 头插四步顺序不能乱：必须先 <code>cur.next = nxt.next</code> 再改 <code>nxt.next</code>，否则可能断链或成环。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>left=1</code> 时若没有 <code>dummy</code>，<code>prev</code> 无处安放；用哨兵后统一处理。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：区间长度为 1</div>
+    <code>head=[5], left=1, right=1 → [5]（循环 0 次）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：反转整条链</div>
+    <code>head=[1,2,3], left=1, right=3 → [3,2,1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：区间在尾部</div>
+    <code>head=[1,2,3,4,5], left=4, right=5 → [1,2,3,5,4]</code>
+</div>""",
+    },
+
     "lru-cache": {
         "type": "设计题",
         "difficulty": "中等",
