@@ -705,5 +705,12 @@
     "title": "反转链表 II",
     "type": "链表指针",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-10",
+    "slug": "restore-ip-addresses",
+    "title": "复原 IP 地址",
+    "type": "回溯",
+    "difficulty": "中等"
   }
 ]

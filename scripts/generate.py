@@ -636,6 +636,145 @@ public:
 </div>""",
     },
 
+    "restore-ip-addresses": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "93",
+        "title": "复原 IP 地址",
+        "time_complexity": "O(1)（至多 4 段、每段至多 3 种切分长度，与 |s|≤20 有常数上界；不计输出规模）",
+        "space_complexity": "O(1)（递归深度 ≤ 4，不计输出）",
+        "description": """<p><strong>有效 IP 地址</strong> 正好由四个整数（每个整数位于 <code>0</code> 到 <code>255</code> 之间组成，且不能含有前导 <code>0</code>），整数之间用 <code>'.'</code> 分隔。</p>
+<p>例如：<code>"0.1.2.201"</code> 和 <code>"192.168.1.1"</code> 是 <strong>有效</strong> IP 地址，但是 <code>"0.011.255.245"</code>、<code>"192.168.1.312"</code> 是 <strong>无效</strong> IP 地址。</p>
+<p>给定一个只包含数字的字符串 <code>s</code>，用以表示一个 IP 地址，返回所有可能的<strong>有效 IP 地址</strong>，这些地址可以通过在 <code>s</code> 中插入 <code>'.'</code> 来形成。你 <strong>不能</strong> 重新排序或删除 <code>s</code> 中的任何数字。你可以按 <strong>任意</strong> 顺序返回答案。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "25525511135"</div>
+    <div class="example-output">输出：["255.255.11.135","255.255.111.35"]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "0000"</div>
+    <div class="example-output">输出：["0.0.0.0"]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "101023"</div>
+    <div class="example-output">输出：["1.0.10.23","1.0.102.3","10.1.0.23","10.10.2.3","101.0.2.3"]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>segments</code></td><td>list&lt;str&gt;</td><td><b>定义</b>：当前已切出的 IP 段（尚未加点拼接）<br><b>维护</b>：DFS 每确定一段合法子串就 <code>append</code>，回溯时 <code>pop</code><br><b>更新</b>：长度达到 4 且 <code>start == len(s)</code> 时，用 <code>'.'.join(segments)</code> 写入答案</td></tr>
+    <tr><td><code>start</code></td><td>int</td><td><b>定义</b>：下一段在 <code>s</code> 中的起始下标（含）<br><b>维护</b>：每选定长度为 <code>len</code> 的一段后，子问题从 <code>start + len</code> 继续<br><b>更新</b>：初始为 0；每成功切一段则前进；与 <code>len(s)</code> 对齐时才能收集四段解</td></tr>
+    <tr><td><code>seg</code></td><td>str</td><td><b>定义</b>：本轮尝试从 <code>s[start:]</code> 截取的长度为 1～3 的候选段<br><b>维护</b>：仅当通过合法性校验才进入递归<br><b>更新</b>：每轮 <code>for length in 1..3</code> 生成；非法（前导零、&gt;255、越界）直接 <code>continue</code></td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;str&gt;</td><td><b>定义</b>：所有合法的四段 IP 字符串<br><b>维护</b>：只在「恰好 4 段且用完整个 <code>s</code>」时追加<br><b>更新</b>：中途三段、或四段但还剩字符，均不收集</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：在 <code>s</code> 的相邻字符间插入 3 个点，共有 C(n-1,3) 种切法，每种检查四段是否都在 0～255 且无前导零——思路对，但要把「切法枚举」写清楚。</p>
+<p class="thinking-step">2. 重复在哪里？很多切法在第一段就非法（如 <code>"01"</code>、<code>"256"</code>），却仍会继续枚举后面段的组合，浪费分支。</p>
+<p class="thinking-step">3. 关键转化：按<strong>从左到右顺序</strong>切四段，每段只可能是 1～3 个字符；用 <code>segments</code> 记录已切段，<code>start</code> 表示下一段起点——子问题变成「在 <code>s[start:]</code> 里再切 <code>4 - len(segments)</code> 段」。</p>
+<p class="thinking-step">4. 合法性一眼判断：<code>len(seg)&gt;1 and seg[0]=='0'</code> 非法；<code>int(seg)&gt;255</code> 非法；还剩 <code>k</code> 段时，剩余字符数必须在 <code>[k, 3k]</code> 之间，否则剪枝。</p>
+<p class="thinking-step">5. 例 <code>s="25525511135"</code>：第一段只能试 <code>"2"</code>/<code>"25"</code>/<code>"255"</code>，选 <code>"255"</code> 后递归；最终得到 <code>255.255.11.135</code> 与 <code>255.255.111.35</code> 两条合法路径。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>ans = []</code>，定义辅助函数 <code>valid(seg)</code>：长度 1～3、无前导零、数值 ≤ 255</p>
+<p class="code-step">2. 定义 DFS <code>backtrack(start, segments)</code>：若 <code>len(segments) == 4</code>，当且仅当 <code>start == len(s)</code> 时把 <code>'.'.join(segments)</code> 加入 <code>ans</code>，然后返回</p>
+<p class="code-step">3. 设还剩 <code>remain = 4 - len(segments)</code> 段；若剩余字符 <code>len(s)-start</code> 不在 <code>[remain, 3*remain]</code> 内，剪枝返回</p>
+<p class="code-step">4. 对 <code>length</code> 从 1 到 3：取 <code>seg = s[start:start+length]</code>，越界或 <code>not valid(seg)</code> 则跳过</p>
+<p class="code-step">5. <code>segments.append(seg)</code>，递归 <code>backtrack(start + length, segments)</code>，回溯 <code>segments.pop()</code></p>
+<p class="code-step">6. 从 <code>backtrack(0, [])</code> 启动，返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def restoreIpAddresses(self, s: str) -> list[str]:
+        ans: list[str] = []
+        n = len(s)
+
+        def valid(seg: str) -> bool:
+            if len(seg) > 1 and seg[0] == "0":
+                return False
+            return 0 <= int(seg) <= 255
+
+        def backtrack(start: int, segments: list[str]) -> None:
+            if len(segments) == 4:
+                if start == n:
+                    ans.append(".".join(segments))
+                return
+
+            remain = 4 - len(segments)
+            rest = n - start
+            if rest < remain or rest > 3 * remain:
+                return
+
+            for length in range(1, 4):
+                if start + length > n:
+                    break
+                seg = s[start : start + length]
+                if not valid(seg):
+                    continue
+                segments.append(seg)
+                backtrack(start + length, segments)
+                segments.pop()
+
+        backtrack(0, [])
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<string> restoreIpAddresses(string s) {
+        vector<string> ans;
+        vector<string> segments;
+        int n = s.size();
+
+        auto valid = [](const string& seg) {
+            if (seg.size() > 1 && seg[0] == '0') return false;
+            int val = stoi(seg);
+            return val >= 0 && val <= 255;
+        };
+
+        function<void(int)> dfs = [&](int start) {
+            if ((int)segments.size() == 4) {
+                if (start == n) {
+                    ans.push_back(segments[0] + "." + segments[1] + "." +
+                                  segments[2] + "." + segments[3]);
+                }
+                return;
+            }
+            int remain = 4 - (int)segments.size();
+            int rest = n - start;
+            if (rest < remain || rest > 3 * remain) return;
+
+            for (int len = 1; len <= 3; ++len) {
+                if (start + len > n) break;
+                string seg = s.substr(start, len);
+                if (!valid(seg)) continue;
+                segments.push_back(seg);
+                dfs(start + len);
+                segments.pop_back();
+            }
+        };
+
+        dfs(0);
+        return ans;
+    }
+};
+// 时间 O(1)（段数与每段长度有常数上界），空间 O(1) 递归栈""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 前导零：段 <code>"01"</code>、<code>"00"</code> 非法，但单字符 <code>"0"</code> 合法；必须写 <code>len(seg)&gt;1 and seg[0]=='0'</code>，不能只判断数值。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 四段未用完字符串：例如 <code>s="1111"</code> 切成四段 <code>1.1.1.1</code> 时 <code>start</code> 必须等于 <code>n</code>；若 <code>segments.size()==4</code> 但还有剩余字符，不能收集。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 段长超过 3：IP 每段最多三位；循环 <code>length</code> 只取 1～3，且 <code>int(seg)&gt;255</code> 时即使三位也要丢弃（如 <code>"256"</code>）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：全零</div>
+    <code>s = "0000" → ["0.0.0.0"]</code>（每段只能是单个 <code>0</code>）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：无解</div>
+    <code>s = "111" → []</code>（至少 4 段、每段至少 1 字符，长度不足）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：示例 1</div>
+    <code>s = "25525511135" → 两组解</code>，注意第三段可以是 <code>11</code> 或 <code>111</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：多解混合段长</div>
+    <code>s = "101023" → 5 组解</code>，段长 1～3 混用
+</div>""",
+    },
+
     "lru-cache": {
         "type": "设计题",
         "difficulty": "中等",
