@@ -712,5 +712,12 @@
     "title": "复原 IP 地址",
     "type": "回溯",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-11",
+    "slug": "binary-tree-inorder-traversal",
+    "title": "二叉树的中序遍历",
+    "type": "栈",
+    "difficulty": "简单"
   }
 ]

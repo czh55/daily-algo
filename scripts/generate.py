@@ -775,6 +775,111 @@ public:
 </div>""",
     },
 
+    "binary-tree-inorder-traversal": {
+        "type": "栈",
+        "difficulty": "简单",
+        "frontend_id": "94",
+        "title": "二叉树的中序遍历",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)（显式栈或递归栈，最坏链状树）",
+        "description": """<p>给定一个二叉树的根节点 <code>root</code>，返回它的 <strong>中序</strong> 遍历结果。</p>
+<p>中序遍历顺序为：<strong>左子树 → 根节点 → 右子树</strong>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [1,null,2,3]</div>
+    <div class="example-output">输出：[1,3,2]</div>
+    <p style="color:var(--text-secondary);font-size:0.9rem;">说明：先走到最左 1，再访问根 3（在节点 2 的左子树），最后 2。</p>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = []</div>
+    <div class="example-output">输出：[]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = [1]</div>
+    <div class="example-output">输出：[1]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>ans</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：按中序收集的节点值序列<br><b>维护</b>：每「真正访问」一个节点时追加其 <code>val</code>（左子树已全部处理完毕之后）<br><b>更新</b>：从栈弹出节点或递归到根时 <code>append</code></td></tr>
+    <tr><td><code>stk</code></td><td>stack&lt;TreeNode*&gt;</td><td><b>定义</b>：尚未完成中序的节点（其左链已下探、等待回溯后访问）<br><b>维护</b>：栈顶是「下一个要被访问（输出）的节点」<br><b>更新</b>：沿左子树一路 <code>push</code>；左无路可走时 <code>pop</code> 并输出，再转向右子树</td></tr>
+    <tr><td><code>cur</code></td><td>TreeNode*</td><td><b>定义</b>：当前正在下探或刚处理完的节点指针<br><b>维护</b>：<code>cur</code> 非空时只负责向左深入；弹出栈顶后 <code>cur = cur.right</code> 继续中序右半段<br><b>更新</b>：初始 <code>root</code>；内层 <code>while cur</code> 中 <code>cur = cur.left</code>；每次弹出后 <code>cur = 弹出节点.right</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先写「定义式」暴力：中序就是 <code>inorder(left) + [root.val] + inorder(right)</code>，空树返回空——逻辑完全正确，一行递归就能过。</p>
+<p class="thinking-step">2. 重复在哪里？递归隐式用系统栈保存「还没访问的根、还没走的右子树」；题目进阶要求迭代，就是把这条调用栈<strong>显式模拟</strong>出来。</p>
+<p class="thinking-step">3. 迭代直觉：中序里任意节点，都要先把它<strong>左边整条链</strong>走完才能输出它——所以先一路向左，把路径上的节点压栈；左尽头时弹出栈顶（这就是下一个要输出的），再转去它的右子树重复。</p>
+<p class="thinking-step">4. 例 <code>[1,null,2,3]</code>：从 1 压栈；弹出 1 输出；<code>cur=2</code>，压 2、再压 3；弹出 3 输出；弹出 2 输出 → <code>[1,3,2]</code>。</p>
+<p class="thinking-step">5. 每个节点入栈、出栈各一次，时间 O(n)；栈深度最坏 O(n)（链状树）。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>ans = []</code>、<code>stk = []</code>、<code>cur = root</code></p>
+<p class="code-step">2. 当 <code>cur</code> 非空或栈非空时循环：</p>
+<p class="code-step">3. 内层 <code>while cur</code>：将 <code>cur</code> 压栈，<code>cur = cur.left</code>（一路向左）</p>
+<p class="code-step">4. <code>cur = stk.pop()</code>，<code>ans.append(cur.val)</code>（访问根）</p>
+<p class="code-step">5. <code>cur = cur.right</code>（转向右子树，继续中序）</p>
+<p class="code-step">6. 返回 <code>ans</code>（递归写法：先左、再记值、再右，见代码注释）</p>""",
+        "code_python": """class Solution:
+    def inorderTraversal(self, root: TreeNode | None) -> list[int]:
+        ans: list[int] = []
+        stk: list[TreeNode] = []
+        cur = root
+        while cur or stk:
+            while cur:
+                stk.append(cur)
+                cur = cur.left
+            cur = stk.pop()
+            ans.append(cur.val)
+            cur = cur.right
+        return ans
+
+# 递归版（思路对照，面试可先写再改迭代）：
+# def inorder(node):
+#     if not node: return
+#     inorder(node.left)
+#     ans.append(node.val)
+#     inorder(node.right)""",
+        "code_cpp": """class Solution {
+public:
+    vector<int> inorderTraversal(TreeNode* root) {
+        vector<int> ans;
+        vector<TreeNode*> stk;
+        TreeNode* cur = root;
+        while (cur || !stk.empty()) {
+            while (cur) {
+                stk.push_back(cur);
+                cur = cur->left;
+            }
+            cur = stk.back();
+            stk.pop_back();
+            ans.push_back(cur->val);
+            cur = cur->right;
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 弹出栈顶后忘记 <code>cur = cur.right</code>：会死循环或漏掉右子树，中序变成「只输出左链」。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 在压栈循环里就 <code>append</code> 节点值：那是前序（根在左走之前），中序必须在<strong>弹出</strong>时记录。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空树 <code>root == nullptr</code>：外层 <code>while (cur || !stk.empty())</code> 应直接不进入，返回空数组，不要访问空指针。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>root = [1] → [1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：只有左子树（链）</div>
+    <code>root = [1,2,null,3] → [3,2,1]</code>（栈深度为树高）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：示例 1 右重</div>
+    <code>root = [1,null,2,3] → [1,3,2]</code>
+</div>""",
+    },
+
     "lru-cache": {
         "type": "设计题",
         "difficulty": "中等",
