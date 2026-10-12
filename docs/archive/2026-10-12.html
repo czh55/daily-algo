@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不同的二叉搜索树 II | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-10-12</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#95</span>
+                    <span class="problem-type tag-backtrack">回溯</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">不同的二叉搜索树 II</h1>
+                <a href="https://leetcode.cn/problems/unique-binary-search-trees-ii/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你一个整数 <code>n</code>，请你生成并返回所有由 <code>n</code> 个节点组成且节点值从 <code>1</code> 到 <code>n</code> 互不相同的不同 <strong>二叉搜索树</strong>。可以按 <strong>任意顺序</strong> 返回答案。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 3</div>
+    <div class="example-output">输出：[[1,null,2,null,3],[1,null,3,2],[2,1,3],[3,1,null,null,2],[3,2,null,1]]</div>
+    <div class="example-explain">共 5 棵结构不同的 BST（卡特兰数 C<sub>3</sub>=5），节点值固定为 1、2、3。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 1</div>
+    <div class="example-output">输出：[[1]]</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力想法：枚举所有 <code>n</code> 个节点的二叉树形态，再检查是否 BST 且节点值为 <code>1..n</code>——思路对，但形态数是指数级，<code>n=8</code> 也会爆炸。</p>
+<p class="thinking-step">2. 重复在哪里？很多形态在「根选错」后仍会继续枚举左右子树，而 BST 要求左子树全部小于根、右子树全部大于根，值域天然被切开。</p>
+<p class="thinking-step">3. 关键转化：在闭区间 <code>[start,end]</code> 上选根 <code>i</code>，则左子树只能从 <code>[start,i-1]</code> 生成、右子树只能从 <code>[i+1,end]</code> 生成——子问题与父问题同构，用递归（或记忆化）即可。</p>
+<p class="thinking-step">4. 空子树也要占位：当 <code>start &gt; end</code> 时返回 <code>[None]</code>，否则无法把「只有左子树」或「只有右子树」的情况拼进答案（例如 <code>n=3</code> 时根为 1 的树）。</p>
+<p class="thinking-step">5. 手推 <code>n=3</code>：根为 2 时左只有 <code>{1}</code>、右只有 <code>{3}</code>，得到唯一树 <code>2,1,3</code>；根为 1 时要枚举左空 × 右 <code>[2,3]</code> 的两种 BST，共凑出 5 棵，与卡特兰数一致。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>start</code> / <code>end</code></td><td>int</td><td><b>定义</b>：当前子树允许使用的节点值闭区间 <code>[start, end]</code><br><b>维护</b>：BST 性质要求左子树值 &lt; 根 &lt; 右子树，故选根 <code>i</code> 后左区间为 <code>[start, i-1]</code>、右区间为 <code>[i+1, end]</code><br><b>更新</b>：顶层调用 <code>build(1, n)</code>；每轮根候选 <code>i</code> 遍历 <code>start..end</code></td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：本轮作为子树根节点的值<br><b>维护</b>：根值一旦确定，左右子树只能在其值域两侧递归生成<br><b>更新</b>：<code>for i in range(start, end+1)</code> 枚举所有可能根</td></tr>
+    <tr><td><code>lefts</code> / <code>rights</code></td><td>list&lt;TreeNode?&gt;</td><td><b>定义</b>：左（右）子树在对应区间上能生成的所有 BST 根节点列表<br><b>维护</b>：空区间返回 <code>[None]</code>，表示「空子树」也要参与拼接<br><b>更新</b>：<code>lefts = build(start, i-1)</code>，<code>rights = build(i+1, end)</code></td></tr>
+    <tr><td><code>trees</code></td><td>list&lt;TreeNode&gt;</td><td><b>定义</b>：区间 <code>[start,end]</code> 上所有合法 BST 的根集合<br><b>维护</b>：对每个根 <code>i</code>，将 <code>lefts</code> 与 <code>rights</code> 做笛卡尔积，新建 <code>TreeNode(i, l, r)</code><br><b>更新</b>：双重循环拼接后返回；顶层即为 <code>generateTrees</code> 的答案</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 定义 <code>build(start, end)</code>：若 <code>start &gt; end</code>，返回 <code>[None]</code>（空子树占位）</p>
+<p class="code-step">2. 初始化 <code>trees = []</code>，对 <code>i</code> 从 <code>start</code> 到 <code>end</code> 枚举根节点值</p>
+<p class="code-step">3. <code>lefts = build(start, i-1)</code>，<code>rights = build(i+1, end)</code></p>
+<p class="code-step">4. 双重循环：对每个 <code>l in lefts</code>、<code>r in rights</code>，<code>trees.append(TreeNode(i, l, r))</code></p>
+<p class="code-step">5. 返回 <code>trees</code>；<code>generateTrees(n)</code> 调用 <code>build(1, n)</code>（<code>n==0</code> 时可返回 <code>[]</code>，本题 <code>n≥1</code>）</p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python"># Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def generateTrees(self, n: int) -&gt; list[TreeNode | None]:
+        def build(start: int, end: int) -&gt; list[TreeNode | None]:
+            if start &gt; end:
+                return [None]
+            trees: list[TreeNode | None] = []
+            for i in range(start, end + 1):
+                lefts = build(start, i - 1)
+                rights = build(i + 1, end)
+                for left in lefts:
+                    for right in rights:
+                        trees.append(TreeNode(i, left, right))
+            return trees
+
+        if n == 0:
+            return []
+        return build(1, n)</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right)
+ *         : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector&lt;TreeNode*&gt; generateTrees(int n) {
+        if (n == 0) return {};
+        return build(1, n);
+    }
+
+private:
+    vector&lt;TreeNode*&gt; build(int start, int end) {
+        vector&lt;TreeNode*&gt; trees;
+        if (start &gt; end) {
+            trees.push_back(nullptr);
+            return trees;
+        }
+        for (int i = start; i &lt;= end; ++i) {
+            auto lefts = build(start, i - 1);
+            auto rights = build(i + 1, end);
+            for (TreeNode* left : lefts) {
+                for (TreeNode* right : rights) {
+                    trees.push_back(new TreeNode(i, left, right));
+                }
+            }
+        }
+        return trees;
+    }
+};
+// 时间：与输出树棵数同阶；空间 O(n) 递归栈</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(4^n / n^(3/2))（与卡特兰数同阶的树枚举；n≤8 时输出规模可控）</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(n)（递归深度，不计输出树节点）</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空区间返回空列表 <code>[]</code>：拼接时内层循环不会执行，会丢掉「只有左子树或只有右子树」的合法 BST；必须返回 <code>[nullptr]</code> / <code>[None]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 根值写错：节点值就是枚举的 <code>i</code>（在 <code>1..n</code> 内），不要另建映射数组；区间 <code>[start,end]</code> 已经保证值互异且有序。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误以为要先算 #96「不同 BST 的个数」再构造：本题要<strong>输出所有树</strong>，必须做左右子树列表的笛卡尔积拼接，不能只计数。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>n = 1 → 一棵只有根 1 的树</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两节点</div>
+    <code>n = 2 → 2 棵：根 1（右子 2）或根 2（左子 1）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：卡特兰数</div>
+    <code>n = 3 → 5 棵</code>（与示例 1 一致，可用纸笔核对根 1/2/3 三种分支）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：最大 n</div>
+    <code>n = 8</code>（提示上限），树棵数为卡特兰数 C<sub>8</sub>=1430，注意输出体积而非算法常数
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+    </script>
+</body>
+</html>

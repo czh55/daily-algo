@@ -9665,6 +9665,127 @@ public:
 </div>""",
     },
 
+    "unique-binary-search-trees-ii": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "95",
+        "title": "不同的二叉搜索树 II",
+        "time_complexity": "O(4^n / n^(3/2))（与卡特兰数同阶的树枚举；n≤8 时输出规模可控）",
+        "space_complexity": "O(n)（递归深度，不计输出树节点）",
+        "description": """<p>给你一个整数 <code>n</code>，请你生成并返回所有由 <code>n</code> 个节点组成且节点值从 <code>1</code> 到 <code>n</code> 互不相同的不同 <strong>二叉搜索树</strong>。可以按 <strong>任意顺序</strong> 返回答案。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 3</div>
+    <div class="example-output">输出：[[1,null,2,null,3],[1,null,3,2],[2,1,3],[3,1,null,null,2],[3,2,null,1]]</div>
+    <div class="example-explain">共 5 棵结构不同的 BST（卡特兰数 C<sub>3</sub>=5），节点值固定为 1、2、3。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 1</div>
+    <div class="example-output">输出：[[1]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>start</code> / <code>end</code></td><td>int</td><td><b>定义</b>：当前子树允许使用的节点值闭区间 <code>[start, end]</code><br><b>维护</b>：BST 性质要求左子树值 &lt; 根 &lt; 右子树，故选根 <code>i</code> 后左区间为 <code>[start, i-1]</code>、右区间为 <code>[i+1, end]</code><br><b>更新</b>：顶层调用 <code>build(1, n)</code>；每轮根候选 <code>i</code> 遍历 <code>start..end</code></td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：本轮作为子树根节点的值<br><b>维护</b>：根值一旦确定，左右子树只能在其值域两侧递归生成<br><b>更新</b>：<code>for i in range(start, end+1)</code> 枚举所有可能根</td></tr>
+    <tr><td><code>lefts</code> / <code>rights</code></td><td>list&lt;TreeNode?&gt;</td><td><b>定义</b>：左（右）子树在对应区间上能生成的所有 BST 根节点列表<br><b>维护</b>：空区间返回 <code>[None]</code>，表示「空子树」也要参与拼接<br><b>更新</b>：<code>lefts = build(start, i-1)</code>，<code>rights = build(i+1, end)</code></td></tr>
+    <tr><td><code>trees</code></td><td>list&lt;TreeNode&gt;</td><td><b>定义</b>：区间 <code>[start,end]</code> 上所有合法 BST 的根集合<br><b>维护</b>：对每个根 <code>i</code>，将 <code>lefts</code> 与 <code>rights</code> 做笛卡尔积，新建 <code>TreeNode(i, l, r)</code><br><b>更新</b>：双重循环拼接后返回；顶层即为 <code>generateTrees</code> 的答案</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力想法：枚举所有 <code>n</code> 个节点的二叉树形态，再检查是否 BST 且节点值为 <code>1..n</code>——思路对，但形态数是指数级，<code>n=8</code> 也会爆炸。</p>
+<p class="thinking-step">2. 重复在哪里？很多形态在「根选错」后仍会继续枚举左右子树，而 BST 要求左子树全部小于根、右子树全部大于根，值域天然被切开。</p>
+<p class="thinking-step">3. 关键转化：在闭区间 <code>[start,end]</code> 上选根 <code>i</code>，则左子树只能从 <code>[start,i-1]</code> 生成、右子树只能从 <code>[i+1,end]</code> 生成——子问题与父问题同构，用递归（或记忆化）即可。</p>
+<p class="thinking-step">4. 空子树也要占位：当 <code>start &gt; end</code> 时返回 <code>[None]</code>，否则无法把「只有左子树」或「只有右子树」的情况拼进答案（例如 <code>n=3</code> 时根为 1 的树）。</p>
+<p class="thinking-step">5. 手推 <code>n=3</code>：根为 2 时左只有 <code>{1}</code>、右只有 <code>{3}</code>，得到唯一树 <code>2,1,3</code>；根为 1 时要枚举左空 × 右 <code>[2,3]</code> 的两种 BST，共凑出 5 棵，与卡特兰数一致。</p>""",
+        "code_steps": """<p class="code-step">1. 定义 <code>build(start, end)</code>：若 <code>start &gt; end</code>，返回 <code>[None]</code>（空子树占位）</p>
+<p class="code-step">2. 初始化 <code>trees = []</code>，对 <code>i</code> 从 <code>start</code> 到 <code>end</code> 枚举根节点值</p>
+<p class="code-step">3. <code>lefts = build(start, i-1)</code>，<code>rights = build(i+1, end)</code></p>
+<p class="code-step">4. 双重循环：对每个 <code>l in lefts</code>、<code>r in rights</code>，<code>trees.append(TreeNode(i, l, r))</code></p>
+<p class="code-step">5. 返回 <code>trees</code>；<code>generateTrees(n)</code> 调用 <code>build(1, n)</code>（<code>n==0</code> 时可返回 <code>[]</code>，本题 <code>n≥1</code>）</p>""",
+        "code_python": """# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def generateTrees(self, n: int) -> list[TreeNode | None]:
+        def build(start: int, end: int) -> list[TreeNode | None]:
+            if start > end:
+                return [None]
+            trees: list[TreeNode | None] = []
+            for i in range(start, end + 1):
+                lefts = build(start, i - 1)
+                rights = build(i + 1, end)
+                for left in lefts:
+                    for right in rights:
+                        trees.append(TreeNode(i, left, right))
+            return trees
+
+        if n == 0:
+            return []
+        return build(1, n)""",
+        "code_cpp": """/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right)
+ *         : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<TreeNode*> generateTrees(int n) {
+        if (n == 0) return {};
+        return build(1, n);
+    }
+
+private:
+    vector<TreeNode*> build(int start, int end) {
+        vector<TreeNode*> trees;
+        if (start > end) {
+            trees.push_back(nullptr);
+            return trees;
+        }
+        for (int i = start; i <= end; ++i) {
+            auto lefts = build(start, i - 1);
+            auto rights = build(i + 1, end);
+            for (TreeNode* left : lefts) {
+                for (TreeNode* right : rights) {
+                    trees.push_back(new TreeNode(i, left, right));
+                }
+            }
+        }
+        return trees;
+    }
+};
+// 时间：与输出树棵数同阶；空间 O(n) 递归栈""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空区间返回空列表 <code>[]</code>：拼接时内层循环不会执行，会丢掉「只有左子树或只有右子树」的合法 BST；必须返回 <code>[nullptr]</code> / <code>[None]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 根值写错：节点值就是枚举的 <code>i</code>（在 <code>1..n</code> 内），不要另建映射数组；区间 <code>[start,end]</code> 已经保证值互异且有序。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误以为要先算 #96「不同 BST 的个数」再构造：本题要<strong>输出所有树</strong>，必须做左右子树列表的笛卡尔积拼接，不能只计数。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>n = 1 → 一棵只有根 1 的树</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两节点</div>
+    <code>n = 2 → 2 棵：根 1（右子 2）或根 2（左子 1）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：卡特兰数</div>
+    <code>n = 3 → 5 棵</code>（与示例 1 一致，可用纸笔核对根 1/2/3 三种分支）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：最大 n</div>
+    <code>n = 8</code>（提示上限），树棵数为卡特兰数 C<sub>8</sub>=1430，注意输出体积而非算法常数
+</div>""",
+    },
+
     "unique-paths": {
         "type": "二维DP",
         "difficulty": "中等",
