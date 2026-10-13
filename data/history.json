@@ -726,5 +726,12 @@
     "title": "不同的二叉搜索树 II",
     "type": "回溯",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-13",
+    "slug": "unique-binary-search-trees",
+    "title": "不同的二叉搜索树",
+    "type": "一维DP",
+    "difficulty": "中等"
   }
 ]

@@ -9786,6 +9786,86 @@ private:
 </div>""",
     },
 
+    "unique-binary-search-trees": {
+        "type": "一维DP",
+        "difficulty": "中等",
+        "frontend_id": "96",
+        "title": "不同的二叉搜索树",
+        "time_complexity": "O(n²)（外层 <code>i=1..n</code>，内层枚举根 <code>j</code>）",
+        "space_complexity": "O(n)（一维 <code>dp</code> 数组；卡特兰数递推）",
+        "description": """<p>给你一个整数 <code>n</code>，求恰由 <code>n</code> 个节点组成且节点值从 <code>1</code> 到 <code>n</code> 互不相同的 <strong>二叉搜索树</strong> 有多少种？返回满足题意的二叉搜索树的种数。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：n = 3</div>
+    <div class="example-output">输出：5</div>
+    <div class="example-explain">节点值为 1、2、3 时，结构不同的 BST 共 5 棵（卡特兰数 C<sub>3</sub>=5），与 #95「生成所有树」的棵数一致。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：n = 1</div>
+    <div class="example-output">输出：1</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i]</code></td><td>int</td><td><b>定义</b>：用连续节点值 <code>1..i</code>（共 <code>i</code> 个节点）能构成的不同 BST 的<strong>结构种数</strong><br><b>维护</b>：<code>dp[0]=1</code> 表示空树一种「占位」；对规模 <code>i</code>，枚举根 <code>j∈[1,i]</code>，左子树规模 <code>j-1</code>、右子树规模 <code>i-j</code>，BST 性质保证左右子树值域不交叉<br><b>更新</b>：<code>dp[i] += dp[j-1] * dp[i-j]</code>；答案为 <code>dp[n]</code></td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：当前规模 <code>i</code> 下，作为 BST 根节点的值（也是第 <code>j</code> 个最小值）<br><b>维护</b>：根固定后，左子树只能从更小的 <code>j-1</code> 个值生成、右子树从更大的 <code>i-j</code> 个值生成，与子问题 <code>dp[·]</code> 同构<br><b>更新</b>：<code>for j in range(1, i+1)</code> 累加左右方案数的乘积</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：外层 DP 的规模，从 1 推到 <code>n</code><br><b>维护</b>：计算 <code>dp[i]</code> 时，所有 <code>dp[0]..dp[i-1]</code> 必须已就绪<br><b>更新</b>：<code>for i in range(1, n+1)</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力想法：像 #95 那样递归生成每一棵 BST 再数个数——思路正确，但只需求个数、不必建树，枚举再计数会多做大量重复子问题。</p>
+<p class="thinking-step">2. 重复在哪里？「区间 <code>[1..k]</code> 上有多少种 BST」只与 <code>k</code> 有关，与具体节点标签无关；选根 <code>j</code> 后，左、右子树的规模分别是 <code>j-1</code> 与 <code>i-j</code>，与父问题同形。</p>
+<p class="thinking-step">3. 关键转化：设 <code>G(i)</code> 为 <code>i</code> 个连续值能形成的 BST 种数。枚举根 <code>j</code>，左子树有 <code>G(j-1)</code> 种、右子树有 <code>G(i-j)</code> 种，互独立相乘：<code>G(i) = Σ<sub>j=1..i</sub> G(j-1)·G(i-j)</code>，<code>G(0)=1</code>。这就是卡特兰数的递推。</p>
+<p class="thinking-step">4. 手推 <code>n=3</code>：<code>G(0)=1</code>；<code>G(1)=1</code>；<code>G(2)=G(0)G(1)+G(1)G(0)=2</code>；<code>G(3)=G(0)G(2)+G(1)G(1)+G(2)G(0)=2+1+2=5</code>，与示例一致。</p>
+<p class="thinking-step">5. 与 #95 的关系：#95 要对左右子树列表做笛卡尔积<strong>构造</strong>树；本题只需把同一分解下的方案数<strong>相乘再求和</strong>，是 #95 子问题的计数版 DP。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>n==0</code>（部分接口），可返回 0；本题 <code>n≥1</code></p>
+<p class="code-step">2. 创建长度 <code>n+1</code> 的 <code>dp</code>，令 <code>dp[0]=1</code></p>
+<p class="code-step">3. 对 <code>i</code> 从 1 到 <code>n</code>，令 <code>dp[i]=0</code></p>
+<p class="code-step">4. 对 <code>j</code> 从 1 到 <code>i</code>：<code>dp[i] += dp[j-1] * dp[i-j]</code></p>
+<p class="code-step">5. 返回 <code>dp[n]</code></p>""",
+        "code_python": """class Solution:
+    def numTrees(self, n: int) -> int:
+        dp = [0] * (n + 1)
+        dp[0] = 1
+        for i in range(1, n + 1):
+            for j in range(1, i + 1):
+                dp[i] += dp[j - 1] * dp[i - j]
+        return dp[n]""",
+        "code_cpp": """class Solution {
+public:
+    int numTrees(int n) {
+        vector<long long> dp(n + 1, 0);
+        dp[0] = 1;
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 1; j <= i; ++j) {
+                dp[i] += dp[j - 1] * dp[i - j];
+            }
+        }
+        return (int)dp[n];
+    }
+};
+// 时间 O(n²)，空间 O(n)；n≤19 时卡特兰数在 int 范围内""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>dp[0]=1</code>：空子树在乘法里要当作「一种方案」，否则 <code>j=1</code> 或 <code>j=i</code> 的「只有一侧非空」会算成 0。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与 #95 混淆：本题只计数，不要 <code>TreeNode</code> 与笛卡尔积；转移公式相同，实现差一个「乘积 vs 拼树」。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 内层循环上界：根 <code>j</code> 必须取遍 <code>1..i</code>，漏掉任一根都会少计；左右规模是 <code>j-1</code> 与 <code>i-j</code>，不要写成 <code>j</code> 与 <code>i-j-1</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>n = 1 → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两节点</div>
+    <code>n = 2 → 2</code>（根 1 或根 2 各一种结构）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：卡特兰数</div>
+    <code>n = 3 → 5</code>（与示例 1、#95 输出棵数一致）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：上限</div>
+    <code>n = 19</code>（提示上限），<code>dp[19]</code> 仍在 32 位 int 内，无需大数
+</div>""",
+    },
+
     "unique-paths": {
         "type": "二维DP",
         "difficulty": "中等",
