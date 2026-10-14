@@ -2842,6 +2842,117 @@ public:
 </div>""",
     },
 
+    "interleaving-string": {
+        "type": "二维DP",
+        "difficulty": "中等",
+        "frontend_id": "97",
+        "title": "交错字符串",
+        "time_complexity": "O(m × n)（<code>m=len(s1)</code>，<code>n=len(s2)</code>）",
+        "space_complexity": "O(m × n)（二维 <code>dp</code>；可滚动为一维 <code>O(n)</code>）",
+        "description": """<p>给定三个字符串 <code>s1</code>、<code>s2</code>、<code>s3</code>，请你帮忙验证 <code>s3</code> 是否是由 <code>s1</code> 和 <code>s2</code> <strong>交错</strong> 组成的。</p>
+<p>两个字符串 <code>s</code> 和 <code>t</code> <strong>交错</strong> 的定义与过程如下，其中每个字符串都会被分割成若干 <strong>非空</strong> 子字符串：</p>
+<ul>
+<li><code>s = s<sub>1</sub> + s<sub>2</sub> + ... + s<sub>n</sub></code></li>
+<li><code>t = t<sub>1</sub> + t<sub>2</sub> + ... + t<sub>m</sub></code></li>
+<li><code>|n - m| &lt;= 1</code></li>
+<li><strong>交错</strong> 是 <code>s<sub>1</sub> + t<sub>1</sub> + s<sub>2</sub> + t<sub>2</sub> + ...</code> 或者 <code>t<sub>1</sub> + s<sub>1</sub> + t<sub>2</sub> + s<sub>2</sub> + ...</code></li>
+</ul>
+<p>注意：<code>a + b</code> 表示字符串 <code>a</code> 和 <code>b</code> 连接。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s1 = "aabcc", s2 = "dbbca", s3 = "aadbbcbcac"</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s1 = "aabcc", s2 = "dbbca", s3 = "aadbbbaccc"</div>
+    <div class="example-output">输出：false</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s1 = "", s2 = "", s3 = ""</div>
+    <div class="example-output">输出：true</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i][j]</code></td><td>bool[][]</td><td><b>定义</b>：<code>s1</code> 的前 <code>i</code> 个字符与 <code>s2</code> 的前 <code>j</code> 个字符能否交错拼成 <code>s3</code> 的前 <code>i+j</code> 个字符<br><b>维护</b>：最后一步要么从 <code>s1</code> 再取一个字符，要么从 <code>s2</code> 再取一个；对应 <code>s3</code> 的第 <code>i+j</code> 个字符（下标 <code>i+j-1</code>）必须匹配<br><b>更新</b>：<code>dp[i][j] = (dp[i-1][j] &amp;&amp; s1[i-1]==s3[i+j-1]) || (dp[i][j-1] &amp;&amp; s2[j-1]==s3[i+j-1])</code>；答案 <code>dp[m][n]</code></td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：已消耗的 <code>s1</code> / <code>s2</code> 前缀长度，范围 <code>0..m</code>、<code>0..n</code><br><b>维护</b>：交错后总长度恒为 <code>i+j</code>，与 <code>s3</code> 前缀一一对应<br><b>更新</b>：双重循环 <code>i=0..m</code>、<code>j=0..n</code>；边界行 <code>j=0</code> 只走 <code>s1</code>，边界列 <code>i=0</code> 只走 <code>s2</code></td></tr>
+    <tr><td><code>m, n</code></td><td>int</td><td><b>定义</b>：<code>len(s1)</code>、<code>len(s2)</code><br><b>维护</b>：若 <code>len(s3) != m+n</code> 可直接返回 <code>false</code><br><b>更新</b>：只读；<code>0 ≤ m,n ≤ 100</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力想法：递归枚举每一步从 <code>s1</code> 还是 <code>s2</code> 取下一个字符，与 <code>s3</code> 当前位比对——正确，但分支指数级，长度上百会超时。</p>
+<p class="thinking-step">2. 重复在哪里？状态只取决于「已用 <code>s1</code> 前几个、已用 <code>s2</code> 前几个」，与具体交错路径无关；同一对 <code>(i,j)</code> 会被不同递归路径反复访问。</p>
+<p class="thinking-step">3. 子问题定义：设 <code>dp[i][j]</code> 表示两前缀能否拼成 <code>s3</code> 的前 <code>i+j</code> 个。最后字符若来自 <code>s1</code>，需 <code>dp[i-1][j]</code> 成立且 <code>s1[i-1]==s3[i+j-1]</code>；若来自 <code>s2</code>，对称。二者取或。</p>
+<p class="thinking-step">4. 手推示例 1 一角：<code>s1="aabcc"</code>、<code>s2="dbbca"</code>、<code>s3="aadbbcbcac"</code>。<code>dp[1][0]</code> 由 <code>s1[0]='a'</code> 与 <code>s3[0]='a'</code> 得真；再与 <code>s2</code> 交错延伸，最终 <code>dp[5][5]</code> 为真。</p>
+<p class="thinking-step">5. 与编辑距离对比：同样是「双串 + 二维 DP」，但本题没有「删插替」代价，只有「选左串还是右串的下一个字符」且必须全匹配；边界是沿第一行/列单串匹配 <code>s3</code> 前缀。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>m,n = len(s1), len(s2)</code>；若 <code>len(s3) != m+n</code>，返回 <code>false</code></p>
+<p class="code-step">2. 建 <code>(m+1)×(n+1)</code> 布尔表，<code>dp[0][0]=true</code></p>
+<p class="code-step">3. 初始化第一列 <code>dp[i][0]</code>：仅 <code>s1</code> 前缀对齐 <code>s3</code> 前 <code>i</code> 位</p>
+<p class="code-step">4. 初始化第一行 <code>dp[0][j]</code>：仅 <code>s2</code> 前缀对齐 <code>s3</code> 前 <code>j</code> 位</p>
+<p class="code-step">5. 对 <code>i=1..m</code>、<code>j=1..n</code> 按转移式填 <code>dp[i][j]</code></p>
+<p class="code-step">6. 返回 <code>dp[m][n]</code></p>""",
+        "code_python": """class Solution:
+    def isInterleave(self, s1: str, s2: str, s3: str) -> bool:
+        m, n = len(s1), len(s2)
+        if len(s3) != m + n:
+            return False
+        dp = [[False] * (n + 1) for _ in range(m + 1)]
+        dp[0][0] = True
+        for i in range(1, m + 1):
+            dp[i][0] = dp[i - 1][0] and s1[i - 1] == s3[i - 1]
+        for j in range(1, n + 1):
+            dp[0][j] = dp[0][j - 1] and s2[j - 1] == s3[j - 1]
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                dp[i][j] = (
+                    dp[i - 1][j] and s1[i - 1] == s3[i + j - 1]
+                ) or (
+                    dp[i][j - 1] and s2[j - 1] == s3[i + j - 1]
+                )
+        return dp[m][n]""",
+        "code_cpp": """class Solution {
+public:
+    bool isInterleave(string s1, string s2, string s3) {
+        int m = s1.size(), n = s2.size();
+        if ((int)s3.size() != m + n) return false;
+        vector<vector<bool>> dp(m + 1, vector<bool>(n + 1, false));
+        dp[0][0] = true;
+        for (int i = 1; i <= m; ++i)
+            dp[i][0] = dp[i - 1][0] && s1[i - 1] == s3[i - 1];
+        for (int j = 1; j <= n; ++j)
+            dp[0][j] = dp[0][j - 1] && s2[j - 1] == s3[j - 1];
+        for (int i = 1; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                dp[i][j] = (dp[i - 1][j] && s1[i - 1] == s3[i + j - 1])
+                        || (dp[i][j - 1] && s2[j - 1] == s3[i + j - 1]);
+            }
+        }
+        return dp[m][n];
+    }
+};
+// 时间 O(mn)，空间 O(mn)；进阶可压成 O(n) 滚动""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记长度预判：<code>len(s3) ≠ len(s1)+len(s2)</code> 时一定为 <code>false</code>，否则 <code>s3[i+j-1]</code> 会越界或漏判。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>s3</code> 下标写错：交错总长为 <code>i+j</code>，当前字符是 <code>s3[i+j-1]</code>，不是 <code>s3[i-1]</code> 或 <code>s3[j-1]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边界只初始化 <code>dp[0][0]</code>：第一行/列表示「完全来自单串」，必须逐位与 <code>s3</code> 前缀比对，不能默认全 <code>true</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：三串皆空</div>
+    <code>s1="", s2="", s3="" → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：一为空</div>
+    <code>s1="a", s2="", s3="a" → true</code>；<code>s3="b" → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：长度不等</div>
+    <code>s1="a", s2="b", s3="a" → false</code>（总长应为 2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：示例 2</div>
+    <code>s3="aadbbbaccc" → false</code>（多一个 <code>b</code>，无法与两源串对齐）
+</div>""",
+    },
+
     "roman-to-integer": {
         "type": "数学模拟",
         "difficulty": "简单",

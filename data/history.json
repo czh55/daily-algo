@@ -733,5 +733,12 @@
     "title": "不同的二叉搜索树",
     "type": "一维DP",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-14",
+    "slug": "interleaving-string",
+    "title": "交错字符串",
+    "type": "二维DP",
+    "difficulty": "中等"
   }
 ]

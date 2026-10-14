@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交错字符串 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-10-14</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#97</span>
+                    <span class="problem-type tag-dp">二维DP</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">交错字符串</h1>
+                <a href="https://leetcode.cn/problems/interleaving-string/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-10-14">
+                        <source src="../audio/2026-10-14.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-14', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-10-14', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-14', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-14', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给定三个字符串 <code>s1</code>、<code>s2</code>、<code>s3</code>，请你帮忙验证 <code>s3</code> 是否是由 <code>s1</code> 和 <code>s2</code> <strong>交错</strong> 组成的。</p>
+<p>两个字符串 <code>s</code> 和 <code>t</code> <strong>交错</strong> 的定义与过程如下，其中每个字符串都会被分割成若干 <strong>非空</strong> 子字符串：</p>
+<ul>
+<li><code>s = s<sub>1</sub> + s<sub>2</sub> + ... + s<sub>n</sub></code></li>
+<li><code>t = t<sub>1</sub> + t<sub>2</sub> + ... + t<sub>m</sub></code></li>
+<li><code>|n - m| &lt;= 1</code></li>
+<li><strong>交错</strong> 是 <code>s<sub>1</sub> + t<sub>1</sub> + s<sub>2</sub> + t<sub>2</sub> + ...</code> 或者 <code>t<sub>1</sub> + s<sub>1</sub> + t<sub>2</sub> + s<sub>2</sub> + ...</code></li>
+</ul>
+<p>注意：<code>a + b</code> 表示字符串 <code>a</code> 和 <code>b</code> 连接。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s1 = "aabcc", s2 = "dbbca", s3 = "aadbbcbcac"</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s1 = "aabcc", s2 = "dbbca", s3 = "aadbbbaccc"</div>
+    <div class="example-output">输出：false</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s1 = "", s2 = "", s3 = ""</div>
+    <div class="example-output">输出：true</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力想法：递归枚举每一步从 <code>s1</code> 还是 <code>s2</code> 取下一个字符，与 <code>s3</code> 当前位比对——正确，但分支指数级，长度上百会超时。</p>
+<p class="thinking-step">2. 重复在哪里？状态只取决于「已用 <code>s1</code> 前几个、已用 <code>s2</code> 前几个」，与具体交错路径无关；同一对 <code>(i,j)</code> 会被不同递归路径反复访问。</p>
+<p class="thinking-step">3. 子问题定义：设 <code>dp[i][j]</code> 表示两前缀能否拼成 <code>s3</code> 的前 <code>i+j</code> 个。最后字符若来自 <code>s1</code>，需 <code>dp[i-1][j]</code> 成立且 <code>s1[i-1]==s3[i+j-1]</code>；若来自 <code>s2</code>，对称。二者取或。</p>
+<p class="thinking-step">4. 手推示例 1 一角：<code>s1="aabcc"</code>、<code>s2="dbbca"</code>、<code>s3="aadbbcbcac"</code>。<code>dp[1][0]</code> 由 <code>s1[0]='a'</code> 与 <code>s3[0]='a'</code> 得真；再与 <code>s2</code> 交错延伸，最终 <code>dp[5][5]</code> 为真。</p>
+<p class="thinking-step">5. 与编辑距离对比：同样是「双串 + 二维 DP」，但本题没有「删插替」代价，只有「选左串还是右串的下一个字符」且必须全匹配；边界是沿第一行/列单串匹配 <code>s3</code> 前缀。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i][j]</code></td><td>bool[][]</td><td><b>定义</b>：<code>s1</code> 的前 <code>i</code> 个字符与 <code>s2</code> 的前 <code>j</code> 个字符能否交错拼成 <code>s3</code> 的前 <code>i+j</code> 个字符<br><b>维护</b>：最后一步要么从 <code>s1</code> 再取一个字符，要么从 <code>s2</code> 再取一个；对应 <code>s3</code> 的第 <code>i+j</code> 个字符（下标 <code>i+j-1</code>）必须匹配<br><b>更新</b>：<code>dp[i][j] = (dp[i-1][j] &amp;&amp; s1[i-1]==s3[i+j-1]) || (dp[i][j-1] &amp;&amp; s2[j-1]==s3[i+j-1])</code>；答案 <code>dp[m][n]</code></td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：已消耗的 <code>s1</code> / <code>s2</code> 前缀长度，范围 <code>0..m</code>、<code>0..n</code><br><b>维护</b>：交错后总长度恒为 <code>i+j</code>，与 <code>s3</code> 前缀一一对应<br><b>更新</b>：双重循环 <code>i=0..m</code>、<code>j=0..n</code>；边界行 <code>j=0</code> 只走 <code>s1</code>，边界列 <code>i=0</code> 只走 <code>s2</code></td></tr>
+    <tr><td><code>m, n</code></td><td>int</td><td><b>定义</b>：<code>len(s1)</code>、<code>len(s2)</code><br><b>维护</b>：若 <code>len(s3) != m+n</code> 可直接返回 <code>false</code><br><b>更新</b>：只读；<code>0 ≤ m,n ≤ 100</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 令 <code>m,n = len(s1), len(s2)</code>；若 <code>len(s3) != m+n</code>，返回 <code>false</code></p>
+<p class="code-step">2. 建 <code>(m+1)×(n+1)</code> 布尔表，<code>dp[0][0]=true</code></p>
+<p class="code-step">3. 初始化第一列 <code>dp[i][0]</code>：仅 <code>s1</code> 前缀对齐 <code>s3</code> 前 <code>i</code> 位</p>
+<p class="code-step">4. 初始化第一行 <code>dp[0][j]</code>：仅 <code>s2</code> 前缀对齐 <code>s3</code> 前 <code>j</code> 位</p>
+<p class="code-step">5. 对 <code>i=1..m</code>、<code>j=1..n</code> 按转移式填 <code>dp[i][j]</code></p>
+<p class="code-step">6. 返回 <code>dp[m][n]</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def isInterleave(self, s1: str, s2: str, s3: str) -&gt; bool:
+        m, n = len(s1), len(s2)
+        if len(s3) != m + n:
+            return False
+        dp = [[False] * (n + 1) for _ in range(m + 1)]
+        dp[0][0] = True
+        for i in range(1, m + 1):
+            dp[i][0] = dp[i - 1][0] and s1[i - 1] == s3[i - 1]
+        for j in range(1, n + 1):
+            dp[0][j] = dp[0][j - 1] and s2[j - 1] == s3[j - 1]
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                dp[i][j] = (
+                    dp[i - 1][j] and s1[i - 1] == s3[i + j - 1]
+                ) or (
+                    dp[i][j - 1] and s2[j - 1] == s3[i + j - 1]
+                )
+        return dp[m][n]</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    bool isInterleave(string s1, string s2, string s3) {
+        int m = s1.size(), n = s2.size();
+        if ((int)s3.size() != m + n) return false;
+        vector&lt;vector&lt;bool&gt;&gt; dp(m + 1, vector&lt;bool&gt;(n + 1, false));
+        dp[0][0] = true;
+        for (int i = 1; i &lt;= m; ++i)
+            dp[i][0] = dp[i - 1][0] &amp;&amp; s1[i - 1] == s3[i - 1];
+        for (int j = 1; j &lt;= n; ++j)
+            dp[0][j] = dp[0][j - 1] &amp;&amp; s2[j - 1] == s3[j - 1];
+        for (int i = 1; i &lt;= m; ++i) {
+            for (int j = 1; j &lt;= n; ++j) {
+                dp[i][j] = (dp[i - 1][j] &amp;&amp; s1[i - 1] == s3[i + j - 1])
+                        || (dp[i][j - 1] &amp;&amp; s2[j - 1] == s3[i + j - 1]);
+            }
+        }
+        return dp[m][n];
+    }
+};
+// 时间 O(mn)，空间 O(mn)；进阶可压成 O(n) 滚动</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(m × n)（<code>m=len(s1)</code>，<code>n=len(s2)</code>）</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(m × n)（二维 <code>dp</code>；可滚动为一维 <code>O(n)</code>）</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记长度预判：<code>len(s3) ≠ len(s1)+len(s2)</code> 时一定为 <code>false</code>，否则 <code>s3[i+j-1]</code> 会越界或漏判。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>s3</code> 下标写错：交错总长为 <code>i+j</code>，当前字符是 <code>s3[i+j-1]</code>，不是 <code>s3[i-1]</code> 或 <code>s3[j-1]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边界只初始化 <code>dp[0][0]</code>：第一行/列表示「完全来自单串」，必须逐位与 <code>s3</code> 前缀比对，不能默认全 <code>true</code>。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：三串皆空</div>
+    <code>s1="", s2="", s3="" → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：一为空</div>
+    <code>s1="a", s2="", s3="a" → true</code>；<code>s3="b" → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：长度不等</div>
+    <code>s1="a", s2="b", s3="a" → false</code>（总长应为 2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：示例 2</div>
+    <code>s3="aadbbbaccc" → false</code>（多一个 <code>b</code>，无法与两源串对齐）
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>
