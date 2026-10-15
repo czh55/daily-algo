@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恢复二叉搜索树 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-10-15</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#99</span>
+                    <span class="problem-type tag-bst">BST恢复</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">恢复二叉搜索树</h1>
+                <a href="https://leetcode.cn/problems/recover-binary-search-tree/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-10-15">
+                        <source src="../audio/2026-10-15.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-15', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-10-15', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-15', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-15', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你二叉搜索树的根节点 <code>root</code>，该树中的 <strong>恰好</strong> 两个节点的值被错误地交换。请在不改变其结构的情况下，恢复这棵树。</p>
+<p><code>2 &lt;= 节点数 &lt;= 1000</code>，节点值在 32 位有符号整数范围内。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [1,3,null,null,2]</div>
+    <div class="example-output">输出：[3,1,null,null,2]</div>
+    <div class="example-explain">3 不能是 1 的左孩子，因为 3 &gt; 1。交换 1 和 3 使二叉搜索树有效。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [3,1,4,null,null,2]</div>
+    <div class="example-output">输出：[2,1,4,null,null,3]</div>
+    <div class="example-explain">2 不能在 3 的右子树中，因为 2 &lt; 3。交换 2 和 3 使二叉搜索树有效。</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力：收集所有节点值，排序后与当前中序序列比对找两个错位下标，再改值——需要 O(n log n) 且要额外数组，结构明明没变，何必排序？</p>
+<p class="thinking-step">2. 重复在哪里？BST 的中序遍历一定是<strong>严格递增</strong>；只交换了两个值，等价于中序数组里恰好有两个位置「破坏了单调性」，形成 1～2 个逆序对 <code>prev &gt; curr</code>。</p>
+<p class="thinking-step">3. 一次中序 DFS：维护 <code>prev</code>，若 <code>prev.val &gt; node.val</code>，说明这对相邻中序元素逆序——<code>prev</code> 是较大错值、<code>node</code> 是较小错值。</p>
+<p class="thinking-step">4. 两个逆序对（不相邻交换）：第一次逆序定 <code>first</code>，每次逆序都更新 <code>second</code>，最终 <code>second</code> 是第二次逆序的较小者；只有一个逆序（相邻交换）时，<code>first</code> 与 <code>second</code> 就是这一对。</p>
+<p class="thinking-step">5. 遍历结束后交换 <code>first.val</code> 与 <code>second.val</code>，不改指针结构，树恢复为合法 BST。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>prev</code></td><td>TreeNode*</td><td><b>定义</b>：中序遍历中「刚访问完」的上一节点<br><b>维护</b>：每访问一个节点后，<code>prev</code> 指向该节点，供下一轮比较<br><b>更新</b>：处理完 <code>node</code> 后令 <code>prev = node</code></td></tr>
+    <tr><td><code>first</code></td><td>TreeNode*</td><td><b>定义</b>：第一次「逆序对」里较大的那个节点（应被换下去的错值）<br><b>维护</b>：仅在尚未记录时赋值，之后不再改变<br><b>更新</b>：当 <code>prev.val &gt; node.val</code> 且 <code>first</code> 为空时，<code>first = prev</code></td></tr>
+    <tr><td><code>second</code></td><td>TreeNode*</td><td><b>定义</b>：当前逆序对里较小的那个节点（应被换上来的错值）<br><b>维护</b>：每发现一次逆序都更新为当前的 <code>node</code>（非相邻交换时会出现两次逆序）<br><b>更新</b>：当 <code>prev.val &gt; node.val</code> 时，<code>second = node</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 初始化 <code>prev = first = second = None</code></p>
+<p class="code-step">2. 定义中序 <code>dfs(node)</code>：空则返回；先 <code>dfs(node.left)</code></p>
+<p class="code-step">3. 访问根：若 <code>prev</code> 存在且 <code>prev.val &gt; node.val</code>，则若 <code>first</code> 为空令 <code>first = prev</code>，并令 <code>second = node</code></p>
+<p class="code-step">4. <code>prev = node</code>，再 <code>dfs(node.right)</code></p>
+<p class="code-step">5. 入口 <code>dfs(root)</code> 后交换 <code>first.val</code> 与 <code>second.val</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def recoverTree(self, root: TreeNode) -&gt; None:
+        self.prev = self.first = self.second = None
+
+        def dfs(node):
+            if not node:
+                return
+            dfs(node.left)
+            if self.prev and self.prev.val &gt; node.val:
+                if not self.first:
+                    self.first = self.prev
+                self.second = node
+            self.prev = node
+            dfs(node.right)
+
+        dfs(root)
+        if self.first and self.second:
+            self.first.val, self.second.val = self.second.val, self.first.val</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+    TreeNode* prev = nullptr;
+    TreeNode* first = nullptr;
+    TreeNode* second = nullptr;
+
+    void dfs(TreeNode* node) {
+        if (!node) return;
+        dfs(node-&gt;left);
+        if (prev &amp;&amp; prev-&gt;val &gt; node-&gt;val) {
+            if (!first) first = prev;
+            second = node;
+        }
+        prev = node;
+        dfs(node-&gt;right);
+    }
+
+public:
+    void recoverTree(TreeNode* root) {
+        dfs(root);
+        if (first &amp;&amp; second)
+            swap(first-&gt;val, second-&gt;val);
+    }
+};
+// 时间 O(n)，空间 O(h)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(h)（递归栈，h 为树高）</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 相邻两节点交换时只有一次逆序，必须在<strong>每次</strong>逆序时都更新 <code>second</code>，不能只记录第一次。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 比较的是中序<strong>相邻</strong>的 <code>prev</code> 与当前节点，不是父子比较；前序/后序无法直接看出全局有序性。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误把节点指针交换：题目要求不改变结构，只交换两个节点的 <code>val</code>。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：相邻节点交换</div>
+    <code>root = [1,3,null,null,2] → 交换 1 与 3（中序仅一处逆序）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：非相邻交换</div>
+    <code>root = [3,1,4,null,null,2] → first=3, second=2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：最小树</div>
+    <code>仅 2 个节点且值颠倒 → 一次逆序即恢复</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

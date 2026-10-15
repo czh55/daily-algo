@@ -47,6 +47,7 @@ TYPE_CLASS_MAP = {
     "排序+双指针": "two-pointer",
     "双指针": "two-pointer",
     "BST验证": "bst",
+    "BST恢复": "bst",
     "哈希表": "hash",
     "二分查找": "binary-search",
     "中心扩展": "center-expand",
@@ -1788,6 +1789,104 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 3：INT 边界</div>
     <code>root = [2147483647] → true（long 边界不会误判）</code>
+</div>""",
+    },
+
+    "recover-binary-search-tree": {
+        "type": "BST恢复",
+        "difficulty": "中等",
+        "frontend_id": "99",
+        "title": "恢复二叉搜索树",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(h)（递归栈，h 为树高）",
+        "description": """<p>给你二叉搜索树的根节点 <code>root</code>，该树中的 <strong>恰好</strong> 两个节点的值被错误地交换。请在不改变其结构的情况下，恢复这棵树。</p>
+<p><code>2 &lt;= 节点数 &lt;= 1000</code>，节点值在 32 位有符号整数范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [1,3,null,null,2]</div>
+    <div class="example-output">输出：[3,1,null,null,2]</div>
+    <div class="example-explain">3 不能是 1 的左孩子，因为 3 &gt; 1。交换 1 和 3 使二叉搜索树有效。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [3,1,4,null,null,2]</div>
+    <div class="example-output">输出：[2,1,4,null,null,3]</div>
+    <div class="example-explain">2 不能在 3 的右子树中，因为 2 &lt; 3。交换 2 和 3 使二叉搜索树有效。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>prev</code></td><td>TreeNode*</td><td><b>定义</b>：中序遍历中「刚访问完」的上一节点<br><b>维护</b>：每访问一个节点后，<code>prev</code> 指向该节点，供下一轮比较<br><b>更新</b>：处理完 <code>node</code> 后令 <code>prev = node</code></td></tr>
+    <tr><td><code>first</code></td><td>TreeNode*</td><td><b>定义</b>：第一次「逆序对」里较大的那个节点（应被换下去的错值）<br><b>维护</b>：仅在尚未记录时赋值，之后不再改变<br><b>更新</b>：当 <code>prev.val &gt; node.val</code> 且 <code>first</code> 为空时，<code>first = prev</code></td></tr>
+    <tr><td><code>second</code></td><td>TreeNode*</td><td><b>定义</b>：当前逆序对里较小的那个节点（应被换上来的错值）<br><b>维护</b>：每发现一次逆序都更新为当前的 <code>node</code>（非相邻交换时会出现两次逆序）<br><b>更新</b>：当 <code>prev.val &gt; node.val</code> 时，<code>second = node</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：收集所有节点值，排序后与当前中序序列比对找两个错位下标，再改值——需要 O(n log n) 且要额外数组，结构明明没变，何必排序？</p>
+<p class="thinking-step">2. 重复在哪里？BST 的中序遍历一定是<strong>严格递增</strong>；只交换了两个值，等价于中序数组里恰好有两个位置「破坏了单调性」，形成 1～2 个逆序对 <code>prev &gt; curr</code>。</p>
+<p class="thinking-step">3. 一次中序 DFS：维护 <code>prev</code>，若 <code>prev.val &gt; node.val</code>，说明这对相邻中序元素逆序——<code>prev</code> 是较大错值、<code>node</code> 是较小错值。</p>
+<p class="thinking-step">4. 两个逆序对（不相邻交换）：第一次逆序定 <code>first</code>，每次逆序都更新 <code>second</code>，最终 <code>second</code> 是第二次逆序的较小者；只有一个逆序（相邻交换）时，<code>first</code> 与 <code>second</code> 就是这一对。</p>
+<p class="thinking-step">5. 遍历结束后交换 <code>first.val</code> 与 <code>second.val</code>，不改指针结构，树恢复为合法 BST。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>prev = first = second = None</code></p>
+<p class="code-step">2. 定义中序 <code>dfs(node)</code>：空则返回；先 <code>dfs(node.left)</code></p>
+<p class="code-step">3. 访问根：若 <code>prev</code> 存在且 <code>prev.val &gt; node.val</code>，则若 <code>first</code> 为空令 <code>first = prev</code>，并令 <code>second = node</code></p>
+<p class="code-step">4. <code>prev = node</code>，再 <code>dfs(node.right)</code></p>
+<p class="code-step">5. 入口 <code>dfs(root)</code> 后交换 <code>first.val</code> 与 <code>second.val</code></p>""",
+        "code_python": """class Solution:
+    def recoverTree(self, root: TreeNode) -> None:
+        self.prev = self.first = self.second = None
+
+        def dfs(node):
+            if not node:
+                return
+            dfs(node.left)
+            if self.prev and self.prev.val > node.val:
+                if not self.first:
+                    self.first = self.prev
+                self.second = node
+            self.prev = node
+            dfs(node.right)
+
+        dfs(root)
+        if self.first and self.second:
+            self.first.val, self.second.val = self.second.val, self.first.val""",
+        "code_cpp": """class Solution {
+    TreeNode* prev = nullptr;
+    TreeNode* first = nullptr;
+    TreeNode* second = nullptr;
+
+    void dfs(TreeNode* node) {
+        if (!node) return;
+        dfs(node->left);
+        if (prev && prev->val > node->val) {
+            if (!first) first = prev;
+            second = node;
+        }
+        prev = node;
+        dfs(node->right);
+    }
+
+public:
+    void recoverTree(TreeNode* root) {
+        dfs(root);
+        if (first && second)
+            swap(first->val, second->val);
+    }
+};
+// 时间 O(n)，空间 O(h)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 相邻两节点交换时只有一次逆序，必须在<strong>每次</strong>逆序时都更新 <code>second</code>，不能只记录第一次。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 比较的是中序<strong>相邻</strong>的 <code>prev</code> 与当前节点，不是父子比较；前序/后序无法直接看出全局有序性。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误把节点指针交换：题目要求不改变结构，只交换两个节点的 <code>val</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：相邻节点交换</div>
+    <code>root = [1,3,null,null,2] → 交换 1 与 3（中序仅一处逆序）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：非相邻交换</div>
+    <code>root = [3,1,4,null,null,2] → first=3, second=2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：最小树</div>
+    <code>仅 2 个节点且值颠倒 → 一次逆序即恢复</code>
 </div>""",
     },
 

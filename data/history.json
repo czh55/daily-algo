@@ -740,5 +740,12 @@
     "title": "交错字符串",
     "type": "二维DP",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-15",
+    "slug": "recover-binary-search-tree",
+    "title": "恢复二叉搜索树",
+    "type": "BST恢复",
+    "difficulty": "中等"
   }
 ]
