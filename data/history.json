@@ -747,5 +747,12 @@
     "title": "恢复二叉搜索树",
     "type": "BST恢复",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-16",
+    "slug": "same-tree",
+    "title": "相同的树",
+    "type": "树后序递归",
+    "difficulty": "简单"
   }
 ]

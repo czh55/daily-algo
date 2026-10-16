@@ -1890,6 +1890,102 @@ public:
 </div>""",
     },
 
+    "same-tree": {
+        "type": "树后序递归",
+        "difficulty": "简单",
+        "frontend_id": "100",
+        "title": "相同的树",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(h)（递归栈，h 为树高；BFS 队列同理）",
+        "description": """<p>给你两棵二叉树的根节点 <code>p</code> 和 <code>q</code>，编写一个函数来检验这两棵树是否相同。</p>
+<p>如果两棵树在<strong>结构上相同</strong>，并且对应节点具有<strong>相同的值</strong>，则认为它们是相同的。</p>
+<p>节点数目在 <code>[0, 100]</code>，节点值在 32 位有符号整数范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：p = [1,2,3], q = [1,2,3]</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：p = [1,2], q = [1,null,2]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">p 的右子树为空，q 的右子树有节点 2，结构不同。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：p = [1,2,1], q = [1,1,2]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">左右孩子位置对调，结构不同。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>p</code> / <code>q</code></td><td>TreeNode*</td><td><b>定义</b>：当前正在对齐比较的两棵树的「同步根」<br><b>维护</b>：每次递归/迭代都同时指向结构上一一对应的节点；若一方为空另一方非空则已可判假<br><b>更新</b>：处理完当前层后，<code>p,q</code> 分别移向各自的 <code>left</code>，再移向各自的 <code>right</code></td></tr>
+    <tr><td><code>dfs(p,q)</code></td><td>bool</td><td><b>定义</b>：以 <code>p</code>、<code>q</code> 为根的子树是否完全相同<br><b>维护</b>：真当且仅当当前节点值相等且左右子树分别相同；空对空为真<br><b>更新</b>：<code>return dfs(p.left,q.left) and dfs(p.right,q.right)</code>（值不等或一空一非空时短路为假）</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：把两棵树分别中序/前序序列化再比较字符串——能判值序列，但<strong>结构</strong>信息容易丢（例如示例 2 的 <code>null</code> 位置），还要额外编码空指针，不如直接同步走树。</p>
+<p class="thinking-step">2. 重复在哪里？「是否相同」在每一对对齐节点上问的是同一句话：值是否相等、左子树是否相同、右子树是否相同——子问题与整题同型，天然递归。</p>
+<p class="thinking-step">3. 同步 DFS：若 <code>p、q</code> 都空 → <code>true</code>；仅一方空 → <code>false</code>；值不等 → <code>false</code>；否则答案 = 左对左 AND 右对右。</p>
+<p class="thinking-step">4. 示例 2：<code>p=[1,2]</code> 在根处左孩子都是 2，但 <code>p.right</code> 为空而 <code>q.right</code> 为 2，在右子树对齐时「一空一非空」，直接假。</p>
+<p class="thinking-step">5. 每个节点访问常数次，时间 O(n)；递归深度 O(h)，链状树最坏 O(n)。BFS 双队列同步出队是同一逻辑的迭代写法。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>p</code> 与 <code>q</code> 均为空，返回 <code>true</code></p>
+<p class="code-step">2. 若仅一方为空，或 <code>p.val != q.val</code>，返回 <code>false</code></p>
+<p class="code-step">3. 返回 <code>isSameTree(p.left, q.left) and isSameTree(p.right, q.right)</code></p>
+<p class="code-step">4. （迭代备选）双队列同时入队根；循环中成对弹出，判空与值，再把左右孩子成对入队</p>""",
+        "code_python": """class Solution:
+    def isSameTree(self, p: TreeNode | None, q: TreeNode | None) -> bool:
+        if not p and not q:
+            return True
+        if not p or not q or p.val != q.val:
+            return False
+        return (
+            self.isSameTree(p.left, q.left)
+            and self.isSameTree(p.right, q.right)
+        )
+
+# 迭代（双队列同步）：
+# from collections import deque
+# def isSameTree(self, p, q):
+#     qp, qq = deque([p]), deque([q])
+#     while qp:
+#         a, b = qp.popleft(), qq.popleft()
+#         if not a and not b: continue
+#         if not a or not b or a.val != b.val: return False
+#         qp.append(a.left); qq.append(b.left)
+#         qp.append(a.right); qq.append(b.right)
+#     return True""",
+        "code_cpp": """class Solution {
+public:
+    bool isSameTree(TreeNode* p, TreeNode* q) {
+        if (!p && !q) return true;
+        if (!p || !q || p->val != q->val) return false;
+        return isSameTree(p->left, q->left)
+            && isSameTree(p->right, q->right);
+    }
+};
+// 时间 O(n)，空间 O(h)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只比较值、不比较空指针：必须「双空为真、一空一假为假」，不能只写 <code>p.val == q.val</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 左右子树对错配对：必须是 <code>(p.left, q.left)</code> 与 <code>(p.right, q.right)</code>，不能写成 <code>p.left</code> 对 <code>q.right</code>（示例 3 会误判）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> BFS 时只用一个队列交替存两棵树：应双队列或队列存 <code>pair</code>，保证每一层节点成对比较。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：两棵都空</div>
+    <code>p = null, q = null → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：一空一非空</div>
+    <code>p = [1], q = [] → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单节点值相同</div>
+    <code>p = [1], q = [1] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：结构不同（官方示例 2）</div>
+    <code>p = [1,2], q = [1,null,2] → false</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",
