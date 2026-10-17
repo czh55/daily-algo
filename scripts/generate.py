@@ -1986,6 +1986,102 @@ public:
 </div>""",
     },
 
+    "symmetric-tree": {
+        "type": "树后序递归",
+        "difficulty": "简单",
+        "frontend_id": "101",
+        "title": "对称二叉树",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(h)（递归栈，h 为树高；BFS 队列同理）",
+        "description": """<p>给你一个二叉树的根节点 <code>root</code>，检查它是否轴对称。</p>
+<p>轴对称指：以根为轴，左子树与右子树互为镜像——对应位置的节点值相等，且子结构也镜像对应。</p>
+<p>节点数目在 <code>[1, 1000]</code>，节点值在 <code>[-100, 100]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [1,2,2,3,4,4,3]</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [1,2,2,null,3,null,3]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">左子树的右孩子为 3，右子树的左孩子为 3，但它们不是镜像位置上的对应节点（一侧缺左孩子、另一侧缺右孩子）。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>left</code> / <code>right</code></td><td>TreeNode*</td><td><b>定义</b>：当前正在做「镜像对齐」的一对节点，初始为 <code>root.left</code> 与 <code>root.right</code><br><b>维护</b>：若两者都空则该对子树镜像成立；仅一方空则整棵树不对称；值不等则假<br><b>更新</b>：下一对为 <code>(left.left, right.right)</code> 与 <code>(left.right, right.left)</code>——外对内、内对外</td></tr>
+    <tr><td><code>mirror(a,b)</code></td><td>bool</td><td><b>定义</b>：以 <code>a</code>、<code>b</code> 为根的子树是否互为镜像<br><b>维护</b>：真当且仅当当前值相等，且 <code>a</code> 的左与 <code>b</code> 的右镜像、<code>a</code> 的右与 <code>b</code> 的左镜像<br><b>更新</b>：<code>return mirror(a.left,b.right) and mirror(a.right,b.left)</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：把树按层序列化再判断字符串是否回文——要编码空指针且层序与「镜像」定义不完全一致，实现啰嗦。</p>
+<p class="thinking-step">2. 重复在哪里？「是否对称」在根处等价于：左、右子树是否<strong>互为镜像</strong>；而「两子树是否镜像」在每一对对齐节点上又是同一类问题——子问题同型，适合递归。</p>
+<p class="thinking-step">3. 与「相同的树」对比：相同树是 <code>(p.left,q.left)</code> 与 <code>(p.right,q.right)</code>；镜像则是 <code>(a.left,b.right)</code> 与 <code>(a.right,b.left)</code>，内外交叉配对。</p>
+<p class="thinking-step">4. 示例 2：<code>[1,2,2,null,3,null,3]</code> 在比较 <code>(2,null)</code> 与 <code>(2,3)</code> 时一空一非空，直接假。</p>
+<p class="thinking-step">5. 单节点树 <code>[1]</code> 无左右孩子，<code>isSymmetric</code> 在检查 <code>root.left</code> 与 <code>root.right</code> 双空时即真；总时间 O(n)，空间 O(h)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，返回 <code>true</code>（题目 n≥1 时通常可省略）</p>
+<p class="code-step">2. 定义 <code>mirror(a,b)</code>：双空 → <code>true</code>；一空一非空或 <code>a.val != b.val</code> → <code>false</code></p>
+<p class="code-step">3. 返回 <code>mirror(a.left,b.right) and mirror(a.right,b.left)</code></p>
+<p class="code-step">4. <code>isSymmetric(root)</code> 调用 <code>mirror(root.left, root.right)</code></p>
+<p class="code-step">5. （迭代备选）队列成对入队 <code>(left,right)</code>，弹出后按镜像规则把孩子成对入队</p>""",
+        "code_python": """class Solution:
+    def isSymmetric(self, root: TreeNode | None) -> bool:
+        def mirror(a: TreeNode | None, b: TreeNode | None) -> bool:
+            if not a and not b:
+                return True
+            if not a or not b or a.val != b.val:
+                return False
+            return mirror(a.left, b.right) and mirror(a.right, b.left)
+
+        if not root:
+            return True
+        return mirror(root.left, root.right)
+
+# 迭代（队列存镜像对）：
+# from collections import deque
+# def isSymmetric(self, root):
+#     if not root: return True
+#     q = deque([(root.left, root.right)])
+#     while q:
+#         a, b = q.popleft()
+#         if not a and not b: continue
+#         if not a or not b or a.val != b.val: return False
+#         q.append((a.left, b.right))
+#         q.append((a.right, b.left))
+#     return True""",
+        "code_cpp": """class Solution {
+public:
+    bool isSymmetric(TreeNode* root) {
+        return mirror(root->left, root->right);
+    }
+    bool mirror(TreeNode* a, TreeNode* b) {
+        if (!a && !b) return true;
+        if (!a || !b || a->val != b->val) return false;
+        return mirror(a->left, b->right) && mirror(a->right, b->left);
+    }
+};
+// 时间 O(n)，空间 O(h)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误用「相同树」配对：写成 <code>mirror(a.left,b.left)</code> 会把「结构对称」当成「两棵相同子树」，示例 1 仍可能对，但镜像定义错误。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只比较根左右值相等就返回 <code>true</code>：必须递归检查整棵左右子树是否镜像。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> BFS 入队顺序错：第二对必须是 <code>(a.left,b.right)</code> 与 <code>(a.right,b.left)</code>，不能两对都按同侧孩子入队。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>root = [1] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：官方示例 1（完全对称）</div>
+    <code>root = [1,2,2,3,4,4,3] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 2（缺一侧孩子）</div>
+    <code>root = [1,2,2,null,3,null,3] → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：根左右值不等</div>
+    <code>root = [1,2,3] → false</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",

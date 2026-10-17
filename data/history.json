@@ -754,5 +754,12 @@
     "title": "相同的树",
     "type": "树后序递归",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-10-17",
+    "slug": "symmetric-tree",
+    "title": "对称二叉树",
+    "type": "树后序递归",
+    "difficulty": "简单"
   }
 ]

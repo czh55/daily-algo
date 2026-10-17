@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对称二叉树 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-10-17</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#101</span>
+                    <span class="problem-type tag-tree">树后序递归</span>
+                    <span class="problem-difficulty difficulty-easy">简单</span>
+                </div>
+                <h1 class="problem-title">对称二叉树</h1>
+                <a href="https://leetcode.cn/problems/symmetric-tree/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-10-17">
+                        <source src="../audio/2026-10-17.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-17', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-10-17', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-17', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-17', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给你一个二叉树的根节点 <code>root</code>，检查它是否轴对称。</p>
+<p>轴对称指：以根为轴，左子树与右子树互为镜像——对应位置的节点值相等，且子结构也镜像对应。</p>
+<p>节点数目在 <code>[1, 1000]</code>，节点值在 <code>[-100, 100]</code> 范围内。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [1,2,2,3,4,4,3]</div>
+    <div class="example-output">输出：true</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [1,2,2,null,3,null,3]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">左子树的右孩子为 3，右子树的左孩子为 3，但它们不是镜像位置上的对应节点（一侧缺左孩子、另一侧缺右孩子）。</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力直觉：把树按层序列化再判断字符串是否回文——要编码空指针且层序与「镜像」定义不完全一致，实现啰嗦。</p>
+<p class="thinking-step">2. 重复在哪里？「是否对称」在根处等价于：左、右子树是否<strong>互为镜像</strong>；而「两子树是否镜像」在每一对对齐节点上又是同一类问题——子问题同型，适合递归。</p>
+<p class="thinking-step">3. 与「相同的树」对比：相同树是 <code>(p.left,q.left)</code> 与 <code>(p.right,q.right)</code>；镜像则是 <code>(a.left,b.right)</code> 与 <code>(a.right,b.left)</code>，内外交叉配对。</p>
+<p class="thinking-step">4. 示例 2：<code>[1,2,2,null,3,null,3]</code> 在比较 <code>(2,null)</code> 与 <code>(2,3)</code> 时一空一非空，直接假。</p>
+<p class="thinking-step">5. 单节点树 <code>[1]</code> 无左右孩子，<code>isSymmetric</code> 在检查 <code>root.left</code> 与 <code>root.right</code> 双空时即真；总时间 O(n)，空间 O(h)。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>left</code> / <code>right</code></td><td>TreeNode*</td><td><b>定义</b>：当前正在做「镜像对齐」的一对节点，初始为 <code>root.left</code> 与 <code>root.right</code><br><b>维护</b>：若两者都空则该对子树镜像成立；仅一方空则整棵树不对称；值不等则假<br><b>更新</b>：下一对为 <code>(left.left, right.right)</code> 与 <code>(left.right, right.left)</code>——外对内、内对外</td></tr>
+    <tr><td><code>mirror(a,b)</code></td><td>bool</td><td><b>定义</b>：以 <code>a</code>、<code>b</code> 为根的子树是否互为镜像<br><b>维护</b>：真当且仅当当前值相等，且 <code>a</code> 的左与 <code>b</code> 的右镜像、<code>a</code> 的右与 <code>b</code> 的左镜像<br><b>更新</b>：<code>return mirror(a.left,b.right) and mirror(a.right,b.left)</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 若 <code>root</code> 为空，返回 <code>true</code>（题目 n≥1 时通常可省略）</p>
+<p class="code-step">2. 定义 <code>mirror(a,b)</code>：双空 → <code>true</code>；一空一非空或 <code>a.val != b.val</code> → <code>false</code></p>
+<p class="code-step">3. 返回 <code>mirror(a.left,b.right) and mirror(a.right,b.left)</code></p>
+<p class="code-step">4. <code>isSymmetric(root)</code> 调用 <code>mirror(root.left, root.right)</code></p>
+<p class="code-step">5. （迭代备选）队列成对入队 <code>(left,right)</code>，弹出后按镜像规则把孩子成对入队</p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def isSymmetric(self, root: TreeNode | None) -&gt; bool:
+        def mirror(a: TreeNode | None, b: TreeNode | None) -&gt; bool:
+            if not a and not b:
+                return True
+            if not a or not b or a.val != b.val:
+                return False
+            return mirror(a.left, b.right) and mirror(a.right, b.left)
+
+        if not root:
+            return True
+        return mirror(root.left, root.right)
+
+# 迭代（队列存镜像对）：
+# from collections import deque
+# def isSymmetric(self, root):
+#     if not root: return True
+#     q = deque([(root.left, root.right)])
+#     while q:
+#         a, b = q.popleft()
+#         if not a and not b: continue
+#         if not a or not b or a.val != b.val: return False
+#         q.append((a.left, b.right))
+#         q.append((a.right, b.left))
+#     return True</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    bool isSymmetric(TreeNode* root) {
+        return mirror(root-&gt;left, root-&gt;right);
+    }
+    bool mirror(TreeNode* a, TreeNode* b) {
+        if (!a &amp;&amp; !b) return true;
+        if (!a || !b || a-&gt;val != b-&gt;val) return false;
+        return mirror(a-&gt;left, b-&gt;right) &amp;&amp; mirror(a-&gt;right, b-&gt;left);
+    }
+};
+// 时间 O(n)，空间 O(h)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(h)（递归栈，h 为树高；BFS 队列同理）</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误用「相同树」配对：写成 <code>mirror(a.left,b.left)</code> 会把「结构对称」当成「两棵相同子树」，示例 1 仍可能对，但镜像定义错误。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只比较根左右值相等就返回 <code>true</code>：必须递归检查整棵左右子树是否镜像。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> BFS 入队顺序错：第二对必须是 <code>(a.left,b.right)</code> 与 <code>(a.right,b.left)</code>，不能两对都按同侧孩子入队。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>root = [1] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：官方示例 1（完全对称）</div>
+    <code>root = [1,2,2,3,4,4,3] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 2（缺一侧孩子）</div>
+    <code>root = [1,2,2,null,3,null,3] → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：根左右值不等</div>
+    <code>root = [1,2,3] → false</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>
