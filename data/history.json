@@ -761,5 +761,12 @@
     "title": "对称二叉树",
     "type": "树后序递归",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-10-18",
+    "slug": "binary-tree-level-order-traversal",
+    "title": "二叉树的层序遍历",
+    "type": "树层序BFS",
+    "difficulty": "中等"
   }
 ]

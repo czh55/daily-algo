@@ -41,6 +41,7 @@ TYPE_CLASS_MAP = {
     "二维DP": "dp",
     "一维DP": "dp",
     "树后序递归": "tree",
+    "树层序BFS": "tree",
     "并查集": "union-find",
     "网格搜索": "grid",
     "拓扑排序": "topo",
@@ -2079,6 +2080,112 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 4：根左右值不等</div>
     <code>root = [1,2,3] → false</code>
+</div>""",
+    },
+
+    "binary-tree-level-order-traversal": {
+        "type": "树层序BFS",
+        "difficulty": "中等",
+        "frontend_id": "102",
+        "title": "二叉树的层序遍历",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)（队列最坏存满一层，约 n/2 个节点）",
+        "description": """<p>给你二叉树的根节点 <code>root</code>，返回其节点值的 <strong>层序遍历</strong>（即逐层地、从左到右访问所有节点）。</p>
+<p>节点数目在 <code>[0, 2000]</code> 内，节点值在 <code>[-1000, 1000]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [3,9,20,null,null,15,7]</div>
+    <div class="example-output">输出：[[3],[9,20],[15,7]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [1]</div>
+    <div class="example-output">输出：[[1]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = []</div>
+    <div class="example-output">输出：[]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>q</code></td><td>deque&lt;TreeNode*&gt;</td><td><b>定义</b>：待扩展的节点队列，按「先进先出」保证同一层从左到右、由浅入深<br><b>维护</b>：队列中任意时刻的节点，其深度相同或相邻两层（取决于是否在轮内清空）<br><b>更新</b>：每轮弹出当前层全部节点后，把它们的孩子按左→右顺序入队</td></tr>
+    <tr><td><code>level</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前正在收集的这一层的节点值（从左到右）<br><b>维护</b>：本轮 <code>for _ in range(len(q))</code> 内，每弹出一个节点就追加其 <code>val</code><br><b>更新</b>：一轮结束后 <code>ans.append(level)</code>，再开启下一层</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：最终层序结果，外层下标为层号（0 为根层）<br><b>维护</b>：每处理完一层，<code>ans</code> 多一个内层数组<br><b>更新</b>：<code>ans.append(level)</code>；空树直接返回 <code>[]</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：先 DFS 记录每个节点的深度，再按深度桶收集——要对每个深度排序同层顺序，还得额外保证「同层从左到右」，实现绕。</p>
+<p class="thinking-step">2. 重复在哪里？层序的本质是「先访问离根近的，再访问远的」——这正是 BFS：用队列把「下一批要处理的节点」按发现顺序排好，天然一层一层推进。</p>
+<p class="thinking-step">3. 关键技巧：不能弹一个就随便把子节点混进当前层——每轮用 <code>size = len(q)</code> 固定「这一层要处理几个」，处理完再开始下一层，否则深度会糊在一起。</p>
+<p class="thinking-step">4. 示例 1：队列先 <code>[3]</code> → 层 <code>[3]</code>；入队 9、20 → 层 <code>[9,20]</code>；再入队 15、7 → 层 <code>[15,7]</code>。</p>
+<p class="thinking-step">5. 每个节点入队、出队各一次，时间 O(n)；满二叉树最后一层约 n/2 节点在队列里，空间 O(n)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，返回 <code>[]</code></p>
+<p class="code-step">2. 初始化 <code>ans = []</code>，<code>q = deque([root])</code></p>
+<p class="code-step">3. 当队列非空：新建 <code>level = []</code>，令 <code>size = len(q)</code></p>
+<p class="code-step">4. 循环 <code>size</code> 次：<code>node = q.popleft()</code>，<code>level.append(node.val)</code>；若 <code>node.left</code> / <code>node.right</code> 非空则依次入队</p>
+<p class="code-step">5. 将 <code>level</code> 追加到 <code>ans</code>，回到步骤 3</p>
+<p class="code-step">6. 返回 <code>ans</code>（DFS+深度哈希表是备选，面试标准写法是上述 BFS）</p>""",
+        "code_python": """from collections import deque
+
+class Solution:
+    def levelOrder(self, root: TreeNode | None) -> list[list[int]]:
+        if not root:
+            return []
+        ans: list[list[int]] = []
+        q: deque[TreeNode] = deque([root])
+        while q:
+            level: list[int] = []
+            for _ in range(len(q)):
+                node = q.popleft()
+                level.append(node.val)
+                if node.left:
+                    q.append(node.left)
+                if node.right:
+                    q.append(node.right)
+            ans.append(level)
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        vector<vector<int>> ans;
+        if (!root) return ans;
+        queue<TreeNode*> q;
+        q.push(root);
+        while (!q.empty()) {
+            int size = (int)q.size();
+            vector<int> level;
+            for (int i = 0; i < size; ++i) {
+                TreeNode* node = q.front();
+                q.pop();
+                level.push_back(node->val);
+                if (node->left) q.push(node->left);
+                if (node->right) q.push(node->right);
+            }
+            ans.push_back(std::move(level));
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 不用 <code>size = len(q)</code> 而写成 <code>while (!q.empty())</code> 只弹一个：会把下一层节点混进当前 <code>level</code>，输出变成一维或层界错乱。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 孩子入队顺序写反（先右后左）：同层仍完整，但「从左到右」题意要求先左后右。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空树未特判：对 <code>nullptr</code> 仍入队会导致空指针访问；应直接返回 <code>[]</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>root = [1] → [[1]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1</div>
+    <code>root = [3,9,20,null,null,15,7] → [[3],[9,20],[15,7]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：只有左孩子（链）</div>
+    <code>root = [1,2,null,3] → [[1],[2],[3]]</code>（每层一个节点）
 </div>""",
     },
 
