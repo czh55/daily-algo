@@ -768,5 +768,12 @@
     "title": "二叉树的层序遍历",
     "type": "树层序BFS",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-19",
+    "slug": "binary-tree-zigzag-level-order-traversal",
+    "title": "二叉树的锯齿形层序遍历",
+    "type": "树层序BFS",
+    "difficulty": "中等"
   }
 ]

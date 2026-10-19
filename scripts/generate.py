@@ -2189,6 +2189,120 @@ public:
 </div>""",
     },
 
+    "binary-tree-zigzag-level-order-traversal": {
+        "type": "树层序BFS",
+        "difficulty": "中等",
+        "frontend_id": "103",
+        "title": "二叉树的锯齿形层序遍历",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)（队列最坏存满一层，约 n/2 个节点）",
+        "description": """<p>给你二叉树的根节点 <code>root</code>，返回其节点值的 <strong>锯齿形层序遍历</strong>（先从左往右，再从右往左，层与层之间交替进行）。</p>
+<p>节点数目在 <code>[0, 2000]</code> 内，节点值在 <code>[-100, 100]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [3,9,20,null,null,15,7]</div>
+    <div class="example-output">输出：[[3],[20,9],[15,7]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [1]</div>
+    <div class="example-output">输出：[[1]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = []</div>
+    <div class="example-output">输出：[]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>q</code></td><td>deque&lt;TreeNode*&gt;</td><td><b>定义</b>：BFS 队列，与 #102 相同，孩子始终按左→右入队以保证「同层从左到右被发现」<br><b>维护</b>：每轮处理固定 <code>size</code> 个节点，对应当前层<br><b>更新</b>：弹出节点后将其非空子节点依次入队</td></tr>
+    <tr><td><code>level</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前层按 BFS 顺序收集到的节点值（总是从左到右）<br><b>维护</b>：一轮 <code>size</code> 次弹出内依次 <code>append(node.val)</code><br><b>更新</b>：写入 <code>ans</code> 前若当前层需「从右往左」展示，则对 <code>level</code> 做 <code>reverse</code></td></tr>
+    <tr><td><code>left_to_right</code></td><td>bool</td><td><b>定义</b>：本层写入答案时是否保持左→右（根层为 <code>true</code>）<br><b>维护</b>：奇数层（0-based 的 1、3、5…）为 <code>false</code>，需反转 <code>level</code><br><b>更新</b>：每处理完一层执行 <code>left_to_right = not left_to_right</code></td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：锯齿形层序结果，外层为层号<br><b>维护</b>：每层一个内层数组，方向由 <code>left_to_right</code> 决定<br><b>更新</b>：<code>ans.append(level)</code> 或 <code>ans.append(level[::-1])</code> 的等价写法</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：先按 #102 做普通层序得到 <code>[[3],[9,20],[15,7]]</code>，再对第 1、3、5… 层（0-based 下标为奇数）反转内层数组——正确且好写，多一次 O(宽度) 反转，总仍 O(n)。</p>
+<p class="thinking-step">2. 重复在哪里？锯齿形与普通层序的 BFS 骨架完全一样：队列、按层 <code>size</code> 分批、孩子左→右入队；唯一差别是「这一层写入答案的顺序」。</p>
+<p class="thinking-step">3. 关键技巧：不要在入队时交替「先右后左」——那样会破坏下一层 BFS 的发现顺序；应在收集完本层 <code>level</code> 后，根据层号决定是否 <code>reverse</code>，或双端队列按方向头/尾插入（等价思路）。</p>
+<p class="thinking-step">4. 示例 1：层 0 <code>[3]</code> 不变；层 1 收集 <code>[9,20]</code> 反转为 <code>[20,9]</code>；层 2 <code>[15,7]</code> 不变 → <code>[[3],[20,9],[15,7]]</code>。</p>
+<p class="thinking-step">5. 每个节点仍只入队出队一次，时间 O(n)；空间 O(n)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，返回 <code>[]</code></p>
+<p class="code-step">2. <code>ans = []</code>，<code>q = deque([root])</code>，<code>left_to_right = True</code></p>
+<p class="code-step">3. 当队列非空：新建 <code>level = []</code>，<code>size = len(q)</code></p>
+<p class="code-step">4. 循环 <code>size</code> 次弹出节点，收集 <code>val</code>，非空子节点按左→右入队</p>
+<p class="code-step">5. 若 <code>not left_to_right</code>，<code>level.reverse()</code>；<code>ans.append(level)</code>；<code>left_to_right = not left_to_right</code></p>
+<p class="code-step">6. 返回 <code>ans</code></p>""",
+        "code_python": """from collections import deque
+
+class Solution:
+    def zigzagLevelOrder(self, root: TreeNode | None) -> list[list[int]]:
+        if not root:
+            return []
+        ans: list[list[int]] = []
+        q: deque[TreeNode] = deque([root])
+        left_to_right = True
+        while q:
+            level: list[int] = []
+            for _ in range(len(q)):
+                node = q.popleft()
+                level.append(node.val)
+                if node.left:
+                    q.append(node.left)
+                if node.right:
+                    q.append(node.right)
+            if not left_to_right:
+                level.reverse()
+            ans.append(level)
+            left_to_right = not left_to_right
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+        vector<vector<int>> ans;
+        if (!root) return ans;
+        queue<TreeNode*> q;
+        q.push(root);
+        bool leftToRight = true;
+        while (!q.empty()) {
+            int size = (int)q.size();
+            vector<int> level;
+            for (int i = 0; i < size; ++i) {
+                TreeNode* node = q.front();
+                q.pop();
+                level.push_back(node->val);
+                if (node->left) q.push(node->left);
+                if (node->right) q.push(node->right);
+            }
+            if (!leftToRight) reverse(level.begin(), level.end());
+            ans.push_back(std::move(level));
+            leftToRight = !leftToRight;
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 在奇数层把子节点「先右后左」入队：当前层可能看似对了，但下一层 BFS 顺序已乱，锯齿形会全错。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 层号从 1 还是从 0 数错：题意根层从左到右，应对 0-based 的<b>偶数层</b>不反转、奇数层反转（或用 <code>left_to_right</code> 初值 <code>true</code> 每层翻转）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记按层 <code>size</code> 分批：与 #102 相同，会把多层混在一行里。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>root = [1] → [[1]]</code>（仅一层，无需反转）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1</div>
+    <code>root = [3,9,20,null,null,15,7] → [[3],[20,9],[15,7]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：两层满二叉</div>
+    <code>root = [1,2,3] → [[1],[3,2]]</code>（第二层从右到左）
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",
