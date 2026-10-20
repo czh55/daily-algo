@@ -2303,6 +2303,104 @@ public:
 </div>""",
     },
 
+    "maximum-depth-of-binary-tree": {
+        "type": "树后序递归",
+        "difficulty": "简单",
+        "frontend_id": "104",
+        "title": "二叉树的最大深度",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(h)（递归栈，h 为树高；BFS 队列最坏 O(n)）",
+        "description": """<p>给定一个二叉树 <code>root</code>，返回其<strong>最大深度</strong>。</p>
+<p>二叉树的最大深度是指从根节点到最远<strong>叶子</strong>节点的最长路径上的<strong>节点数</strong>（边数 + 1）。</p>
+<p>树中节点数目在 <code>[0, 10<sup>4</sup>]</code> 内，节点值在 <code>[-100, 100]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [3,9,20,null,null,15,7]</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain">最长路径 3 → 20 → 15（或 7），共 3 个节点。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [1,null,2]</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">只有根到右孩子的链，深度为 2。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = []</div>
+    <div class="example-output">输出：0</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>root</code></td><td>TreeNode*</td><td><b>定义</b>：当前子树的根，整题从全局根开始向下递归<br><b>维护</b>：每次调用只关心「以 root 为根的子树有多深」<br><b>更新</b>：处理完当前节点后，<code>root</code> 在调用栈中变为父节点传下来的左/右孩子</td></tr>
+    <tr><td><code>maxDepth(root)</code></td><td>int</td><td><b>定义</b>：子树 <code>root</code> 的最大深度；空树深度为 0<br><b>维护</b>：真值 = 1 + max(左子树深度, 右子树深度)；叶子左右皆空时子树深度为 1<br><b>更新</b>：<code>return 1 + max(dfs(left), dfs(right))</code>，基线 <code>if (!root) return 0</code></td></tr>
+    <tr><td><code>depth</code>（BFS）</td><td>int</td><td><b>定义</b>：层序遍历时当前已完成的层数（根在第 1 层）<br><b>维护</b>：每轮按 <code>size</code> 清空一层队列后 <code>depth += 1</code><br><b>更新</b>：队列为空时 <code>depth</code> 即为答案</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：从根出发枚举所有根到叶子的路径，记录路径上节点个数取最大——正确但会重复遍历共享前缀，时间可退化到 O(n²)。</p>
+<p class="thinking-step">2. 重复在哪里？「整棵树的最大深度」只依赖「左子树有多深、右子树有多深」——子问题与整题同型，且每个节点只需汇总一次左右结果。</p>
+<p class="thinking-step">3. 后序递归：空节点返回 0；非空节点深度 = 1 + max(左, 右)。示例 1：左子树 9 为叶子深度 1，右子树 20 下最深 15/7 深度 2，根得 1+max(1,2)=3。</p>
+<p class="thinking-step">4. BFS 等价视角：按层扩展队列，每处理完一层 <code>depth++</code>，最后 <code>depth</code> 即最大深度（与 DFS 同 O(n)）。</p>
+<p class="thinking-step">5. 每个节点访问常数次，时间 O(n)；递归栈深度 O(h)，链状树最坏 O(n)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，返回 <code>0</code></p>
+<p class="code-step">2. 递归求 <code>left = maxDepth(root.left)</code>，<code>right = maxDepth(root.right)</code></p>
+<p class="code-step">3. 返回 <code>1 + max(left, right)</code></p>
+<p class="code-step">4. （BFS 备选）队列入根，<code>depth = 0</code>；非空则按层 <code>size</code> 弹出、孩子入队，每层结束 <code>depth += 1</code></p>""",
+        "code_python": """class Solution:
+    def maxDepth(self, root: TreeNode | None) -> int:
+        if not root:
+            return 0
+        return 1 + max(
+            self.maxDepth(root.left),
+            self.maxDepth(root.right),
+        )
+
+# BFS 层数写法：
+# from collections import deque
+# def maxDepth(self, root):
+#     if not root: return 0
+#     q = deque([root]); depth = 0
+#     while q:
+#         for _ in range(len(q)):
+#             node = q.popleft()
+#             if node.left: q.append(node.left)
+#             if node.right: q.append(node.right)
+#         depth += 1
+#     return depth""",
+        "code_cpp": """class Solution {
+public:
+    int maxDepth(TreeNode* root) {
+        if (!root) return 0;
+        return 1 + std::max(maxDepth(root->left), maxDepth(root->right));
+    }
+};
+// 时间 O(n)，空间 O(h)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 空树返回 1：题目规定空树深度为 0，基线必须是 <code>if (!root) return 0</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把「深度」当成边数：题意是节点个数，叶子一层要 +1，不能写成 <code>max(left, right)</code> 而不加当前层。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与 #111「最小深度」混淆：最小深度要到叶子；最大深度只需看更深的一侧，空子树在 max 里贡献 0 即可。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [] → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>root = [1] → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 2（右倾链）</div>
+    <code>root = [1,null,2] → 2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：官方示例 1</div>
+    <code>root = [3,9,20,null,null,15,7] → 3</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：完全不平衡（链）</div>
+    <code>n 个节点一条链 → 深度 n</code>（验证栈深度与返回值）
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",
