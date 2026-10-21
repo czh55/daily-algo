@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>从前序与中序遍历序列构造二叉树 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-10-21</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#105</span>
+                    <span class="problem-type tag-tree">树分治</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">从前序与中序遍历序列构造二叉树</h1>
+                <a href="https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-10-21">
+                        <source src="../audio/2026-10-21.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-21', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-10-21', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-21', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-10-21', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给定两个整数数组 <code>preorder</code> 和 <code>inorder</code>，其中 <code>preorder</code> 是二叉树的<strong>先序遍历</strong>，<code>inorder</code> 是同一棵树的<strong>中序遍历</strong>，请构造二叉树并返回其根节点。</p>
+<p>题目保证 <code>preorder</code> 与 <code>inorder</code> 元素<strong>无重复</strong>，且确实对应一棵二叉树的前序与中序序列；长度相等且在 <code>[1, 3000]</code> 内。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]</div>
+    <div class="example-output">输出：[3,9,20,null,null,15,7]</div>
+    <div class="example-explain">先序首元素 3 为根；中序里 3 左侧 [9] 为左子树、右侧 [15,20,7] 为右子树，再递归构造。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：preorder = [-1], inorder = [-1]</div>
+    <div class="example-output">输出：[-1]</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力直觉：枚举所有二叉树形状，对每个树检查先序、中序是否匹配——指数级，不可行。</p>
+<p class="thinking-step">2. 先序的第一个数一定是当前子树的根；中序里根左边的连续段是左子树的中序，右边是右子树的中序——子问题与整题同型，天然分治。</p>
+<p class="thinking-step">3. 若每次在中序里线性找根位置并切片 <code>preorder</code>/<code>inorder</code>，最坏 O(n²)；用哈希表记下每个值在中序的下标，配合全局 <code>pre_i</code> 按先序依次「消费」节点，每个值只处理一次 → O(n)。</p>
+<p class="thinking-step">4. 示例 1：根 3，中序 mid=1，左区间 [0,0] 得到节点 9，右区间 [2,4] 先建 20 再 15、7，与先序 [20,15,7] 一致。</p>
+<p class="thinking-step">5. 递归深度 O(h)，表 O(n)；必须先递归左子树再右子树，否则 <code>pre_i</code> 与先序不对齐。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>preorder[pre_i]</code></td><td>int / 游标</td><td><b>定义</b>：全局先序指针，下一个要「落地」为树节点的值<br><b>维护</b>：每创建一个节点后 <code>pre_i += 1</code>，顺序与先序遍历一致<br><b>更新</b>：递归先建左再建右，指针自然扫完整棵树的先序</td></tr>
+    <tr><td><code>in_left, in_right</code></td><td>int</td><td><b>定义</b>：当前子树在 <code>inorder</code> 中的闭区间下标<br><b>维护</b>：<code>in_left &gt; in_right</code> 表示空子树，返回 <code>null</code><br><b>更新</b>：根在中序位置 <code>mid</code> 处，左子树 <code>[in_left, mid-1]</code>，右子树 <code>[mid+1, in_right]</code></td></tr>
+    <tr><td><code>idx_map[val]</code></td><td>哈希表</td><td><b>定义</b>：中序每个值 → 下标，O(1) 找根在中序中的位置<br><b>维护</b>：构造前一次性建好，全程不变<br><b>更新</b>：读到根值 <code>root_val</code> 后 <code>mid = idx_map[root_val]</code> 用于切分左右区间</td></tr>
+    <tr><td><code>root</code></td><td>TreeNode*</td><td><b>定义</b>：当前子树的根，值来自当前 <code>preorder[pre_i]</code><br><b>维护</b>：先挂好 <code>left</code>、<code>right</code> 再返回给上层<br><b>更新</b>：<code>root.left = dfs(...)</code> 再 <code>root.right = dfs(...)</code>（顺序必须与先序一致）</td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 建 <code>idx_map</code>：<code>inorder[i] → i</code></p>
+<p class="code-step">2. 定义 <code>dfs(in_left, in_right)</code>：若 <code>in_left &gt; in_right</code> 返回 <code>null</code></p>
+<p class="code-step">3. 取 <code>root_val = preorder[pre_i++]</code>，<code>mid = idx_map[root_val]</code>，新建根节点</p>
+<p class="code-step">4. <code>root.left = dfs(in_left, mid - 1)</code>，再 <code>root.right = dfs(mid + 1, in_right)</code></p>
+<p class="code-step">5. 从 <code>dfs(0, len(inorder)-1)</code> 返回整棵树的根</p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def buildTree(self, preorder: list[int], inorder: list[int]) -&gt; TreeNode | None:
+        idx_map = {v: i for i, v in enumerate(inorder)}
+        pre_i = 0
+
+        def dfs(in_left: int, in_right: int) -&gt; TreeNode | None:
+            nonlocal pre_i
+            if in_left &gt; in_right:
+                return None
+            root_val = preorder[pre_i]
+            pre_i += 1
+            mid = idx_map[root_val]
+            node = TreeNode(root_val)
+            node.left = dfs(in_left, mid - 1)
+            node.right = dfs(mid + 1, in_right)
+            return node
+
+        return dfs(0, len(inorder) - 1)</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+    int pre_i = 0;
+    unordered_map&lt;int, int&gt; idx_map;
+
+    TreeNode* dfs(int in_left, int in_right, vector&lt;int&gt;&amp; preorder) {
+        if (in_left &gt; in_right) return nullptr;
+        int root_val = preorder[pre_i++];
+        int mid = idx_map[root_val];
+        auto* root = new TreeNode(root_val);
+        root-&gt;left = dfs(in_left, mid - 1, preorder);
+        root-&gt;right = dfs(mid + 1, in_right, preorder);
+        return root;
+    }
+
+public:
+    TreeNode* buildTree(vector&lt;int&gt;&amp; preorder, vector&lt;int&gt;&amp; inorder) {
+        pre_i = 0;
+        idx_map.clear();
+        for (int i = 0; i &lt; (int)inorder.size(); ++i)
+            idx_map[inorder[i]] = i;
+        return dfs(0, (int)inorder.size() - 1, preorder);
+    }
+};
+// 时间 O(n)，空间 O(n)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(n)（中序下标哈希表 + 递归栈 O(h)）</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 先递归右子树再左子树：<code>pre_i</code> 按先序推进，顺序错了会挂错节点。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 右子树中序区间写成 <code>[mid, in_right]</code>：根已在 mid，右子树必须从 <code>mid + 1</code> 开始。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用切片复制子数组：正确但 Python 切片会多 O(n²) 拷贝；应像上面用下标区间 + 全局先序指针。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>preorder = [-1], inorder = [-1] → 根 -1，无孩子</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：只有左链</div>
+    <code>pre = [1,2,3], in = [3,2,1] → 1 的左子树为空、右子树为 2→3</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：只有右链</div>
+    <code>pre = [1,2,3], in = [1,2,3] → 每层只有右孩子</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：官方示例 1</div>
+    <code>preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：左子树为空区间</div>
+    <code>根在中序最左端 → dfs(in_left, mid-1) 立即返回 null</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>
