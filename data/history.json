@@ -789,5 +789,12 @@
     "title": "从前序与中序遍历序列构造二叉树",
     "type": "树分治",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-22",
+    "slug": "construct-binary-tree-from-inorder-and-postorder-traversal",
+    "title": "从中序与后序遍历序列构造二叉树",
+    "type": "树分治",
+    "difficulty": "中等"
   }
 ]

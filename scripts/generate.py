@@ -2508,6 +2508,112 @@ public:
 </div>""",
     },
 
+    "construct-binary-tree-from-inorder-and-postorder-traversal": {
+        "type": "树分治",
+        "difficulty": "中等",
+        "frontend_id": "106",
+        "title": "从中序与后序遍历序列构造二叉树",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)（中序下标哈希表 + 递归栈 O(h)）",
+        "description": """<p>给定两个整数数组 <code>inorder</code> 和 <code>postorder</code>，其中 <code>inorder</code> 是二叉树的<strong>中序遍历</strong>，<code>postorder</code> 是同一棵树的<strong>后序遍历</strong>，请构造二叉树并返回其根节点。</p>
+<p>题目保证两数组长度相等、元素<strong>无重复</strong>，且确实对应一棵二叉树的中序与后序序列；长度在 <code>[1, 3000]</code> 内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：inorder = [9,3,15,20,7], postorder = [9,15,7,20,3]</div>
+    <div class="example-output">输出：[3,9,20,null,null,15,7]</div>
+    <div class="example-explain">后序末元素 3 为根；中序里 3 左侧 [9] 为左子树、右侧 [15,20,7] 为右子树；从后序右端向左「消费」节点时须<strong>先建右子树再左子树</strong>。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：inorder = [-1], postorder = [-1]</div>
+    <div class="example-output">输出：[-1]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>postorder[post_i]</code></td><td>int / 游标</td><td><b>定义</b>：全局后序指针，从数组末尾向前，下一个要「落地」为树节点的值（当前子树的根）<br><b>维护</b>：每创建一个节点后 <code>post_i -= 1</code>，顺序与后序从右向左扫一致<br><b>更新</b>：递归须<strong>先右后左</strong>，才能与后序中「左子树段 → 右子树段 → 根」的布局对齐</td></tr>
+    <tr><td><code>in_left, in_right</code></td><td>int</td><td><b>定义</b>：当前子树在 <code>inorder</code> 中的闭区间下标<br><b>维护</b>：<code>in_left &gt; in_right</code> 表示空子树，返回 <code>null</code><br><b>更新</b>：根在中序位置 <code>mid</code> 处，左子树 <code>[in_left, mid-1]</code>，右子树 <code>[mid+1, in_right]</code></td></tr>
+    <tr><td><code>idx_map[val]</code></td><td>哈希表</td><td><b>定义</b>：中序每个值 → 下标，O(1) 找根在中序中的位置<br><b>维护</b>：构造前一次性建好，全程不变<br><b>更新</b>：读到根值 <code>root_val</code> 后 <code>mid = idx_map[root_val]</code> 用于切分左右区间</td></tr>
+    <tr><td><code>root</code></td><td>TreeNode*</td><td><b>定义</b>：当前子树的根，值来自当前 <code>postorder[post_i]</code><br><b>维护</b>：先挂好 <code>right</code>、<code>left</code> 再返回给上层（与先序题「先左后右」相反）<br><b>更新</b>：<code>root.right = dfs(...)</code> 再 <code>root.left = dfs(...)</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：枚举所有二叉树形状再验证中序、后序是否匹配——指数级，不可行。</p>
+<p class="thinking-step">2. 后序的<strong>最后一个</strong>数一定是当前子树的根；中序里根左边是左子树的中序、右边是右子树的中序——子问题同型，可分治。</p>
+<p class="thinking-step">3. 与 #105 先序版对比：先序从前往后取根，递归「先左后右」；后序从后往前取根，后序数组里同一子树的节点是「左段 + 右段 + 根」，从右端消费时必须先处理右子树再左子树，否则 <code>post_i</code> 错位。</p>
+<p class="thinking-step">4. 用 <code>idx_map</code> O(1) 找根在中序的位置，配合全局 <code>post_i</code>，每个节点只建一次 → O(n)。</p>
+<p class="thinking-step">5. 示例 1：根 3（post 末），中序 mid=1；先建右子树 inorder[15,20,7]，根 20，再 7、15；再建左子树 9。</p>""",
+        "code_steps": """<p class="code-step">1. 建 <code>idx_map</code>：<code>inorder[i] → i</code></p>
+<p class="code-step">2. <code>post_i = len(postorder) - 1</code>，定义 <code>dfs(in_left, in_right)</code>：若 <code>in_left &gt; in_right</code> 返回 <code>null</code></p>
+<p class="code-step">3. 取 <code>root_val = postorder[post_i]</code>，<code>post_i -= 1</code>，<code>mid = idx_map[root_val]</code>，新建根节点</p>
+<p class="code-step">4. <strong>先</strong> <code>root.right = dfs(mid + 1, in_right)</code>，<strong>再</strong> <code>root.left = dfs(in_left, mid - 1)</code></p>
+<p class="code-step">5. 从 <code>dfs(0, len(inorder)-1)</code> 返回整棵树的根</p>""",
+        "code_python": """class Solution:
+    def buildTree(self, inorder: list[int], postorder: list[int]) -> TreeNode | None:
+        idx_map = {v: i for i, v in enumerate(inorder)}
+        post_i = len(postorder) - 1
+
+        def dfs(in_left: int, in_right: int) -> TreeNode | None:
+            nonlocal post_i
+            if in_left > in_right:
+                return None
+            root_val = postorder[post_i]
+            post_i -= 1
+            mid = idx_map[root_val]
+            node = TreeNode(root_val)
+            node.right = dfs(mid + 1, in_right)
+            node.left = dfs(in_left, mid - 1)
+            return node
+
+        return dfs(0, len(inorder) - 1)""",
+        "code_cpp": """class Solution {
+    int post_i = 0;
+    unordered_map<int, int> idx_map;
+
+    TreeNode* dfs(int in_left, int in_right, vector<int>& postorder) {
+        if (in_left > in_right) return nullptr;
+        int root_val = postorder[post_i--];
+        int mid = idx_map[root_val];
+        auto* root = new TreeNode(root_val);
+        root->right = dfs(mid + 1, in_right, postorder);
+        root->left = dfs(in_left, mid - 1, postorder);
+        return root;
+    }
+
+public:
+    TreeNode* buildTree(vector<int>& inorder, vector<int>& postorder) {
+        idx_map.clear();
+        for (int i = 0; i < (int)inorder.size(); ++i)
+            idx_map[inorder[i]] = i;
+        post_i = (int)postorder.size() - 1;
+        return dfs(0, (int)inorder.size() - 1, postorder);
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 照搬先序题「先左后右」：后序从尾向前消费，必须<strong>先右后左</strong>，否则 <code>post_i</code> 与子树区间不对应。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 根取 <code>postorder[0]</code>：后序根在区间<strong>末尾</strong>，不是开头。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 右子树中序区间写成 <code>[mid, in_right]</code>：根已在 mid，右子树必须从 <code>mid + 1</code> 开始。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>inorder = [-1], postorder = [-1] → 根 -1，无孩子</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：只有左链</div>
+    <code>in = [3,2,1], post = [3,2,1] → 每层只有左孩子，后序与左链逆序一致</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：只有右链</div>
+    <code>in = [1,2,3], post = [1,2,3] → 每层只有右孩子</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：官方示例 1</div>
+    <code>inorder = [9,3,15,20,7], postorder = [9,15,7,20,3]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：右子树为空</div>
+    <code>根在中序最右端 → dfs(mid+1, in_right) 立即返回 null，再建左子树</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",
