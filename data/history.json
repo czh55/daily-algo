@@ -796,5 +796,12 @@
     "title": "从中序与后序遍历序列构造二叉树",
     "type": "树分治",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-23",
+    "slug": "binary-tree-level-order-traversal-ii",
+    "title": "二叉树的层序遍历 II",
+    "type": "树层序BFS",
+    "difficulty": "中等"
   }
 ]

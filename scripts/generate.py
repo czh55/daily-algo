@@ -2190,6 +2190,112 @@ public:
 </div>""",
     },
 
+    "binary-tree-level-order-traversal-ii": {
+        "type": "树层序BFS",
+        "difficulty": "中等",
+        "frontend_id": "107",
+        "title": "二叉树的层序遍历 II",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)（队列最坏存满一层，约 n/2 个节点）",
+        "description": """<p>给你二叉树的根节点 <code>root</code>，返回其节点值的 <strong>自底向上的层序遍历</strong>（即按从叶子节点所在层到根节点所在的层，逐层从左向右遍历）。</p>
+<p>节点数目在 <code>[0, 2000]</code> 内，节点值在 <code>[-1000, 1000]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [3,9,20,null,null,15,7]</div>
+    <div class="example-output">输出：[[15,7],[9,20],[3]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [1]</div>
+    <div class="example-output">输出：[[1]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = []</div>
+    <div class="example-output">输出：[]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>q</code></td><td>deque&lt;TreeNode*&gt;</td><td><b>定义</b>：BFS 队列，与 #102 相同，按层从左到右扩展<br><b>维护</b>：每轮处理固定 <code>size</code> 个节点，保证一层一层推进<br><b>更新</b>：弹出节点后将其非空孩子按左→右入队</td></tr>
+    <tr><td><code>level</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：当前层从左到右的节点值<br><b>维护</b>：本轮内每弹出一个节点追加 <code>val</code><br><b>更新</b>：一层收集完后写入结果（见 <code>ans</code>）</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：自底向上的层序结果，<code>ans[0]</code> 为最底层<br><b>维护</b>：可先按顶向下 BFS 收集再整体 <code>reverse</code>，或每层 <code>insert(0, level)</code> / <code>appendleft</code><br><b>更新</b>：每完成一层即按题意顺序并入；空树返回 <code>[]</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：和 #102 一样 BFS 得到 <code>[[3],[9,20],[15,7]]</code>，最后把整个外层列表反转——思路直接，代码也最短。</p>
+<p class="thinking-step">2. 重复在哪里？层内收集逻辑与 #102 完全相同，唯一差别是输出顺序：根层应在最后，叶子层应在最前。</p>
+<p class="thinking-step">3. 两种等价写法：① BFS 正常 <code>append</code> 每层，结束 <code>ans.reverse()</code>；② 每收集完一层就 <code>ans.insert(0, level)</code> 或双端队列 <code>appendleft</code>，省一次反转但单层插入头是 O(层数)，总仍 O(n²) 最坏——面试推荐先 BFS 再反转，整体 O(n) 且清晰。</p>
+<p class="thinking-step">4. 示例 1：BFS 得顶向下 <code>[[3],[9,20],[15,7]]</code>，反转后 <code>[[15,7],[9,20],[3]]</code>。</p>
+<p class="thinking-step">5. 每个节点仍只入队出队一次，时间 O(n)；空间 O(n)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，返回 <code>[]</code></p>
+<p class="code-step">2. 用与 #102 相同的 BFS：队列、每层 <code>size = len(q)</code>、收集 <code>level</code> 并 <code>ans.append(level)</code></p>
+<p class="code-step">3. BFS 结束后执行 <code>ans.reverse()</code>（或循环里每层 <code>ans.insert(0, level)</code>）</p>
+<p class="code-step">4. 返回 <code>ans</code></p>""",
+        "code_python": """from collections import deque
+
+class Solution:
+    def levelOrderBottom(self, root: TreeNode | None) -> list[list[int]]:
+        if not root:
+            return []
+        ans: list[list[int]] = []
+        q: deque[TreeNode] = deque([root])
+        while q:
+            level: list[int] = []
+            for _ in range(len(q)):
+                node = q.popleft()
+                level.append(node.val)
+                if node.left:
+                    q.append(node.left)
+                if node.right:
+                    q.append(node.right)
+            ans.append(level)
+        ans.reverse()
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> levelOrderBottom(TreeNode* root) {
+        vector<vector<int>> ans;
+        if (!root) return ans;
+        queue<TreeNode*> q;
+        q.push(root);
+        while (!q.empty()) {
+            int size = (int)q.size();
+            vector<int> level;
+            for (int i = 0; i < size; ++i) {
+                TreeNode* node = q.front();
+                q.pop();
+                level.push_back(node->val);
+                if (node->left) q.push(node->left);
+                if (node->right) q.push(node->right);
+            }
+            ans.push_back(std::move(level));
+        }
+        reverse(ans.begin(), ans.end());
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记反转：直接返回 #102 的结果，根层在前，与题意相反。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 在 BFS 内每层 <code>reverse(level)</code>：题意只要求「层与层」自底向上，层内仍从左到右，不要颠倒同层顺序。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与 #102 相同：不用固定 <code>size</code> 会导致层界混乱；空树须返回 <code>[]</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>root = [1] → [[1]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1</div>
+    <code>root = [3,9,20,null,null,15,7] → [[15,7],[9,20],[3]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：只有左孩子（链）</div>
+    <code>root = [1,2,null,3] → [[3],[2],[1]]</code>
+</div>""",
+    },
+
     "binary-tree-zigzag-level-order-traversal": {
         "type": "树层序BFS",
         "difficulty": "中等",
