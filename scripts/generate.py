@@ -2720,6 +2720,92 @@ public:
 </div>""",
     },
 
+    "convert-sorted-array-to-binary-search-tree": {
+        "type": "树分治",
+        "difficulty": "简单",
+        "frontend_id": "108",
+        "title": "将有序数组转换为二叉搜索树",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)（递归栈 O(log n)～O(n)，共建 n 个节点）",
+        "description": """<p>给你一个整数数组 <code>nums</code>，其中元素已经按<strong>升序</strong>排列，请你将其转换为一棵<strong>高度平衡</strong>的二叉搜索树。</p>
+<p>高度平衡二叉树是指：每个节点的左右两个子树的高度差不超过 1。数组长度在 <code>[1, 10<sup>4</sup>]</code> 内，元素严格递增。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [-10,-3,0,5,9]</div>
+    <div class="example-output">输出：[0,-3,9,-10,null,5]</div>
+    <div class="example-explain">取中点 0 为根；左段 [-10,-3] 根 -3、左子 -10；右段 [5,9] 根 9、左子 5。另一合法答案如 [0,-10,5,null,-3,null,9]。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [1,3]</div>
+    <div class="example-output">输出：[3,1] 或 [1,null,3]（均为高度平衡 BST）</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>left, right</code></td><td>int</td><td><b>定义</b>：当前子树在有序数组 <code>nums</code> 上的闭区间下标<br><b>维护</b>：<code>left &gt; right</code> 表示空子树，返回 <code>null</code><br><b>更新</b>：根落在 <code>mid</code> 后，左子树 <code>[left, mid-1]</code>、右子树 <code>[mid+1, right]</code></td></tr>
+    <tr><td><code>mid</code></td><td>int</td><td><b>定义</b>：当前区间的「中点」下标，其值作为子树根节点<br><b>维护</b>：有序数组的中序遍历即自身，<code>nums[mid]</code> 满足 BST 中序性质<br><b>更新</b>：常用 <code>mid = (left + right) // 2</code>（或偏左/偏右中点，多种答案均合法）</td></tr>
+    <tr><td><code>root</code></td><td>TreeNode*</td><td><b>定义</b>：当前区间对应的 BST 根，值为 <code>nums[mid]</code><br><b>维护</b>：先建根，再递归挂左、右子树（顺序任意）<br><b>更新</b>：<code>root.left = dfs(left, mid-1)</code>，<code>root.right = dfs(mid+1, right)</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：枚举所有 BST 形状再验证中序是否等于 nums——组合爆炸，不可行。</p>
+<p class="thinking-step">2. 关键观察：有序数组就是 BST 的<strong>中序遍历</strong>；只要为每个连续子段选定一个根，左段全是左子树、右段全是右子树，BST 性质自动满足。</p>
+<p class="thinking-step">3. 要「高度平衡」：子树节点数尽量对半分 → 每次取区间<strong>中点</strong>作根，左右子树规模差不超过 1，树高 O(log n)。</p>
+<p class="thinking-step">4. 子问题同型：<code>dfs(left, right)</code> 只依赖区间边界，与 #105/#106 一样是分治建树，但无需哈希表——下标即中序位置。</p>
+<p class="thinking-step">5. 示例 1：<code>[-10,-3,0,5,9]</code>，根 mid=2 值 0；左 <code>[-10,-3]</code> 根 -3；右 <code>[5,9]</code> 根 9，左子 5。</p>""",
+        "code_steps": """<p class="code-step">1. 定义 <code>dfs(left, right)</code>：若 <code>left &gt; right</code> 返回 <code>null</code></p>
+<p class="code-step">2. <code>mid = (left + right) // 2</code>，<code>root = TreeNode(nums[mid])</code></p>
+<p class="code-step">3. <code>root.left = dfs(left, mid - 1)</code>，<code>root.right = dfs(mid + 1, right)</code></p>
+<p class="code-step">4. 返回 <code>dfs(0, len(nums) - 1)</code> 作为整棵树的根</p>""",
+        "code_python": """class Solution:
+    def sortedArrayToBST(self, nums: list[int]) -> TreeNode | None:
+        def dfs(left: int, right: int) -> TreeNode | None:
+            if left > right:
+                return None
+            mid = (left + right) // 2
+            node = TreeNode(nums[mid])
+            node.left = dfs(left, mid - 1)
+            node.right = dfs(mid + 1, right)
+            return node
+
+        return dfs(0, len(nums) - 1)""",
+        "code_cpp": """class Solution {
+    TreeNode* dfs(vector<int>& nums, int left, int right) {
+        if (left > right) return nullptr;
+        int mid = left + (right - left) / 2;
+        auto* root = new TreeNode(nums[mid]);
+        root->left = dfs(nums, left, mid - 1);
+        root->right = dfs(nums, mid + 1, right);
+        return root;
+    }
+
+public:
+    TreeNode* sortedArrayToBST(vector<int>& nums) {
+        return dfs(nums, 0, (int)nums.size() - 1);
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 取根用 <code>left</code> 或 <code>right</code> 而非中点：仍可能是合法 BST，但会退化成链，不满足「高度平衡」。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 右子树区间写成 <code>[mid, right]</code>：根已在 <code>mid</code>，右子树必须从 <code>mid + 1</code> 开始，否则会重复节点或破坏 BST。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 整数溢出写法：<code>mid = (left + right) / 2</code> 在 C++ 里建议 <code>left + (right - left) / 2</code>（本题数据范围通常无碍，养成习惯）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>nums = [0] → 单节点根 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两个元素</div>
+    <code>nums = [1,3] → 根 3 左子 1，或根 1 右子 3</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1</div>
+    <code>nums = [-10,-3,0,5,9] → 中点根 0，左右子树各再取中点</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：连续整数长链</div>
+    <code>nums = [1..7] → 中点分治得近似满二叉树，高度 3</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",

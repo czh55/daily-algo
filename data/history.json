@@ -803,5 +803,12 @@
     "title": "二叉树的层序遍历 II",
     "type": "树层序BFS",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-24",
+    "slug": "convert-sorted-array-to-binary-search-tree",
+    "title": "将有序数组转换为二叉搜索树",
+    "type": "树分治",
+    "difficulty": "简单"
   }
 ]
