@@ -2806,6 +2806,102 @@ public:
 </div>""",
     },
 
+    "convert-sorted-list-to-binary-search-tree": {
+        "type": "树分治",
+        "difficulty": "中等",
+        "frontend_id": "109",
+        "title": "有序链表转换二叉搜索树",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)（数组/节点存储；递归栈 O(log n)）",
+        "description": """<p>给定一个单链表的头节点 <code>head</code>，其中的元素<strong>按升序排序</strong>，将其转换为<strong>高度平衡</strong>的二叉搜索树。</p>
+<p>高度平衡二叉树指每个节点左右子树高度差不超过 1。节点数 <code>[0, 2×10<sup>4</sup>]</code>，值域 <code>[-10<sup>5</sup>, 10<sup>5</sup>]</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [-10,-3,0,5,9]</div>
+    <div class="example-output">输出：[0,-3,9,-10,null,5]</div>
+    <div class="example-explain">取中点 0 为根；左段 [-10,-3] 根 -3、左子 -10；右段 [5,9] 根 9、左子 5（与 #108 数组版同一棵平衡 BST）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = []</div>
+    <div class="example-output">输出：[]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>vals</code></td><td>list[int]</td><td><b>定义</b>：升序链表各节点值按遍历顺序存入的数组（等价于 BST 的中序序列）<br><b>维护</b>：建树前一次性扫完链表，之后只读<br><b>更新</b>：沿 <code>head</code> 走链表，<code>vals.append(node.val)</code> 直至 <code>null</code></td></tr>
+    <tr><td><code>left, right</code></td><td>int</td><td><b>定义</b>：当前子树在 <code>vals</code> 上的闭区间下标<br><b>维护</b>：<code>left &gt; right</code> 表示空子树<br><b>更新</b>：根在 <code>mid</code> 后，左子 <code>[left, mid-1]</code>、右子 <code>[mid+1, right]</code></td></tr>
+    <tr><td><code>mid</code></td><td>int</td><td><b>定义</b>：当前区间中点下标，值 <code>vals[mid]</code> 作为子树根<br><b>维护</b>：保证左右子树规模大致对半，树高 O(log n)<br><b>更新</b>：<code>mid = (left + right) // 2</code></td></tr>
+    <tr><td><code>cur</code>（可选写法）</td><td>ListNode*</td><td><b>定义</b>：中序模拟时「下一个待写入 BST 的链表节点」<br><b>维护</b>：先递归建左子树会扫过左段链表，再取 <code>cur.val</code> 作根并 <code>cur = cur.next</code><br><b>更新</b>：仅在中序建树写法中使用，与 <code>vals[mid]</code> 角色对应</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 与 #108 相同：升序序列就是 BST 的中序；每次取区间中点作根，左段进左子树、右段进右子树，即得高度平衡 BST。</p>
+<p class="thinking-step">2. 链表不能像数组一样 O(1) 按下标取「中点值」：暴力每层用快慢指针找子链表中点，可行但每层 O(n)，总复杂度 O(n log n)。</p>
+<p class="thinking-step">3. 找重复：建树逻辑与 #108 完全一致，瓶颈只是「如何稳定拿到中点元素」。</p>
+<p class="thinking-step">4. 实用落码：先 O(n) 扫链表写入数组 <code>vals</code>，再对 <code>vals</code> 跑 #108 的分治 <code>dfs(left, right)</code>，总时间 O(n)、实现清晰。</p>
+<p class="thinking-step">5. 进阶：用全局 <code>cur</code> 指针按中序顺序「同步」扫链表并建树，可省数组、仍 O(n) 时间（先建左子树 → 取 cur 作根 → 建右子树）。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>head == null</code> 返回 <code>null</code>；否则遍历链表填入 <code>vals</code></p>
+<p class="code-step">2. 定义 <code>dfs(left, right)</code>：<code>left &gt; right</code> 返回 <code>null</code></p>
+<p class="code-step">3. <code>mid = (left + right) // 2</code>，<code>root = TreeNode(vals[mid])</code></p>
+<p class="code-step">4. <code>root.left = dfs(left, mid - 1)</code>，<code>root.right = dfs(mid + 1, right)</code></p>
+<p class="code-step">5. 返回 <code>dfs(0, len(vals) - 1)</code></p>""",
+        "code_python": """class Solution:
+    def sortedListToBST(self, head: ListNode | None) -> TreeNode | None:
+        vals: list[int] = []
+        while head:
+            vals.append(head.val)
+            head = head.next
+
+        def dfs(left: int, right: int) -> TreeNode | None:
+            if left > right:
+                return None
+            mid = (left + right) // 2
+            node = TreeNode(vals[mid])
+            node.left = dfs(left, mid - 1)
+            node.right = dfs(mid + 1, right)
+            return node
+
+        return dfs(0, len(vals) - 1) if vals else None""",
+        "code_cpp": """class Solution {
+    TreeNode* dfs(vector<int>& vals, int left, int right) {
+        if (left > right) return nullptr;
+        int mid = left + (right - left) / 2;
+        auto* root = new TreeNode(vals[mid]);
+        root->left = dfs(vals, left, mid - 1);
+        root->right = dfs(vals, mid + 1, right);
+        return root;
+    }
+
+public:
+    TreeNode* sortedListToBST(ListNode* head) {
+        vector<int> vals;
+        for (auto* p = head; p; p = p->next) vals.push_back(p->val);
+        if (vals.empty()) return nullptr;
+        return dfs(vals, 0, (int)vals.size() - 1);
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记空链表：未判 <code>head == null</code> 时 <code>dfs(0, -1)</code> 虽能返回 null，但显式处理更清晰。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 右子树区间写成 <code>[mid, right]</code>：根已在 <code>mid</code>，右子必须从 <code>mid + 1</code> 开始，否则会重复值或破坏 BST。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 每层快慢指针找中点却未截断链表：指针易混；若坚持链表分治，需明确子区间起止节点或改用中序 <code>cur</code> 写法。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空链表</div>
+    <code>head = [] → null</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>head = [0] → 单节点根 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1</div>
+    <code>[-10,-3,0,5,9] → vals 同序，中点根 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：两个节点</div>
+    <code>head = [1,3] → 根 3 左子 1 或根 1 右子 3（均合法）</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",

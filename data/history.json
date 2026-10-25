@@ -810,5 +810,12 @@
     "title": "将有序数组转换为二叉搜索树",
     "type": "树分治",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-10-25",
+    "slug": "convert-sorted-list-to-binary-search-tree",
+    "title": "有序链表转换二叉搜索树",
+    "type": "树分治",
+    "difficulty": "中等"
   }
 ]
