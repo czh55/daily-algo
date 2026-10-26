@@ -2902,6 +2902,110 @@ public:
 </div>""",
     },
 
+    "balanced-binary-tree": {
+        "type": "树后序递归",
+        "difficulty": "简单",
+        "frontend_id": "110",
+        "title": "平衡二叉树",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(h)（递归栈，h 为树高；链状树最坏 O(n)）",
+        "description": """<p>给定一个二叉树，判断它是否是<strong>平衡二叉树</strong>。</p>
+<p>平衡二叉树是指：二叉树的每个节点的左右两个子树的<strong>高度差</strong>的绝对值不超过 1。</p>
+<p>树中节点数在 <code>[0, 5000]</code> 内，节点值在 <code>[-10<sup>4</sup>, 10<sup>4</sup>]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [3,9,20,null,null,15,7]</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">根左右子树高度分别为 1 与 2，差为 1；子树自身也平衡。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [1,2,2,3,3,null,null,4,4]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">节点 3 的左子树高度 2、右子树高度 0，差为 2，整棵树不平衡。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = []</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">空树视为平衡。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dfs(node)</code></td><td>int</td><td><b>定义</b>：以 <code>node</code> 为根的子树若平衡则返回其<strong>高度</strong>（空树 0）；若已发现不平衡则返回 <code>-1</code> 作哨兵<br><b>维护</b>：后序汇总左右子树高度后，在<strong>当前节点</strong>处校验 <code>|left - right| ≤ 1</code><br><b>更新</b>：左右任一返回 <code>-1</code> 则向上传播 <code>-1</code>；否则 <code>return 1 + max(left, right)</code></td></tr>
+    <tr><td><code>left, right</code></td><td>int</td><td><b>定义</b>：当前节点左、右子树的高度（由子递归 <code>dfs</code> 给出）<br><b>维护</b>：子树必须已平衡，否则值为 <code>-1</code>，父层不再计算差值<br><b>更新</b>：<code>left = dfs(node.left)</code>，<code>right = dfs(node.right)</code></td></tr>
+    <tr><td><code>isBalanced(root)</code></td><td>bool</td><td><b>定义</b>：整棵树是否平衡<br><b>维护</b>：等价于「自顶向下一次 DFS 能否走完且从未触发哨兵」<br><b>更新</b>：<code>return dfs(root) != -1</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：对每个节点分别算左右子树高度（两次 #104），比较差值是否 ≤ 1，再递归左右孩子是否平衡——正确，但共享子树会被重复算高度，最坏 O(n²)。</p>
+<p class="thinking-step">2. 重复在哪里？「子树是否平衡」与「子树高度」在同一次后序遍历里就能一并得出，不必为每个节点单独再起一套高度 DFS。</p>
+<p class="thinking-step">3. 自底向上：后序先拿左右高度；若某侧已是 <code>-1</code>（子树已不平衡）直接向上传 <code>-1</code>；若 <code>|left-right| &gt; 1</code> 当前子树也不平衡，返回 <code>-1</code>；否则返回 <code>1 + max(left, right)</code> 供父节点使用。</p>
+<p class="thinking-step">4. 示例 2：最深不平衡出现在节点 3，左高 2、右高 0，该层 <code>dfs</code> 返回 <code>-1</code>，一路传到根，<code>isBalanced</code> 为 false。</p>
+<p class="thinking-step">5. 每个节点访问常数次，时间 O(n)；递归栈 O(h)。</p>""",
+        "code_steps": """<p class="code-step">1. 定义 <code>dfs(node)</code>：若 <code>node</code> 为空返回 <code>0</code></p>
+<p class="code-step">2. <code>left = dfs(node.left)</code>，若 <code>left == -1</code> 返回 <code>-1</code></p>
+<p class="code-step">3. <code>right = dfs(node.right)</code>，若 <code>right == -1</code> 返回 <code>-1</code></p>
+<p class="code-step">4. 若 <code>abs(left - right) &gt; 1</code> 返回 <code>-1</code>，否则 <code>return 1 + max(left, right)</code></p>
+<p class="code-step">5. <code>isBalanced</code> 返回 <code>dfs(root) != -1</code></p>""",
+        "code_python": """class Solution:
+    def isBalanced(self, root: TreeNode | None) -> bool:
+        def dfs(node: TreeNode | None) -> int:
+            if not node:
+                return 0
+            left = dfs(node.left)
+            if left == -1:
+                return -1
+            right = dfs(node.right)
+            if right == -1:
+                return -1
+            if abs(left - right) > 1:
+                return -1
+            return 1 + max(left, right)
+
+        return dfs(root) != -1""",
+        "code_cpp": """class Solution {
+    int dfs(TreeNode* node) {
+        if (!node) return 0;
+        int left = dfs(node->left);
+        if (left == -1) return -1;
+        int right = dfs(node->right);
+        if (right == -1) return -1;
+        if (std::abs(left - right) > 1) return -1;
+        return 1 + std::max(left, right);
+    }
+
+public:
+    bool isBalanced(TreeNode* root) {
+        return dfs(root) != -1;
+    }
+};
+// 时间 O(n)，空间 O(h)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只检查根节点左右高度差：子树内部不平衡也会被判为 false，必须递归或在一次 DFS 里让子树结果参与判断。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 高度定义与 #104 不一致：本题高度是节点层数（空 0、单节点 1），差值比较要用同一套定义。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 发现不平衡仍继续算高度：应尽早返回哨兵 <code>-1</code>，避免无意义遍历（朴素双 DFS 虽能过中小数据，但面试应写 O(n) 版）。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>root = [1] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1（平衡）</div>
+    <code>root = [3,9,20,null,null,15,7] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：官方示例 2（不平衡）</div>
+    <code>root = [1,2,2,3,3,null,null,4,4] → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：仅根不平衡、一侧为空</div>
+    <code>root = [1,2,null,3,null,4] → false（左链深度 &gt; 1）</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",

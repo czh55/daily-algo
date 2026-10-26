@@ -817,5 +817,12 @@
     "title": "有序链表转换二叉搜索树",
     "type": "树分治",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-26",
+    "slug": "balanced-binary-tree",
+    "title": "平衡二叉树",
+    "type": "树后序递归",
+    "difficulty": "简单"
   }
 ]
