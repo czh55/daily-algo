@@ -3006,6 +3006,113 @@ public:
 </div>""",
     },
 
+    "minimum-depth-of-binary-tree": {
+        "type": "树层序BFS",
+        "difficulty": "简单",
+        "frontend_id": "111",
+        "title": "二叉树的最小深度",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(w)（BFS 队列宽度，最坏 O(n)；DFS 递归栈 O(h)）",
+        "description": """<p>给定一个二叉树，找出其<strong>最小深度</strong>。</p>
+<p>最小深度是从根节点到最近<strong>叶子节点</strong>的最短路径上的<strong>节点数量</strong>。</p>
+<p><strong>说明：</strong>叶子节点是指没有子节点的节点。</p>
+<p>树中节点数的范围在 <code>[0, 10<sup>5</sup>]</code> 内，节点值在 <code>[-1000, 1000]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [3,9,20,null,null,15,7]</div>
+    <div class="example-output">输出：2</div>
+    <div class="example-explain">最近叶子是 9，路径 3 → 9，共 2 个节点（不是走到 15/7 的更深路径）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [2,null,3,null,4,null,5,null,6]</div>
+    <div class="example-output">输出：5</div>
+    <div class="example-explain">唯一叶子是 6，沿右链深度为 5。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = []</div>
+    <div class="example-output">输出：0</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>q</code></td><td>队列</td><td><b>定义</b>：待扩展的节点，元素为 <code>(node, depth)</code>，<code>depth</code> 为从根到该节点的节点数<br><b>维护</b>：按层从近到远扩展，保证<strong>第一次</strong>弹出的叶子即全局最近叶子<br><b>更新</b>：根入队 <code>(root, 1)</code>；非叶子将孩子以 <code>depth + 1</code> 入队</td></tr>
+    <tr><td><code>node, depth</code></td><td>TreeNode*, int</td><td><b>定义</b>：当前处理的节点及其到根的路径长度<br><b>维护</b>：仅当 <code>node</code> 为叶子（左右皆空）时，<code>depth</code> 才是合法答案候选<br><b>更新</b>：每轮 <code>pop</code> 队首；遇叶子立即 <code>return depth</code></td></tr>
+    <tr><td><code>minDepth(root)</code>（DFS）</td><td>int</td><td><b>定义</b>：子树 <code>root</code> 到最近叶子的最小深度；空树 0<br><b>维护</b>：单子树时必须沿<strong>有孩子的那一侧</strong>走下去，不能把缺失侧当深度 0 参与 <code>min</code><br><b>更新</b>：双孩子 <code>1 + min(左, 右)</code>；仅左/仅右则 <code>1 + minDepth(非空侧)</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：枚举所有根到叶子的路径，取最短节点数——正确，但共享前缀会被重复走，可优化。</p>
+<p class="thinking-step">2. 与 #104 最大深度的差别：最大深度可以对空子树当 0 取 <code>max</code>；最小深度必须到<strong>叶子</strong>，若只有一侧有子树，不能走「空侧深度 0」那条假路径。</p>
+<p class="thinking-step">3. BFS 按层扩展：离根近的层先处理，<strong>第一个遇到的叶子</strong>的深度就是答案（示例 1 先在深度 2 遇到 9，不必再等 15/7）。</p>
+<p class="thinking-step">4. DFS 后序：叶子返回 1；仅左或仅右时返回 <code>1 + minDepth(非空子树)</code>；双非空才 <code>1 + min(左, 右)</code>。错写 <code>1 + min(left, right)</code> 且空子树返回 0 时，<code>[1,null,2]</code> 会错成 1。</p>
+<p class="thinking-step">5. 每个节点入队/访问常数次，时间 O(n)；BFS 队列最坏 O(n)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，返回 <code>0</code></p>
+<p class="code-step">2. 队列 <code>q = [(root, 1)]</code></p>
+<p class="code-step">3. 循环：弹出 <code>(node, depth)</code>；若 <code>node</code> 为叶子，<code>return depth</code></p>
+<p class="code-step">4. 若有左/右孩子，分别以 <code>depth + 1</code> 入队</p>
+<p class="code-step">5. （DFS 备选）单子树分支单独递归，双非空再取 <code>min</code></p>""",
+        "code_python": """from collections import deque
+
+class Solution:
+    def minDepth(self, root: TreeNode | None) -> int:
+        if not root:
+            return 0
+        q = deque([(root, 1)])
+        while q:
+            node, depth = q.popleft()
+            if not node.left and not node.right:
+                return depth
+            if node.left:
+                q.append((node.left, depth + 1))
+            if node.right:
+                q.append((node.right, depth + 1))
+        return 0""",
+        "code_cpp": """class Solution {
+public:
+    int minDepth(TreeNode* root) {
+        if (!root) return 0;
+        std::queue<std::pair<TreeNode*, int>> q;
+        q.push({root, 1});
+        while (!q.empty()) {
+            auto [node, depth] = q.front();
+            q.pop();
+            if (!node->left && !node->right)
+                return depth;
+            if (node->left)
+                q.push({node->left, depth + 1});
+            if (node->right)
+                q.push({node->right, depth + 1});
+        }
+        return 0;
+    }
+};
+// 时间 O(n)，空间 O(w)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 照搬 #104：<code>1 + min(maxDepth(left), maxDepth(right))</code> 且空子树返回 0——对 <code>[1,null,2]</code> 会得到 1，正确答案是 2。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把「仅有单孩子的节点」当叶子：必须左右都空才算叶子，否则还要继续向下。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> DFS 在双非空与单子树分支混用同一公式：缺一侧时只能递归非空侧，不能对空侧取深度 0 再 <code>min</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [] → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点（叶子）</div>
+    <code>root = [1] → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1</div>
+    <code>root = [3,9,20,null,null,15,7] → 2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：右倾链（示例 2）</div>
+    <code>root = [2,null,3,null,4,null,5,null,6] → 5</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：单孩子陷阱</div>
+    <code>root = [1,null,2] → 2</code>（勿写成 1）
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",
