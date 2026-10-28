@@ -831,5 +831,12 @@
     "title": "二叉树的最小深度",
     "type": "树层序BFS",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-10-28",
+    "slug": "path-sum",
+    "title": "路径总和",
+    "type": "树前序递归",
+    "difficulty": "简单"
   }
 ]

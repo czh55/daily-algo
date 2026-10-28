@@ -41,6 +41,7 @@ TYPE_CLASS_MAP = {
     "二维DP": "dp",
     "一维DP": "dp",
     "树后序递归": "tree",
+    "树前序递归": "tree",
     "树层序BFS": "tree",
     "树分治": "tree",
     "并查集": "union-find",
@@ -3110,6 +3111,104 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 5：单孩子陷阱</div>
     <code>root = [1,null,2] → 2</code>（勿写成 1）
+</div>""",
+    },
+
+    "path-sum": {
+        "type": "树前序递归",
+        "difficulty": "简单",
+        "frontend_id": "112",
+        "title": "路径总和",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(h)（递归栈深度，最坏 O(n)）",
+        "description": """<p>给你二叉树的根节点 <code>root</code> 和一个表示目标和的整数 <code>targetSum</code>。判断该树中是否存在 <strong>根节点到叶子节点</strong> 的路径，这条路径上所有节点值相加等于 <code>targetSum</code>。若存在返回 <code>true</code>，否则 <code>false</code>。</p>
+<p><strong>叶子节点</strong> 是指没有子节点的节点。</p>
+<p>树中节点数目 <code>[0, 5000]</code>，节点值与 <code>targetSum</code> 均在 <code>[-1000, 1000]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [5,4,8,11,null,13,4,7,2,null,null,null,1], targetSum = 22</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">路径 5 → 4 → 11 → 2，节点值之和为 22。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [1,2,3], targetSum = 5</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">根到叶路径和分别为 3 与 4，没有等于 5 的。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = [], targetSum = 0</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">空树不存在根到叶子的路径。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>rem</code></td><td>int</td><td><b>定义</b>：从当前节点走到某条<strong>叶子</strong>时，路径上<strong>尚未凑满</strong>的目标和（还差多少）<br><b>维护</b>：进入节点前 <code>rem</code> 表示「含当前节点值后整条路径应等于原 target」的剩余量；在节点处先 <code>rem -= node.val</code><br><b>更新</b>：递归左/右孩子时传入同一 <code>rem</code>；在叶子处判定 <code>rem == 0</code></td></tr>
+    <tr><td><code>node</code></td><td>TreeNode*</td><td><b>定义</b>：DFS 当前访问的节点，从根沿一条路径向下<br><b>维护</b>：只有<strong>左右皆空</strong>的节点才允许做「路径结束」判断；中间节点不能因 <code>rem==0</code> 提前返回 true<br><b>更新</b>：先处理当前节点扣减 <code>rem</code>，再递归 <code>left</code> / <code>right</code>，用 <code>or</code> 合并是否存在合法路径</td></tr>
+    <tr><td><code>hasPathSum(root, targetSum)</code></td><td>bool</td><td><b>定义</b>：以 <code>root</code> 为起点的子树中，是否存在根到叶路径和等于传入的 <code>targetSum</code><br><b>维护</b>：空节点无路径，恒 false；答案 = 左子树或右子树中任一侧为 true<br><b>更新</b>：顶层调用 <code>dfs(root, targetSum)</code>，初始 <code>rem</code> 即为全局目标和</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：枚举每条根到叶的路径，把节点值加起来与 <code>targetSum</code> 比较——正确，但路径共享前缀会被重复遍历。</p>
+<p class="thinking-step">2. 重复在哪里？每往下走一层，都是在问「子树里有没有一条到叶的路径，其和等于<strong>已经扣掉祖先后的剩余目标</strong>」——子问题与整题同型。</p>
+<p class="thinking-step">3. 前序递推：到节点 <code>u</code> 时先把 <code>rem -= u.val</code>；若 <code>u</code> 是叶子且 <code>rem == 0</code> 则成功；否则向非空孩子继续传同一个 <code>rem</code>。</p>
+<p class="thinking-step">4. 易错点：在<strong>非叶子</strong>上看到 <code>rem == 0</code> 就返回 true（例如目标 0 但中间节点值为 0）——题目要求路径必须到叶子，中间不能停。</p>
+<p class="thinking-step">5. 每个节点访问常数次，时间 O(n)；递归栈 O(h)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，返回 <code>false</code></p>
+<p class="code-step">2. 定义 <code>dfs(node, rem)</code>：<code>rem -= node.val</code></p>
+<p class="code-step">3. 若 <code>node</code> 为叶子，返回 <code>rem == 0</code></p>
+<p class="code-step">4. 否则返回 <code>dfs(left, rem) or dfs(right, rem)</code>（空孩子由 <code>not node</code> 分支处理为 false）</p>
+<p class="code-step">5. 对外接口：<code>return dfs(root, targetSum)</code></p>""",
+        "code_python": """class Solution:
+    def hasPathSum(self, root: TreeNode | None, targetSum: int) -> bool:
+        def dfs(node: TreeNode | None, rem: int) -> bool:
+            if not node:
+                return False
+            rem -= node.val
+            if not node.left and not node.right:
+                return rem == 0
+            return dfs(node.left, rem) or dfs(node.right, rem)
+
+        return dfs(root, targetSum)""",
+        "code_cpp": """class Solution {
+public:
+    bool hasPathSum(TreeNode* root, int targetSum) {
+        return dfs(root, targetSum);
+    }
+
+private:
+    bool dfs(TreeNode* node, int rem) {
+        if (!node) return false;
+        rem -= node->val;
+        if (!node->left && !node->right)
+            return rem == 0;
+        return dfs(node->left, rem) || dfs(node->right, rem);
+    }
+};
+// 时间 O(n)，空间 O(h)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 未到叶子就判成功：在中间节点 <code>rem == 0</code> 也返回 true，违反「根到<strong>叶</strong>」定义。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把「空子树」当叶子：单节点树时根就是叶子；有孩子时即使一侧为空也不能在根处直接比较 <code>targetSum == root.val</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 先递归再扣减节点值：应在访问当前节点时更新 <code>rem</code>，否则叶子判定与路径前缀不一致。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [], targetSum = 0 → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点匹配</div>
+    <code>root = [1], targetSum = 1 → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单节点不匹配</div>
+    <code>root = [1], targetSum = 0 → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：官方示例 1</div>
+    <code>root = [5,4,8,11,null,13,4,7,2,null,null,null,1], targetSum = 22 → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：官方示例 2</div>
+    <code>root = [1,2,3], targetSum = 5 → false</code>
 </div>""",
     },
 
