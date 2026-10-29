@@ -3212,6 +3212,120 @@ private:
 </div>""",
     },
 
+    "path-sum-ii": {
+        "type": "树前序递归",
+        "difficulty": "中等",
+        "frontend_id": "113",
+        "title": "路径总和 II",
+        "time_complexity": "O(n²)（最坏每条路径拷贝 O(h)，共 O(n) 个节点）",
+        "space_complexity": "O(h)（递归栈 + 当前 path，不计输出）",
+        "description": """<p>给你二叉树的根节点 <code>root</code> 和一个整数目标和 <code>targetSum</code>，找出所有 <strong>从根节点到叶子节点</strong> 路径总和等于给定目标和的路径。</p>
+<p><strong>叶子节点</strong> 是指没有子节点的节点。</p>
+<p>树中节点总数在范围 <code>[0, 5000]</code> 内，节点值与 <code>targetSum</code> 均在 <code>[-1000, 1000]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [5,4,8,11,null,13,4,7,2,null,null,5,1], targetSum = 22</div>
+    <div class="example-output">输出：[[5,4,11,2],[5,8,4,5]]</div>
+    <div class="example-explain">两条根到叶路径和均为 22：5→4→11→2 与 5→8→4→5。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [1,2,3], targetSum = 5</div>
+    <div class="example-output">输出：[]</div>
+    <div class="example-explain">根到叶路径和为 3 与 4，没有等于 5 的。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = [1,2], targetSum = 0</div>
+    <div class="example-output">输出：[]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>path</code></td><td>list&lt;int&gt;</td><td><b>定义</b>：从根到当前 DFS 节点的节点值序列（不含尚未访问的孩子）<br><b>维护</b>：进入节点前 <code>append(node.val)</code>，离开该子树前 <code>pop()</code> 撤销<br><b>更新</b>：前序「选当前点 → 递归孩子 → 撤销」；只在<strong>叶子</strong>且 <code>rem==0</code> 时把 <code>path[:]</code> 记入答案</td></tr>
+    <tr><td><code>rem</code></td><td>int</td><td><b>定义</b>：沿当前 <code>path</code> 走到叶子时，路径和还差多少才等于原 <code>targetSum</code><br><b>维护</b>：每进入节点 <code>rem -= node.val</code>；传给左右孩子的是扣减后的同一 <code>rem</code><br><b>更新</b>：与 #112 相同：仅叶子允许用 <code>rem == 0</code> 判定成功，中间节点不能提前收集</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;int&gt;&gt;</td><td><b>定义</b>：所有满足条件的根到叶路径集合<br><b>维护</b>：DFS 过程中只追加完整路径的副本，不存前缀<br><b>更新</b>：<code>if 叶子 and rem==0: ans.append(path[:])</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：枚举每条根到叶的路径，把节点值列出来并求和，等于 <code>targetSum</code> 就加入答案——与 #112 判断「是否存在」同型，只是要<strong>收集全部</strong>合法路径。</p>
+<p class="thinking-step">2. 重复在哪里？共享前缀的多条路径会在同一祖先上重复维护「当前路径序列」和「剩余目标和」——适合一条 DFS 上用公共 <code>path</code>，分叉时回溯撤销。</p>
+<p class="thinking-step">3. 前序 + 回溯：到节点 <code>u</code> 时 <code>path.append(u.val)</code>、<code>rem -= u.val</code>；若 <code>u</code> 是叶子且 <code>rem==0</code> 则 <code>ans.append(path[:])</code>；否则递归非空孩子；返回前 <code>path.pop()</code>。</p>
+<p class="thinking-step">4. 与 #112 的差异：不能一发现 <code>rem==0</code> 就停——必须到叶子；也不能只返回 bool，要在叶子层拷贝整条 <code>path</code>。</p>
+<p class="thinking-step">5. 每个节点进出各一次，时间 O(n)；输出路径总长最坏 O(n²)，递归栈 O(h)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，返回 <code>[]</code></p>
+<p class="code-step">2. 定义 <code>dfs(node, rem, path)</code>：空节点直接返回</p>
+<p class="code-step">3. <code>path.append(node.val)</code>，<code>rem -= node.val</code></p>
+<p class="code-step">4. 若 <code>node</code> 为叶子且 <code>rem == 0</code>，<code>ans.append(path[:])</code></p>
+<p class="code-step">5. 否则分别 <code>dfs(left, rem, path)</code>、<code>dfs(right, rem, path)</code></p>
+<p class="code-step">6. 回溯：<code>path.pop()</code>；对外 <code>dfs(root, targetSum, [])</code> 后返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def pathSum(self, root: TreeNode | None, targetSum: int) -> list[list[int]]:
+        ans: list[list[int]] = []
+
+        def dfs(node: TreeNode | None, rem: int, path: list[int]) -> None:
+            if not node:
+                return
+            path.append(node.val)
+            rem -= node.val
+            if not node.left and not node.right and rem == 0:
+                ans.append(path[:])
+            else:
+                dfs(node.left, rem, path)
+                dfs(node.right, rem, path)
+            path.pop()
+
+        if root:
+            dfs(root, targetSum, [])
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> pathSum(TreeNode* root, int targetSum) {
+        vector<vector<int>> ans;
+        vector<int> path;
+        dfs(root, targetSum, path, ans);
+        return ans;
+    }
+
+private:
+    void dfs(TreeNode* node, int rem, vector<int>& path, vector<vector<int>>& ans) {
+        if (!node) return;
+        path.push_back(node->val);
+        rem -= node->val;
+        if (!node->left && !node->right && rem == 0)
+            ans.push_back(path);
+        else {
+            dfs(node->left, rem, path, ans);
+            dfs(node->right, rem, path, ans);
+        }
+        path.pop_back();
+    }
+};
+// 时间 O(n²) 最坏（路径拷贝），空间 O(h)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 未到叶子就收集：在中间节点 <code>rem == 0</code> 就把 <code>path</code> 加入答案，违反题意。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记回溯 <code>pop</code>：兄弟分支会带上上一分支的节点值，路径串掉。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>ans.append(path)</code> 而非副本：后续 <code>pop</code> 会改动已存入的结果，必须用 <code>path[:]</code> 或 C++ 里 push 当前 vector 副本。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [], targetSum = 0 → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点匹配</div>
+    <code>root = [5], targetSum = 5 → [[5]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1（两条路径）</div>
+    <code>targetSum = 22 → [[5,4,11,2],[5,8,4,5]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：官方示例 2</div>
+    <code>root = [1,2,3], targetSum = 5 → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：负值节点</div>
+    <code>root = [-2,null,-3], targetSum = -5 → [[-2,-3]]</code>（路径和可为负，<code>rem</code> 仍按减法递推）
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",
