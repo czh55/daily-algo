@@ -3326,6 +3326,107 @@ private:
 </div>""",
     },
 
+    "flatten-binary-tree-to-linked-list": {
+        "type": "树后序递归",
+        "difficulty": "中等",
+        "frontend_id": "114",
+        "title": "二叉树展开为链表",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(h)（递归栈；链状树最坏 O(n)）",
+        "description": """<p>给你二叉树的根结点 <code>root</code>，请你将它展开为一个单链表：</p>
+<ul>
+<li>展开后的单链表同样使用 <code>TreeNode</code>，其中 <code>right</code> 子指针指向链表中下一个结点，左子指针始终为 <code>null</code>。</li>
+<li>展开后的单链表应与二叉树<strong>先序遍历</strong>顺序相同。</li>
+</ul>
+<p>树中结点数在 <code>[0, 2000]</code> 内，节点值在 <code>[-100, 100]</code> 范围内。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [1,2,5,3,4,null,6]</div>
+    <div class="example-output">输出：[1,null,2,null,3,null,4,null,5,null,6]</div>
+    <div class="example-explain">先序 1→2→3→4→5→6，全部挂在 <code>right</code> 上，<code>left</code> 均为空。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = []</div>
+    <div class="example-output">输出：[]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：root = [0]</div>
+    <div class="example-output">输出：[0]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>prev</code></td><td>TreeNode | null</td><td><b>定义</b>：在「已拼接好的链表」里，<strong>当前正在处理的节点</strong>在先序中的<strong>下一个</strong>结点（更靠右/更靠后访问）<br><b>维护</b>：DFS 从右子树到左子树再到根，<code>prev</code> 始终是已处理后缀的头结点<br><b>更新</b>：每处理完 <code>node</code> 后 <code>prev = node</code>；处理前令 <code>node.right = prev</code>、<code>node.left = null</code></td></tr>
+    <tr><td><code>dfs(node)</code></td><td>void</td><td><b>定义</b>：把以 <code>node</code> 为根的子树展开并接到全局 <code>prev</code> 链前面<br><b>维护</b>：访问顺序为<strong>右 → 左 → 根</strong>（与先序相反的「后序」），保证根最后连上已拼好的右子树+左子树链<br><b>更新</b>：空节点返回；否则 <code>dfs(right)</code>、<code>dfs(left)</code>，再改指针并更新 <code>prev</code></td></tr>
+    <tr><td><code>root</code></td><td>TreeNode | null</td><td><b>定义</b>：输入输出同一棵树的根；展开后整棵树变成沿 <code>right</code> 的单链<br><b>维护</b>：函数无返回值，原地改指针<br><b>更新</b>：调用 <code>dfs(root)</code> 后从 <code>root</code> 沿 <code>right</code> 即为先序序列</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：先按先序把节点指针收集到数组，再第二遍把每个点的 <code>left</code> 置空、<code>right</code> 指向下一个——正确，但额外 O(n) 空间。</p>
+<p class="thinking-step">2. 重复在哪里？先序里「当前点的下一个」一定是：若有左子则左根，否则右子，否则回溯后的父的右子……可以在一次 DFS 里用「下一个是谁」直接改链，不必存数组。</p>
+<p class="thinking-step">3. 倒着拼链表：若已知先序中 <code>node</code> 之后的整段已变成单链头 <code>prev</code>，则令 <code>node.right = prev</code>、<code>node.left = null</code>，<code>node</code> 成为新头。要<strong>先</strong>知道 <code>node</code> 后面的结点，访问顺序必须是<strong>右子树 → 左子树 → 根</strong>。</p>
+<p class="thinking-step">4. 示例 1：处理 6 时 <code>prev=null</code>；5 连 6；4 连 5；… 最后 1 连 2，得到 1→2→3→4→5→6。</p>
+<p class="thinking-step">5. 进阶 O(1) 空间可用迭代「找左子树前驱接右子树」写法；本页用 <code>prev</code> 后序 DFS，时间 O(n)、栈 O(h)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，直接返回</p>
+<p class="code-step">2. 定义外层可变 <code>prev = None</code>（或类成员 <code>self.prev</code>）</p>
+<p class="code-step">3. <code>dfs(node)</code>：空则返回；先 <code>dfs(node.right)</code>，再 <code>dfs(node.left)</code></p>
+<p class="code-step">4. <code>node.right = prev</code>，<code>node.left = None</code>，<code>prev = node</code></p>
+<p class="code-step">5. 对 <code>root</code> 调用 <code>dfs</code>，不返回值</p>""",
+        "code_python": """class Solution:
+    def flatten(self, root: TreeNode | None) -> None:
+        prev: TreeNode | None = None
+
+        def dfs(node: TreeNode | None) -> None:
+            nonlocal prev
+            if not node:
+                return
+            dfs(node.right)
+            dfs(node.left)
+            node.right = prev
+            node.left = None
+            prev = node
+
+        dfs(root)""",
+        "code_cpp": """class Solution {
+    TreeNode* prev = nullptr;
+
+    void dfs(TreeNode* node) {
+        if (!node) return;
+        dfs(node->right);
+        dfs(node->left);
+        node->right = prev;
+        node->left = nullptr;
+        prev = node;
+    }
+
+public:
+    void flatten(TreeNode* root) {
+        prev = nullptr;
+        dfs(root);
+    }
+};
+// 时间 O(n)，空间 O(h)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 按先序「根-左-右」直接递归改 <code>right</code>：还没处理完左子树就覆盖 <code>right</code> 指针，子树丢失——必须先处理右再左再根，或先用数组/栈。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>node.left = nullptr</code>：展开后仍保留左孩子，不符合「单链表、left 全为空」。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把 <code>prev</code> 当局部变量却在递归层各自新建：必须用 <code>nonlocal</code> / 成员变量，保证全树共享同一条「已拼后缀」。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [] → []</code>（<code>dfs</code> 不修改）</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>root = [0] → [0]</code>（<code>left</code>、<code>right</code> 均为空）</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：只有左链</div>
+    <code>root = [1,2,null,3] → 先序 1,2,3 全在 right 上</code></div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：官方示例 1</div>
+    <code>[1,2,5,3,4,null,6] → 1→2→3→4→5→6</code></div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：只有右子</div>
+    <code>root = [1,null,2,null,3] → 1→2→3</code>（<code>dfs</code> 仍先右后左后根）</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",

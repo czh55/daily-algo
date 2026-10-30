@@ -845,5 +845,12 @@
     "title": "路径总和 II",
     "type": "树前序递归",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-30",
+    "slug": "flatten-binary-tree-to-linked-list",
+    "title": "二叉树展开为链表",
+    "type": "树后序递归",
+    "difficulty": "中等"
   }
 ]
