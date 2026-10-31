@@ -852,5 +852,12 @@
     "title": "二叉树展开为链表",
     "type": "树后序递归",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-10-31",
+    "slug": "distinct-subsequences",
+    "title": "不同的子序列",
+    "type": "二维DP",
+    "difficulty": "困难"
   }
 ]

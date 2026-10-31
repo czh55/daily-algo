@@ -3427,6 +3427,101 @@ public:
     <code>root = [1,null,2,null,3] → 1→2→3</code>（<code>dfs</code> 仍先右后左后根）</div>""",
     },
 
+    "distinct-subsequences": {
+        "type": "二维DP",
+        "difficulty": "困难",
+        "frontend_id": "115",
+        "title": "不同的子序列",
+        "time_complexity": "O(m × n)（<code>m=len(s)</code>，<code>n=len(t)</code>）",
+        "space_complexity": "O(m × n)（二维 <code>dp</code>；可滚动为一维 <code>O(n)</code>）",
+        "description": """<p>给你两个字符串 <code>s</code> 和 <code>t</code>，统计并返回在 <code>s</code> 的 <strong>子序列</strong> 中 <code>t</code> 出现的个数。</p>
+<p>测试用例保证结果在 32 位有符号整数范围内。</p>
+<p><code>1 ≤ s.length, t.length ≤ 1000</code>，<code>s</code> 和 <code>t</code> 由英文字母组成。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "rabbbit", t = "rabbit"</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain">三种方案：<code><strong><u>rabb</u></strong>b<strong><u>it</u></strong></code>、<code><strong><u>ra</u></strong>b<strong><u>bbit</u></strong></code>、<code><strong><u>rab</u></strong>b<strong><u>bit</u></strong></code>（下划线为选中的子序列字符）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "babgbag", t = "bag"</div>
+    <div class="example-output">输出：5</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>dp[i][j]</code></td><td>int[][]</td><td><b>定义</b>：<code>s</code> 的前 <code>i</code> 个字符里，能选出多少种<strong>不同下标</strong>的子序列，使其恰好等于 <code>t</code> 的前 <code>j</code> 个字符<br><b>维护</b>：只依赖更短前缀 <code>dp[i-1][·]</code>；当 <code>s[i-1]==t[j-1]</code> 时可「用这一位配对 <code>t[j-1]</code>」或「跳过 <code>s[i-1]</code>」<br><b>更新</b>：字符相等时 <code>dp[i][j]=dp[i-1][j-1]+dp[i-1][j]</code>；不等时 <code>dp[i][j]=dp[i-1][j]</code>；答案 <code>dp[m][n]</code></td></tr>
+    <tr><td><code>i, j</code></td><td>int</td><td><b>定义</b>：已考虑的 <code>s</code> 前缀长度、已匹配的 <code>t</code> 前缀长度，范围 <code>0..m</code>、<code>0..n</code><br><b>维护</b>：<code>j=0</code> 表示 <code>t</code> 为空串，任意 <code>s</code> 前缀都有且仅有 1 种取法（全不选）<br><b>更新</b>：双重循环 <code>i=1..m</code>、<code>j=1..n</code>；<code>dp[0][j&gt;0]=0</code></td></tr>
+    <tr><td><code>m, n</code></td><td>int</td><td><b>定义</b>：<code>len(s)</code>、<code>len(t)</code><br><b>维护</b>：若 <code>m&lt;n</code> 则答案必为 0（<code>t</code> 比 <code>s</code> 长无法完全匹配）<br><b>更新</b>：只读；结果在 32 位整数内</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：从 <code>s</code> 里递归选/不选每一位，拼出与 <code>t</code> 相同的子序列并计数——正确，但 <code>2^m</code> 量级，长度上千必超时。</p>
+<p class="thinking-step">2. 重复在哪里？进度只取决于「已扫过 <code>s</code> 前几个字符、已匹配 <code>t</code> 前几个字符」，与具体选了哪些下标无关；同一对 <code>(i,j)</code> 会被大量路径重复访问。</p>
+<p class="thinking-step">3. 子问题：设 <code>dp[i][j]</code> 为 <code>s[0..i-1]</code> 中子序列等于 <code>t[0..j-1]</code> 的方案数。扫到 <code>s[i-1]</code> 时：若与 <code>t[j-1]</code> 不同，只能跳过 → <code>dp[i][j]=dp[i-1][j]</code>；若相同，可跳过（<code>dp[i-1][j]</code>）或用这一对配对（<code>dp[i-1][j-1]</code>），相加。</p>
+<p class="thinking-step">4. 手推示例 1 一角：<code>s="rabbbit"</code>、<code>t="rabbit"</code>。多出来的 <code>b</code> 会在「跳过 / 选用」之间产生分叉；三个 <code>b</code> 中选两个的不同组合正是额外计数来源，DP 的「加 <code>dp[i-1][j-1]</code>」就是在累加「在这里结束 <code>t</code> 的某一前缀」的路径数。</p>
+<p class="thinking-step">5. 边界：<code>dp[i][0]=1</code>（空 <code>t</code> 只有一种取法）；<code>dp[0][j&gt;0]=0</code>。与 LCS/编辑距离同属双串二维 DP，但本题是<strong>计数</strong>而非最值，相等字符时是<strong>加法</strong>不是 <code>max</code>。</p>""",
+        "code_steps": """<p class="code-step">1. <code>m,n = len(s), len(t)</code>；建 <code>(m+1)×(n+1)</code> 整型表</p>
+<p class="code-step">2. 初始化 <code>dp[i][0]=1</code>（<code>i=0..m</code>），<code>dp[0][j]=0</code>（<code>j=1..n</code>）</p>
+<p class="code-step">3. 对 <code>i=1..m</code>、<code>j=1..n</code>：若 <code>s[i-1]==t[j-1]</code>，<code>dp[i][j]=dp[i-1][j-1]+dp[i-1][j]</code></p>
+<p class="code-step">4. 否则 <code>dp[i][j]=dp[i-1][j]</code></p>
+<p class="code-step">5. 返回 <code>dp[m][n]</code>（注意用 64 位累加再转 int，防中间溢出）</p>""",
+        "code_python": """class Solution:
+    def numDistinct(self, s: str, t: str) -> int:
+        m, n = len(s), len(t)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        for i in range(m + 1):
+            dp[i][0] = 1  # 空 t：一种取法（全不选）
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if s[i - 1] == t[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1] + dp[i - 1][j]
+                else:
+                    dp[i][j] = dp[i - 1][j]
+        return dp[m][n]""",
+        "code_cpp": """class Solution {
+public:
+    int numDistinct(string s, string t) {
+        int m = s.size(), n = t.size();
+        vector<vector<long long>> dp(m + 1, vector<long long>(n + 1, 0));
+        for (int i = 0; i <= m; ++i) dp[i][0] = 1;
+        for (int i = 1; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (s[i - 1] == t[j - 1])
+                    dp[i][j] = dp[i - 1][j - 1] + dp[i - 1][j];
+                else
+                    dp[i][j] = dp[i - 1][j];
+            }
+        }
+        return (int)dp[m][n];
+    }
+};
+// 时间 O(mn)，空间 O(mn)；可压成 O(n) 滚动""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 字符相等时写成 <code>dp[i][j]=dp[i-1][j-1]</code> 漏掉「跳过当前 <code>s[i-1]</code>」的 <code>dp[i-1][j]</code>，示例 1 会少计多 <code>b</code> 的分支。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 边界搞反：<code>dp[0][j]=0</code>（<code>j&gt;0</code>）、<code>dp[i][0]=1</code>；把第一行也设成 1 或把第一列当 0 都会错。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与「最长公共子序列」混淆：LCS 求长度用 <code>max</code>；本题求<strong>方案个数</strong>，匹配字符时是<strong>相加</strong>两种决策的路径数。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：t 为空</div>
+    <code>s 任意非空 → 1</code>（只选空子序列一种）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：s 比 t 短</div>
+    <code>s="ab", t="abc" → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：完全相同</div>
+    <code>s="abc", t="abc" → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：重复字符分叉</div>
+    <code>s="aaa", t="a" → 3</code>（三个 <code>a</code> 各可选一次）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：官方示例 2</div>
+    <code>s="babgbag", t="bag" → 5</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",
