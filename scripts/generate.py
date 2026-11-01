@@ -3522,6 +3522,104 @@ public:
 </div>""",
     },
 
+    "populating-next-right-pointers-in-each-node": {
+        "type": "树层序BFS",
+        "difficulty": "中等",
+        "frontend_id": "116",
+        "title": "填充每个节点的下一个右侧节点指针",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)（已建好的 next 链层序遍历；BFS 队列版 O(w)）",
+        "description": """<p>给定一个<strong>完美二叉树</strong>（所有叶子在同一层、每个父节点都有两个孩子），节点定义含 <code>val, left, right, next</code>。请填充每个 <code>next</code>，使其指向<strong>同一层</strong>的下一个右侧节点；若无右侧邻居则置 <code>NULL</code>。初始时所有 <code>next</code> 均为 <code>NULL</code>。</p>
+<p><strong>进阶：</strong>只能使用常量级额外空间（递归栈不算额外空间）。</p>
+<p>节点数 <code>[0, 2<sup>12</sup>-1]</code>，<code>-1000 ≤ val ≤ 1000</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [1,2,3,4,5,6,7]</div>
+    <div class="example-output">输出：[1,#,2,3,#,4,5,6,7,#]</div>
+    <div class="example-explain">层序序列化中 <code>#</code> 表示每层结束；同一层由 <code>next</code> 横向串联（1→2→3，4→5→6→7）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = []</div>
+    <div class="example-output">输出：[]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>leftmost</code></td><td>Node*</td><td><b>定义</b>：当前正在处理的<strong>层</strong>的最左节点，初始为 <code>root</code><br><b>维护</b>：每处理完一整层后，下一层的最左节点一定是 <code>leftmost.left</code>（完美树每层满）<br><b>更新</b>：内层 <code>while curr</code> 结束后令 <code>leftmost = leftmost.left</code>；若无左孩子则整棵树已处理完</td></tr>
+    <tr><td><code>curr</code></td><td>Node*</td><td><b>定义</b>：在当前层从左到右行走的指针，沿已填好的 <code>next</code> 前进<br><b>维护</b>：访问顺序与层序从左到右一致，且<strong>先</strong>用 <code>curr</code> 连好下一层的 <code>next</code>，再 <code>curr = curr.next</code><br><b>更新</b>：每轮：<code>curr.left.next = curr.right</code>；若 <code>curr.next</code> 非空则 <code>curr.right.next = curr.next.left</code></td></tr>
+    <tr><td><code>prev</code>（BFS 版）</td><td>Node*</td><td><b>定义</b>：队列扩展时，本层已出队节点中的「上一个」节点<br><b>维护</b>：与 <code>node</code> 同层时 <code>prev.next = node</code>；换层时重置为 <code>NULL</code><br><b>更新</b>：每出队一个节点后 <code>prev = node</code>；层末 <code>prev</code> 的 <code>next</code> 保持 <code>NULL</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：层序 BFS，用队列按层收集节点，每层从左到右依次 <code>prev.next = curr</code>——正确，但队列最坏 O(n) 额外空间，不满足进阶的 O(1) 要求。</p>
+<p class="thinking-step">2. 重复在哪里？同一层节点之间的「谁连谁」只取决于树结构；完美树每层是满的，下一层最左节点永远是当前层最左节点的 <code>left</code>，不必再用队列记层界。</p>
+<p class="thinking-step">3. 关键观察：处理第 k 层时，第 k 层的 <code>next</code> 已经填好，可以把第 k 层当作<strong>链表</strong>，用 <code>curr = curr.next</code> 遍历，同时在遍历过程中把第 k+1 层的 <code>next</code> 连起来。</p>
+<p class="thinking-step">4. 手推示例 1 第一层：<code>curr=1</code>，<code>1.left.next=2</code>，<code>1.right.next=3</code>（因 <code>1.next</code> 为空，右孩子无跨父兄弟）。第二层：<code>curr=2</code> 时 <code>4.next=5</code>；<code>curr=3</code> 时 <code>6.next=7</code>，且 <code>5.next=6</code> 来自 <code>2.right.next = 2.next.left</code>。</p>
+<p class="thinking-step">5. 外层 <code>while leftmost.left</code>、内层 <code>while curr</code>，每个节点常数工作，时间 O(n)；除指针外无额外容器，空间 O(1)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>root</code> 为空，直接返回</p>
+<p class="code-step">2. <code>leftmost = root</code>；当 <code>leftmost.left</code> 存在（还有下一层）时循环</p>
+<p class="code-step">3. <code>curr = leftmost</code>；内层沿 <code>curr.next</code> 走：先 <code>curr.left.next = curr.right</code></p>
+<p class="code-step">4. 若 <code>curr.next != NULL</code>，令 <code>curr.right.next = curr.next.left</code>（跨父节点连右侧子树）</p>
+<p class="code-step">5. <code>curr = curr.next</code>；内层结束后 <code>leftmost = leftmost.left</code>，进入下一层</p>
+<p class="code-step">6. 返回 <code>root</code>（所有 <code>next</code> 已原地写好）</p>""",
+        "code_python": """class Solution:
+    def connect(self, root: \"Optional[Node]\") -> \"Optional[Node]\":
+        if not root:
+            return None
+        leftmost = root
+        while leftmost.left:          # 完美树：有左孩子 ⇔ 还有下一层
+            curr = leftmost
+            while curr:
+                curr.left.next = curr.right
+                if curr.next:
+                    curr.right.next = curr.next.left
+                curr = curr.next
+            leftmost = leftmost.left
+        return root""",
+        "code_cpp": """class Solution {
+public:
+    Node* connect(Node* root) {
+        if (!root) return nullptr;
+        Node* leftmost = root;
+        while (leftmost->left) {
+            Node* curr = leftmost;
+            while (curr) {
+                curr->left->next = curr->right;
+                if (curr->next)
+                    curr->right->next = curr->next->left;
+                curr = curr->next;
+            }
+            leftmost = leftmost->left;
+        }
+        return root;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把 #117（非完美树）的写法直接搬来：本题保证每层满，可安全用 <code>leftmost.left</code> 下移；非完美树需 BFS 或更复杂的指针技巧。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 内层用 <code>left/right</code> 走下一层而不用 <code>next</code>：会破坏「O(1) 层序」思路，且与已填好的横向链不一致；应用 <code>curr = curr.next</code> 扫当前层。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>curr.next</code> 判空就写 <code>curr.right.next = curr.next.left</code>：层末节点的右孩子 <code>next</code> 必须保持 <code>NULL</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空树</div>
+    <code>root = [] → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点</div>
+    <code>root = [1] → [1,#]</code>（无子层，<code>next</code> 仍为 NULL）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：两层完美树</div>
+    <code>root = [1,2,3] → 1.next=2, 2.next=3, 3.next=NULL</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：官方示例 1</div>
+    <code>root = [1,2,3,4,5,6,7] → 层 1: 1→2→3；层 2: 4→5→6→7</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：最深层仅一个节点（仍完美）</div>
+    <code>高度 h 的完美树最左叶子 <code>next</code> 链应串满该层</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",

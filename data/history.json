@@ -859,5 +859,12 @@
     "title": "不同的子序列",
     "type": "二维DP",
     "difficulty": "困难"
+  },
+  {
+    "date": "2026-11-01",
+    "slug": "populating-next-right-pointers-in-each-node",
+    "title": "填充每个节点的下一个右侧节点指针",
+    "type": "树层序BFS",
+    "difficulty": "中等"
   }
 ]
