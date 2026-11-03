@@ -3730,6 +3730,95 @@ public:
 </div>""",
     },
 
+    "pascals-triangle": {
+        "type": "一维DP",
+        "difficulty": "简单",
+        "frontend_id": "118",
+        "title": "杨辉三角",
+        "time_complexity": "O(numRows²)",
+        "space_complexity": "O(numRows²)（输出占主导；若只存上一行可 O(numRows)）",
+        "description": """<p>给定一个非负整数 <code>numRows</code>，生成「杨辉三角」的前 <code>numRows</code> 行。</p>
+<p>在<strong>「杨辉三角」</strong>中，每个数是它<strong>左上方</strong>和<strong>右上方</strong>的数的和；每行首尾元素均为 1。</p>
+<p><code>1 ≤ numRows ≤ 30</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：numRows = 5</div>
+    <div class="example-output">输出：[[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：numRows = 1</div>
+    <div class="example-output">输出：[[1]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>triangle</code></td><td>list[list[int]]</td><td><b>定义</b>：已生成的杨辉三角，<code>triangle[r]</code> 为第 <code>r</code> 行（0 起）<br><b>维护</b>：每轮外层循环结束，<code>triangle</code> 多一行且该行满足递推关系<br><b>更新</b>：构造完 <code>row</code> 后 <code>triangle.append(row)</code></td></tr>
+    <tr><td><code>row</code></td><td>list[int]</td><td><b>定义</b>：当前正在构造的第 <code>r</code> 行，长度为 <code>r+1</code><br><b>维护</b>：<code>row[0]</code> 与 <code>row[r]</code> 恒为 1；中间位由上一行相邻两数相加<br><b>更新</b>：每新一层重置为 <code>[1]</code>，再逐位填中间，最后补末尾 <code>1</code>（或先定两端再填中间）</td></tr>
+    <tr><td><code>prev</code></td><td>list[int]</td><td><b>定义</b>：上一行 <code>triangle[r-1]</code>，长度 <code>r</code><br><b>维护</b>：仅在本层构造中间元素时使用<br><b>更新</b>：每轮 <code>prev = triangle[-1]</code>（或直接用 <code>triangle[r-1]</code>）</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：按定义对每个位置递归求「左上方 + 右上方」，边界返回 1——正确但大量重复计算，复杂度指数级。</p>
+<p class="thinking-step">2. 重复在哪里？第 <code>r</code> 行的每个数只依赖第 <code>r-1</code> 行<strong>相邻两个</strong>数，同一上一行元素被多次相加，应按行自底向上填表，不要对每个格子单独递归。</p>
+<p class="thinking-step">3. 递推：第 0 行 <code>[1]</code>；第 <code>r</code> 行（<code>r≥1</code>）长度为 <code>r+1</code>，<code>row[0]=row[r]=1</code>，且 <code>row[j] = prev[j-1] + prev[j]</code>（<code>1≤j≤r-1</code>）。手推 <code>numRows=5</code> 可得官方输出。</p>
+<p class="thinking-step">4. 外层循环行号、内层填中间位即可；共 <code>1+2+…+numRows</code> 个元素，时间 O(numRows²)，空间主要由输出矩阵决定。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>numRows == 0</code>（本题约束下不会出现）返回空；否则初始化 <code>triangle = [[1]]</code></p>
+<p class="code-step">2. 对 <code>r = 1 .. numRows-1</code> 构造新行：<code>row = [1]</code></p>
+<p class="code-step">3. 令 <code>prev = triangle[r-1]</code>，对 <code>j = 1 .. r-1</code> 执行 <code>row.append(prev[j-1] + prev[j])</code></p>
+<p class="code-step">4. 行末再 <code>row.append(1)</code>，将 <code>row</code> 加入 <code>triangle</code></p>
+<p class="code-step">5. 返回 <code>triangle</code></p>""",
+        "code_python": """class Solution:
+    def generate(self, numRows: int) -> list[list[int]]:
+        if numRows == 0:
+            return []
+        triangle = [[1]]
+        for r in range(1, numRows):
+            prev = triangle[r - 1]
+            row = [1]
+            for j in range(1, r):
+                row.append(prev[j - 1] + prev[j])
+            row.append(1)
+            triangle.append(row)
+        return triangle""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<int>> generate(int numRows) {
+        vector<vector<int>> triangle;
+        if (numRows == 0) return triangle;
+        triangle.push_back({1});
+        for (int r = 1; r < numRows; ++r) {
+            const vector<int>& prev = triangle[r - 1];
+            vector<int> row = {1};
+            for (int j = 1; j < r; ++j)
+                row.push_back(prev[j - 1] + prev[j]);
+            row.push_back(1);
+            triangle.push_back(move(row));
+        }
+        return triangle;
+    }
+};
+// 时间 O(numRows²)，空间 O(numRows²)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 内层下标越界：中间位只用 <code>j ∈ [1, r-1]</code>，对应 <code>prev[j-1]+prev[j]</code>；若写成 <code>j ∈ [0, r)</code> 会在 <code>j=0</code> 访问 <code>prev[-1]</code> 语义错误或越界。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记每行两端为 1：只递推中间会把首尾当成 0 或漏填，输出行长度不对。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 行数 off-by-one：应生成恰好 <code>numRows</code> 行（第 0 行算一行）；循环 <code>r &lt; numRows</code> 且已有首行，或 <code>range(numRows)</code> 内区分首行，避免多一行或少一行。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：一行</div>
+    <code>numRows = 1 → [[1]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两行</div>
+    <code>numRows = 2 → [[1],[1,1]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1</div>
+    <code>numRows = 5 → 第五行 [1,4,6,4,1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：最大规模</div>
+    <code>numRows = 30 → 第 30 行 30 个元素，中间位由第 29 行递推，无溢出（值在 int 范围内）</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",

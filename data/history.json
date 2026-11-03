@@ -873,5 +873,12 @@
     "title": "填充每个节点的下一个右侧节点指针 II",
     "type": "树层序BFS",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-03",
+    "slug": "pascals-triangle",
+    "title": "杨辉三角",
+    "type": "一维DP",
+    "difficulty": "简单"
   }
 ]
