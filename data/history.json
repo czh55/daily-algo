@@ -880,5 +880,12 @@
     "title": "杨辉三角",
     "type": "一维DP",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-11-04",
+    "slug": "pascals-triangle-ii",
+    "title": "杨辉三角 II",
+    "type": "一维DP",
+    "difficulty": "简单"
   }
 ]

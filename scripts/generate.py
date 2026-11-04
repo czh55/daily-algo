@@ -3819,6 +3819,90 @@ public:
 </div>""",
     },
 
+    "pascals-triangle-ii": {
+        "type": "一维DP",
+        "difficulty": "简单",
+        "frontend_id": "119",
+        "title": "杨辉三角 II",
+        "time_complexity": "O(rowIndex²)",
+        "space_complexity": "O(rowIndex)（只存当前一行；输出长度 rowIndex+1）",
+        "description": """<p>给定一个非负索引 <code>rowIndex</code>，返回「杨辉三角」的第 <code>rowIndex</code> 行。</p>
+<p>在<strong>「杨辉三角」</strong>中，每个数是它<strong>左上方</strong>和<strong>右上方</strong>的数的和；每行首尾元素均为 1。</p>
+<p><code>0 ≤ rowIndex ≤ 33</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：rowIndex = 3</div>
+    <div class="example-output">输出：[1,3,3,1]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：rowIndex = 0</div>
+    <div class="example-output">输出：[1]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：rowIndex = 1</div>
+    <div class="example-output">输出：[1,1]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>row</code></td><td>list[int]</td><td><b>定义</b>：当前已构造到第 <code>r</code> 行的杨辉行，长度 <code>r+1</code>，且满足递推关系<br><b>维护</b>：每轮外层循环结束，<code>row</code> 表示多了一行后的正确结果；首尾恒为 1<br><b>更新</b>：由上一长度的 <code>row</code> 原地递推中间位并 <code>append(1)</code>，或每轮重建新行</td></tr>
+    <tr><td><code>r</code></td><td>int</td><td><b>定义</b>：外层循环变量，表示正在从第 <code>r-1</code> 行推到第 <code>r</code> 行<br><b>维护</b>：<code>r</code> 从 1 递增到 <code>rowIndex</code><br><b>更新</b>：每轮 <code>r += 1</code>，直到 <code>row</code> 即为第 <code>rowIndex</code> 行</td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：内层下标，用于更新第 <code>r</code> 行的中间元素<br><b>维护</b>：原地法时 <strong>从右向左</strong> 遍历，避免覆盖尚未使用的旧 <code>row[j-1]</code><br><b>更新</b>：<code>row[j] = row[j] + row[j-1]</code>（<code>j</code> 从 <code>r-1</code> 降到 1）</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：像 #118 一样从第 0 行一直生成到第 <code>rowIndex</code> 行，存整个三角或只留最后一行——正确，但若每层开新数组会多占空间。</p>
+<p class="thinking-step">2. 重复在哪里？我们只需要<strong>最后一行</strong>，每一层的新行只依赖上一层相邻两数；上一层数据在算完当前层中间位后，旧左邻值会被覆盖，所以<strong>从左往右</strong>原地加会破坏尚未使用的 <code>row[j-1]</code>。</p>
+<p class="thinking-step">3. 优化：用<strong>一个</strong>数组 <code>row</code> 表示「当前行」，每向下一层：先从右到左做 <code>row[j] += row[j-1]</code>，再在末尾补 1；循环 <code>rowIndex</code> 次即得目标行。手推 <code>rowIndex=3</code>：<code>[1]→[1,1]→[1,2,1]→[1,3,3,1]</code>。</p>
+<p class="thinking-step">4. 共约 <code>1+2+…+rowIndex</code> 次更新，时间 O(rowIndex²)；除输出外只保留一行，空间 O(rowIndex)。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>row = [1]</code>（第 0 行）</p>
+<p class="code-step">2. 若 <code>rowIndex == 0</code> 直接返回 <code>row</code></p>
+<p class="code-step">3. 对 <code>r = 1 .. rowIndex</code>：内层 <code>j</code> 从 <code>r-1</code> 递减到 1，执行 <code>row[j] = row[j] + row[j-1]</code></p>
+<p class="code-step">4. 每层结束 <code>row.append(1)</code> 作为新行末尾的 1</p>
+<p class="code-step">5. 返回 <code>row</code>（长度 <code>rowIndex+1</code>）</p>""",
+        "code_python": """class Solution:
+    def getRow(self, rowIndex: int) -> list[int]:
+        row = [1]
+        for r in range(1, rowIndex + 1):
+            for j in range(r - 1, 0, -1):
+                row[j] = row[j] + row[j - 1]
+            row.append(1)
+        return row""",
+        "code_cpp": """class Solution {
+public:
+    vector<int> getRow(int rowIndex) {
+        vector<int> row = {1};
+        for (int r = 1; r <= rowIndex; ++r) {
+            for (int j = r - 1; j >= 1; --j)
+                row[j] = row[j] + row[j - 1];
+            row.push_back(1);
+        }
+        return row;
+    }
+};
+// 时间 O(rowIndex²)，额外空间 O(rowIndex)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 原地更新方向错误：从左到右做 <code>row[j]+=row[j-1]</code> 会先把左边的旧值改掉，后面位置算错；必须<strong>从右向左</strong>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记每层末尾补 1：只更新中间位会导致行长度仍为 <code>r</code> 而非 <code>r+1</code>，输出缺最后一个 1。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环上界 off-by-one：应执行 <code>rowIndex</code> 次「向下一层」递推（<code>r</code> 从 1 到 <code>rowIndex</code>）；若只循环到 <code>rowIndex-1</code> 会少一行。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：第 0 行</div>
+    <code>rowIndex = 0 → [1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：第 1 行</div>
+    <code>rowIndex = 1 → [1,1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1</div>
+    <code>rowIndex = 3 → [1,3,3,1]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：最大索引</div>
+    <code>rowIndex = 33 → 34 个元素，中间组合数仍在 32 位 int 范围内</code>
+</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",

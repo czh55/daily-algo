@@ -15,7 +15,7 @@
             <a href="index.html" class="logo">
                 <span class="logo-icon">&#x25B3;</span>
             </a>
-            <span class="header-date">2026-11-03</span>
+            <span class="header-date">2026-11-04</span>
         </div>
     </header>
 
@@ -27,7 +27,7 @@
 
         <div class="today-problem">
             <div class="today-label">&#x1F4C5; 今日推荐</div>
-            <h2><a href="archive/2026-11-03.html">118. 杨辉三角</a></h2>
+            <h2><a href="archive/2026-11-04.html">119. 杨辉三角 II</a></h2>
             <div class="today-meta">
                 <span class="problem-type tag-dp">一维DP</span>
                 <span class="problem-difficulty difficulty-easy">简单</span>
@@ -39,24 +39,24 @@
                 </h2>
                 <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
                 <div class="audio-player-wrap">
-                    <audio controls preload="metadata" class="audio-player" id="audio-2026-11-03">
-                        <source src="audio/2026-11-03.mp3" type="audio/mpeg">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-11-04">
+                        <source src="audio/2026-11-04.mp3" type="audio/mpeg">
                         您的浏览器不支持音频播放
                     </audio>
                     <div class="playback-speed" aria-label="播放速度">
                         <span class="speed-label">速度</span>
-                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-03', 0.75)">0.75x</button>
-                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-11-03', 1)">1x</button>
-                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-03', 1.25)">1.25x</button>
-                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-03', 1.5)">1.5x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-04', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-11-04', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-04', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-04', 1.5)">1.5x</button>
                     </div>
                 </div>
             </section>
             <p style="margin-top:12px; color:var(--text-secondary); font-size:0.9rem;">
-                <p>给定一个非负整数 <code>numRows</code>，生成「杨辉三角」的前 <code>numRows</code> 行。</p>
+                <p>给定一个非负索引 <code>rowIndex</code>，返回「杨辉三角」的第 <code>rowIndex</code> 行。</p>
 <p>在<strong>「杨辉三角」</strong>中，每个数是它<strong>左上方</strong>和<strong>右上方</strong>的数的和；每行首尾元素均为 1。</p>
-<p><code>1 ≤ numRows ≤ 30</code>...
-                <a href="archive/2026-11-03.html">[查看完整讲解]</a>
+<p><code>0 ≤ rowIndex ≤ 33</co...
+                <a href="archive/2026-11-04.html">[查看完整讲解]</a>
             </p>
         </div>
 
@@ -69,7 +69,16 @@
                 <button type="button" class="filter-btn filter-hard" data-filter="困难" onclick="filterByDifficulty('困难')">困难</button>
             </div>
             <div class="archive-grid">
-                <div class="archive-item" data-difficulty="中等">
+                <div class="archive-item" data-difficulty="简单">
+            <a href="archive/2026-11-03.html">
+                <div class="archive-date">2026-11-03</div>
+                <div class="archive-title">杨辉三角</div>
+                <div class="archive-meta">
+                    <span class="archive-type problem-type tag-dp">一维DP</span>
+                    <span class="problem-difficulty difficulty-easy">简单</span>
+                </div>
+            </a>
+        </div><div class="archive-item" data-difficulty="中等">
             <a href="archive/2026-11-02.html">
                 <div class="archive-date">2026-11-02</div>
                 <div class="archive-title">填充每个节点的下一个右侧节点指针 II</div>
@@ -1260,6 +1269,14 @@
             </ul>
         </div><div class="type-card">
             <div class="type-card-header">
+                <span class="problem-type tag-dp">一维DP</span>
+                <span class="type-count">6 题</span>
+            </div>
+            <ul class="type-problem-list">
+                <li data-difficulty="简单"><a href="archive/2026-11-04.html">杨辉三角 II</a><span class="type-item-date">2026-11-04</span></li><li data-difficulty="简单"><a href="archive/2026-11-03.html">杨辉三角</a><span class="type-item-date">2026-11-03</span></li><li data-difficulty="中等"><a href="archive/2026-10-13.html">不同的二叉搜索树</a><span class="type-item-date">2026-10-13</span></li><li data-difficulty="中等"><a href="archive/2026-10-08.html">解码方法</a><span class="type-item-date">2026-10-08</span></li><li data-difficulty="简单"><a href="archive/2026-09-18.html">爬楼梯</a><span class="type-item-date">2026-09-18</span></li><li data-difficulty="中等"><a href="archive/2026-09-01.html">最大子数组和</a><span class="type-item-date">2026-09-01</span></li>
+            </ul>
+        </div><div class="type-card">
+            <div class="type-card-header">
                 <span class="problem-type tag-tree">树后序递归</span>
                 <span class="type-count">6 题</span>
             </div>
@@ -1273,14 +1290,6 @@
             </div>
             <ul class="type-problem-list">
                 <li data-difficulty="中等"><a href="archive/2026-11-02.html">填充每个节点的下一个右侧节点指针 II</a><span class="type-item-date">2026-11-02</span></li><li data-difficulty="中等"><a href="archive/2026-11-01.html">填充每个节点的下一个右侧节点指针</a><span class="type-item-date">2026-11-01</span></li><li data-difficulty="简单"><a href="archive/2026-10-27.html">二叉树的最小深度</a><span class="type-item-date">2026-10-27</span></li><li data-difficulty="中等"><a href="archive/2026-10-23.html">二叉树的层序遍历 II</a><span class="type-item-date">2026-10-23</span></li><li data-difficulty="中等"><a href="archive/2026-10-19.html">二叉树的锯齿形层序遍历</a><span class="type-item-date">2026-10-19</span></li><li data-difficulty="中等"><a href="archive/2026-10-18.html">二叉树的层序遍历</a><span class="type-item-date">2026-10-18</span></li>
-            </ul>
-        </div><div class="type-card">
-            <div class="type-card-header">
-                <span class="problem-type tag-dp">一维DP</span>
-                <span class="type-count">5 题</span>
-            </div>
-            <ul class="type-problem-list">
-                <li data-difficulty="简单"><a href="archive/2026-11-03.html">杨辉三角</a><span class="type-item-date">2026-11-03</span></li><li data-difficulty="中等"><a href="archive/2026-10-13.html">不同的二叉搜索树</a><span class="type-item-date">2026-10-13</span></li><li data-difficulty="中等"><a href="archive/2026-10-08.html">解码方法</a><span class="type-item-date">2026-10-08</span></li><li data-difficulty="简单"><a href="archive/2026-09-18.html">爬楼梯</a><span class="type-item-date">2026-09-18</span></li><li data-difficulty="中等"><a href="archive/2026-09-01.html">最大子数组和</a><span class="type-item-date">2026-09-01</span></li>
             </ul>
         </div><div class="type-card">
             <div class="type-card-header">
