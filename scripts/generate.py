@@ -3903,6 +3903,88 @@ public:
 </div>""",
     },
 
+    "triangle": {
+        "type": "二维DP",
+        "difficulty": "中等",
+        "frontend_id": "120",
+        "title": "三角形最小路径和",
+        "time_complexity": "O(n²)（n 为三角形行数）",
+        "space_complexity": "O(1)（自底向上原地修改 triangle）",
+        "description": """<p>给定一个三角形 <code>triangle</code>，找出自顶向下的最小路径和。</p>
+<p>每一步只能移动到下一行中<strong>相邻</strong>的结点上：若当前位于下标 <code>i</code>，下一步可到下标 <code>i</code> 或 <code>i + 1</code>。</p>
+<p><code>1 ≤ triangle.length ≤ 200</code>，第 <code>i</code> 行有 <code>i+1</code> 个数，元素范围 <code>[-10⁴, 10⁴]</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：triangle = [[2],[3,4],[6,5,7],[4,1,8,3]]</div>
+    <div class="example-output">输出：11</div>
+    <div class="example-explain">路径 2→3→5→1，和为 11。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：triangle = [[-10]]</div>
+    <div class="example-output">输出：-10</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>triangle[i][j]</code>（原地）</td><td>int</td><td><b>定义</b>：自底向上处理后，表示从 <code>(i,j)</code> 出发到三角形<strong>底部</strong>的最小路径和（含当前格数值）<br><b>维护</b>：处理完第 <code>i</code> 行后，该行每个位置已是「往下走最优」的累计和<br><b>更新</b>：<code>triangle[i][j] += min(triangle[i+1][j], triangle[i+1][j+1])</code>，从倒数第二行向上逐行填</td></tr>
+    <tr><td><code>i</code></td><td>int</td><td><b>定义</b>：当前正在「压缩」的行号，自底向上<br><b>维护</b>：<code>i</code> 从 <code>n-2</code> 递减到 0，最后一行无需更新<br><b>更新</b>：每轮处理完一行所有 <code>j</code> 后 <code>i -= 1</code></td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：第 <code>i</code> 行上的列下标，范围 <code>0 .. i</code><br><b>维护</b>：同一行内各 <code>j</code> 的更新只读<strong>下一行</strong> <code>i+1</code> 的两个邻居，互不覆盖<br><b>更新</b>：从左到右或任意顺序遍历 <code>j</code> 均可（因为只依赖尚未改动的 <code>i+1</code> 行）</td></tr>
+    <tr><td><code>dp[i][j]</code>（显式表）</td><td>int[][]</td><td><b>定义</b>：从 <code>(i,j)</code> 到最底行的最小路径和（不修改输入时的等价语义）<br><b>维护</b>：<code>dp[n-1][j] = triangle[n-1][j]</code>；向上递推取两子 min<br><b>更新</b>：答案为 <code>dp[0][0]</code>；可压成一行 <code>O(n)</code> 额外空间</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：从顶点 DFS，每步向左下或右下，到底部累加路径和，取全局最小——正确，但分支约 <code>2^(n-1)</code>，<code>n≤200</code> 必超时。</p>
+<p class="thinking-step">2. 重复在哪里？子问题「从 <code>(i,j)</code> 往下走的最小和」只依赖下一行的 <code>(i+1,j)</code> 与 <code>(i+1,j+1)</code>，同一格会被多条上层路径重复计算——典型 DP。</p>
+<p class="thinking-step">3. 自顶向下：<code>f(i,j) = triangle[i][j] + min(f(i+1,j), f(i+1,j+1))</code>，记忆化或表格；自<strong>底</strong>向上等价且更自然：最后一行已是答案片段，往上每层把「选哪条腿更便宜」加进当前格。</p>
+<p class="thinking-step">4. 手推示例 1 最底行不动；倒数第二行 <code>[4,1,8,3]</code> 上一行 <code>[6,5,7]</code>：<code>6+=min(4,1)=7</code>，<code>5+=min(1,8)=6</code>，<code>7+=min(8,3)=10</code>；再往上得顶 <code>2+min(9,10)=11</code>。</p>
+<p class="thinking-step">5. 允许改输入时直接在 <code>triangle</code> 上原地 DP，额外空间 O(1)；否则另开 <code>O(n)</code> 的一行滚动数组。</p>""",
+        "code_steps": """<p class="code-step">1. 取 <code>n = len(triangle)</code>；若 <code>n == 1</code> 直接返回 <code>triangle[0][0]</code></p>
+<p class="code-step">2. 从 <code>i = n-2</code>  downto 0 遍历每一行</p>
+<p class="code-step">3. 对每个 <code>j in range(i+1)</code>：<code>triangle[i][j] += min(triangle[i+1][j], triangle[i+1][j+1])</code></p>
+<p class="code-step">4. 全部行处理完后，顶点的值即为自顶向下最小路径和</p>
+<p class="code-step">5. 返回 <code>triangle[0][0]</code></p>""",
+        "code_python": """class Solution:
+    def minimumTotal(self, triangle: list[list[int]]) -> int:
+        n = len(triangle)
+        for i in range(n - 2, -1, -1):
+            for j in range(i + 1):
+                triangle[i][j] += min(triangle[i + 1][j], triangle[i + 1][j + 1])
+        return triangle[0][0]""",
+        "code_cpp": """class Solution {
+public:
+    int minimumTotal(vector<vector<int>>& triangle) {
+        int n = triangle.size();
+        for (int i = n - 2; i >= 0; --i)
+            for (int j = 0; j <= i; ++j)
+                triangle[i][j] += min(triangle[i + 1][j], triangle[i + 1][j + 1]);
+        return triangle[0][0];
+    }
+};
+// 时间 O(n²)，额外空间 O(1)（原地）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 递推方向反了：自顶向下需要尚未算出的 <code>f(i+1,*)</code>，易写错边界；自底向上时最后一行不要参与内层 min，循环应从 <code>n-2</code> 开始。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 下标混淆：第 <code>i</code> 行只有 <code>i+1</code> 个元素，内层 <code>j</code> 上界是 <code>i</code>（含），访问下一行时用 <code>j</code> 与 <code>j+1</code>，不能当成矩形网格的 <code>dp[i][j-1]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与 #64 最小路径和混用递推：本题是三角形两岔 min，不是矩形「上/左」；负数路径和仍用 min，不要误用 max 或绝对值。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单行</div>
+    <code>[[-10]] → -10</code>（无向下步，循环不执行）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：两行</div>
+    <code>[[1],[2,3]] → 3</code>（1+2 与 1+3 取 min）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 1</div>
+    <code>四层三角 → 11</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：全负</div>
+    <code>[[-1],[-2,-3]] → -4</code>（路径和可为负，仍求 min）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：大 n</div>
+    <code>n=200</code> 时约 2×10⁴ 次更新，注意 Python 原地修改是否允许（LeetCode 允许改 triangle）</div>""",
+    },
+
     "two-sum": {
         "type": "哈希表",
         "difficulty": "简单",
