@@ -10099,6 +10099,91 @@ public:
 </div>""",
     },
 
+    "best-time-to-buy-and-sell-stock": {
+        "type": "贪心",
+        "difficulty": "简单",
+        "frontend_id": "121",
+        "title": "买卖股票的最佳时机",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给定一个数组 <code>prices</code> ，它的第 <code>i</code> 个元素 <code>prices[i]</code> 表示一支给定股票第 <code>i</code> 天的价格。</p>
+<p>你只能选择 <strong>某一天</strong> 买入这只股票，并选择在 <strong>未来的某一个不同的日子</strong> 卖出该股票。设计一个算法来计算你所能获取的最大利润。</p>
+<p>返回你可以从这笔交易中获取的最大利润。如果你不能获取任何利润，返回 <code>0</code> 。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：prices = [7,1,5,3,6,4]</div>
+    <div class="example-output">输出：5</div>
+    <div class="example-explain">在第 2 天（股票价格 = 1）的时候买入，在第 5 天（股票价格 = 6）的时候卖出，最大利润 = 6-1 = 5 。注意利润不能是 7-1 = 6，因为卖出价格需要大于买入价格；同时，你不能在买入前卖出股票。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：prices = [7,6,4,3,1]</div>
+    <div class="example-output">输出：0</div>
+    <div class="example-explain">在这种情况下，没有交易完成，所以最大利润为 0。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>min_price</code></td><td>int</td><td><b>定义</b>：扫描到当前天之前（含当天可选为买入日）见过的最低股价<br><b>维护</b>：从左到右遍历，每步用当前价尝试刷新最小值<br><b>更新</b>：<code>min_price = min(min_price, price)</code>，须在尝试用当天卖出更新答案<b>之前或之后</b>与当天价格比较，保证「先买后卖」</td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：至多一笔交易（一次买、一次卖）能获得的最大利润<br><b>维护</b>：初始为 0（允许不买不卖）<br><b>更新</b>：枚举卖出日时 <code>ans = max(ans, price - min_price)</code>，其中 <code>min_price</code> 只能是当天左侧的历史最低价</td></tr>
+    <tr><td><code>price</code></td><td>int</td><td><b>定义</b>：循环中当前这一天的股价 <code>prices[i]</code><br><b>维护</b>：<code>for price in prices</code> 从左到右扫描<br><b>更新</b>：每轮先用「历史最低买入价」与当天价算一笔候选利润，再决定是否刷新 <code>min_price</code>（顺序可先更新答案再更新最小值，或先算当日最小买入价为前一日最小再更新答案，二者等价）</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举所有 <code>i &lt; j</code>，利润 <code>prices[j] - prices[i]</code>，取最大，O(n²)。</p>
+<p class="thinking-step">2. 重复在哪里？固定卖出日 <code>j</code> 时，最优买入一定是 <code>0..j-1</code> 上的最低价，不必对每个 <code>j</code> 再扫一遍左半边。</p>
+<p class="thinking-step">3. 一次扫描：从左到右维护「截至目前最低股价」<code>min_price</code>，每到新的一天，用「今天卖、历史最低买」更新答案。</p>
+<p class="thinking-step">4. 这等价于枚举所有合法买卖对，但把内层「找左边最小」压成 O(1) 均摊更新，整体 O(n)。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>ans = 0</code>，<code>min_price = +∞</code>（或第一天的价格）</p>
+<p class="code-step">2. 遍历每一天的价格 <code>price</code></p>
+<p class="code-step">3. <code>ans = max(ans, price - min_price)</code>（若今天卖出，买入价必是历史最低）</p>
+<p class="code-step">4. <code>min_price = min(min_price, price)</code>（为后续天数提供更低买入价候选）</p>
+<p class="code-step">5. 返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def maxProfit(self, prices: list[int]) -> int:
+        ans = 0
+        min_price = float("inf")  # 截至目前见过的最低买入价
+        for price in prices:
+            ans = max(ans, price - min_price)
+            min_price = min(min_price, price)
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int ans = 0;
+        int minPrice = INT_MAX;  // 截至目前见过的最低买入价
+        for (int price : prices) {
+            ans = max(ans, price - minPrice);
+            minPrice = min(minPrice, price);
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 必须先买后卖：枚举时只能用「当前天左侧」的最低价，不能把后面的低价拿来配前面的高价卖。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>ans</code> 初值为 0：全程下跌时应输出 0，不能返回负利润。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与「可多次买卖」类题目区分：本题至多一笔交易，但一次扫描仍适用；多笔时需不同状态机或贪心策略。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单调递减</div>
+    <code>prices = [7,6,4,3,1] → 0</code>（怎么买都会亏，最优是不交易）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：仅两天且上涨</div>
+    <code>prices = [1,2] → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单元素</div>
+    <code>prices = [5] → 0</code>（没有「不同的卖出日」）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：价格全相同</div>
+    <code>prices = [3,3,3] → 0</code>（无正利润）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：最低点在末尾</div>
+    <code>prices = [5,4,3,2] → 0</code>（最低日在最后一天，无法在之后卖出获利）
+</div>""",
+    },
+
     "jump-game-ii": {
         "type": "贪心",
         "difficulty": "中等",
