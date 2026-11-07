@@ -901,5 +901,12 @@
     "title": "买卖股票的最佳时机",
     "type": "贪心",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-11-07",
+    "slug": "best-time-to-buy-and-sell-stock-ii",
+    "title": "买卖股票的最佳时机 II",
+    "type": "贪心",
+    "difficulty": "中等"
   }
 ]

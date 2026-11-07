@@ -10184,6 +10184,99 @@ public:
 </div>""",
     },
 
+    "best-time-to-buy-and-sell-stock-ii": {
+        "type": "贪心",
+        "difficulty": "中等",
+        "frontend_id": "122",
+        "title": "买卖股票的最佳时机 II",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个整数数组 <code>prices</code>，其中 <code>prices[i]</code> 表示某支股票第 <code>i</code> 天的价格。</p>
+<p>在每一天，你可以决定是否购买和/或出售股票。你在任何时候 <strong>最多</strong> 只能持有 <strong>一股</strong> 股票。然而，你可以在 <strong>同一天</strong> 多次买卖该股票，但要确保你持有的股票不超过一股。</p>
+<p>返回你能获得的 <strong>最大</strong> 利润。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：prices = [7,1,5,3,6,4]</div>
+    <div class="example-output">输出：7</div>
+    <div class="example-explain">第 2 天（价 1）买、第 3 天（价 5）卖，利润 4；第 4 天（价 3）买、第 5 天（价 6）卖，利润 3；合计 7。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：prices = [1,2,3,4,5]</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain">第 1 天买入、第 5 天卖出，利润 5-1=4。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：prices = [7,6,4,3,1]</div>
+    <div class="example-output">输出：0</div>
+    <div class="example-explain">全程下跌，不参与交易最优，利润为 0。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：在允许多笔交易、同时最多持有 1 股的前提下，累计可获得的最大利润<br><b>维护</b>：初值 0；只累加「正利润」的价差片段<br><b>更新</b>：相邻两天价差为正时 <code>ans += prices[i] - prices[i-1]</code>（等价于吃掉每一段上涨）</td></tr>
+    <tr><td><code>prices[i]</code></td><td>int</td><td><b>定义</b>：第 <code>i</code> 天的股价，与前一天比较刻画「本日相对昨日的涨跌」<br><b>维护</b>：从左到右扫描，仅需相邻两天 <code>(i-1, i)</code><br><b>更新</b>：当 <code>prices[i] &gt; prices[i-1]</code> 时，认为在昨日买、今日卖能无风险地赚到这段涨幅</td></tr>
+    <tr><td><code>diff</code></td><td>int</td><td><b>定义</b>：单日边际利润 <code>diff = prices[i] - prices[i-1]</code><br><b>维护</b>：每步只依赖当前与前一价格，不需显式记录持仓<br><b>更新</b>：<code>if diff &gt; 0: ans += diff</code>；下跌或持平则 <code>diff ≤ 0</code> 不累加</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举起买、止卖日组合（多笔、不重叠且先买后卖），状态空间巨大，O(2ⁿ) 级，不可行。</p>
+<p class="thinking-step">2. 重复在哪里？任意一笔跨多天的盈利 <code>prices[sell] - prices[buy]</code>，可拆成连续若干天「昨日买、今日卖」的价差之和，且只有上涨日贡献正利润。</p>
+<p class="thinking-step">3. 贪心关键：最大化总利润 ⇔ 把所有<b>相邻上涨</b>的价差全部收入囊中——下跌日不买不卖，等价于跳过负贡献。</p>
+<p class="thinking-step">4. 与 #121 对比：#121 至多一笔；本题可多次交易，但「同一天先卖后买」允许，故每一段上涨都能独立结算，一次扫描累加即可。</p>
+<p class="thinking-step">5. 等价 DP 视角：<code>hold / cash</code> 两状态转移也能 O(n)，但贪心累加相邻正差更短、更直观。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>ans = 0</code></p>
+<p class="code-step">2. 从下标 1 遍历到 <code>n-1</code></p>
+<p class="code-step">3. 计算 <code>diff = prices[i] - prices[i-1]</code></p>
+<p class="code-step">4. 若 <code>diff &gt; 0</code>，则 <code>ans += diff</code></p>
+<p class="code-step">5. 返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def maxProfit(self, prices: list[int]) -> int:
+        ans = 0
+        for i in range(1, len(prices)):
+            diff = prices[i] - prices[i - 1]
+            if diff > 0:
+                ans += diff
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int ans = 0;
+        for (int i = 1; i < (int)prices.size(); i++) {
+            int diff = prices[i] - prices[i - 1];
+            if (diff > 0) {
+                ans += diff;
+            }
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 勿与 #121 混淆：本题可多笔交易，不能只用「全局最低买一次」；要把每段上涨都算上。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只有 <code>diff &gt; 0</code> 才累加；持平或下跌不加，否则会做出「高买低卖」的负利润。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环从 <code>i=1</code> 开始：单元素数组无相邻日，应直接返回 0。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单天</div>
+    <code>prices = [3] → 0</code>（无法完成买卖）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单调上涨</div>
+    <code>prices = [1,2,3,4,5] → 4</code>（等价于 1 买 5 卖，或逐日吃差）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单调下跌</div>
+    <code>prices = [7,6,4,3,1] → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：震荡上升</div>
+    <code>prices = [7,1,5,3,6,4] → 7</code>（多段上涨：1→5、3→6）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：相邻持平</div>
+    <code>prices = [2,2,3] → 1</code>（0 差不累加，仅 2→3 贡献 1）
+</div>""",
+    },
+
     "jump-game-ii": {
         "type": "贪心",
         "difficulty": "中等",
