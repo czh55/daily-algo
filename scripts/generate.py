@@ -10277,6 +10277,112 @@ public:
 </div>""",
     },
 
+    "best-time-to-buy-and-sell-stock-iii": {
+        "type": "一维DP",
+        "difficulty": "困难",
+        "frontend_id": "123",
+        "title": "买卖股票的最佳时机 III",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给定一个数组，它的第 <code>i</code> 个元素是一支给定的股票在第 <code>i</code> 天的价格。</p>
+<p>设计一个算法来计算你所能获取的最大利润。你最多可以完成 <strong>两笔</strong> 交易。</p>
+<p><strong>注意：</strong>你不能同时参与多笔交易（你必须在再次购买前出售掉之前的股票）。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：prices = [3,3,5,0,0,3,1,4]</div>
+    <div class="example-output">输出：6</div>
+    <div class="example-explain">第 4 天（价 0）买入、第 6 天（价 3）卖出，利润 3；第 7 天（价 1）买入、第 8 天（价 4）卖出，利润 3；合计 6。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：prices = [1,2,3,4,5]</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain">一次交易 1 买 5 卖即可达上限 4；两笔限额并未迫使拆成更低利润。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：prices = [7,6,4,3,1]</div>
+    <div class="example-output">输出：0</div>
+    <div class="example-explain">全程下跌，不交易最优。</div>
+</div>
+<div class="example-block">
+    <h4>示例 4</h4>
+    <div class="example-input">输入：prices = [1]</div>
+    <div class="example-output">输出：0</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>buy1</code></td><td>int</td><td><b>定义</b>：完成第 1 笔买入后，为使「第 1 次卖出」利润最大的最优买入价（等价于历史上最低价）<br><b>维护</b>：扫过 <code>prices[0..i]</code> 后，<code>buy1 = min(此前 buy1, prices[i])</code><br><b>更新</b>：每遇到更低股价就降低 <code>buy1</code></td></tr>
+    <tr><td><code>sell1</code></td><td>int</td><td><b>定义</b>：至多完成 1 笔交易时，到当前日可获得的最大利润<br><b>维护</b>：<code>sell1 = max(sell1, prices[i] - buy1)</code><br><b>更新</b>：每天用当前价尝试「在 buy1 买入、今日卖出」并取历史最优</td></tr>
+    <tr><td><code>buy2</code></td><td>int</td><td><b>定义</b>：在第 1 笔利润已锁定为 <code>sell1</code> 的前提下，第 2 笔买入的<strong>最小净成本</strong>（二次买入价减去已赚的 sell1）<br><b>维护</b>：<code>buy2 = min(buy2, prices[i] - sell1)</code><br><b>更新</b>：sell1 越大，二次买入的「有效成本」越低</td></tr>
+    <tr><td><code>sell2</code></td><td>int</td><td><b>定义</b>：至多完成 2 笔交易时，到当前日可获得的最大总利润（最终答案）<br><b>维护</b>：<code>sell2 = max(sell2, prices[i] - buy2)</code><br><b>更新</b>：在二次买入成本为 buy2 时，用今日价尝试完成第 2 笔卖出</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举两笔不相交交易的买/卖日四元组，或 DFS 所有买卖序列；交易日多时至 O(n⁴) 或指数级，不可行。</p>
+<p class="thinking-step">2. 重复在哪里？「到第 i 天、已用 k 笔交易、当前持仓/现金」是经典子问题——与 #121（k=1）一脉相承，本题 k=2。</p>
+<p class="thinking-step">3. 压缩状态：只需四个标量——第一次买/卖的最优、在第一次利润确定后第二次买/卖的最优；扫描顺序上 sell1 先于 buy2 更新，保证两笔不交叠。</p>
+<p class="thinking-step">4. 与 #122 对比：#122 可无限笔且贪心吃相邻涨幅；本题至多两笔，不能把全部上涨段都拆开，必须用 DP 在「一笔 vs 两笔」间权衡。</p>
+<p class="thinking-step">5. 边界：0 笔或 1 笔交易也可能最优，<code>sell2</code> 初值 0、且始终 <code>max</code> 更新，自然涵盖「只做一笔」或「不做」。</p>""",
+        "code_steps": """<p class="code-step">1. 初始化 <code>buy1 = prices[0]</code>，<code>sell1 = sell2 = 0</code>，<code>buy2 = prices[0]</code>（与首价对齐，稍后会被 <code>min</code> 修正）</p>
+<p class="code-step">2. 从 <code>i=1</code> 到 <code>n-1</code> 扫描 <code>prices[i]</code></p>
+<p class="code-step">3. 更新第一笔：<code>buy1 = min(buy1, price)</code>，<code>sell1 = max(sell1, price - buy1)</code></p>
+<p class="code-step">4. 更新第二笔：<code>buy2 = min(buy2, price - sell1)</code>，<code>sell2 = max(sell2, price - buy2)</code></p>
+<p class="code-step">5. 返回 <code>sell2</code></p>""",
+        "code_python": """class Solution:
+    def maxProfit(self, prices: list[int]) -> int:
+        if not prices:
+            return 0
+        buy1 = buy2 = prices[0]
+        sell1 = sell2 = 0
+        for price in prices[1:]:
+            buy1 = min(buy1, price)
+            sell1 = max(sell1, price - buy1)
+            buy2 = min(buy2, price - sell1)
+            sell2 = max(sell2, price - buy2)
+        return sell2""",
+        "code_cpp": """class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        if (prices.empty()) return 0;
+        int buy1 = prices[0], buy2 = prices[0];
+        int sell1 = 0, sell2 = 0;
+        for (int i = 1; i < (int)prices.size(); i++) {
+            int price = prices[i];
+            buy1 = min(buy1, price);
+            sell1 = max(sell1, price - buy1);
+            buy2 = min(buy2, price - sell1);
+            sell2 = max(sell2, price - buy2);
+        }
+        return sell2;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 状态更新顺序：同一轮里应先推 <code>sell1</code> 再算 <code>buy2</code>，否则会把「尚未发生的第一次卖出」混进第二笔。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 勿直接套用 #122 的相邻正差累加：两笔上限会漏掉「一段大跌后两段独立上涨」这类最优划分。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>buy2 = price - sell1</code> 可能为负：这是净成本，<code>min</code> 保留更小（更有利）的二次买入时机，不要当成非法。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>prices = [1] → 0</code>（无法完成买卖）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单调上涨</div>
+    <code>prices = [1,2,3,4,5] → 4</code>（一笔即最优，sell2 与 sell1 同为 4）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单调下跌</div>
+    <code>prices = [7,6,4,3,1] → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：两笔分离峰值</div>
+    <code>prices = [3,3,5,0,0,3,1,4] → 6</code>（0 附近买、两段各赚 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：第二笔无益</div>
+    <code>prices = [1,5] → 4</code>（只做一笔；sell2 不会低于 sell1 逻辑下的最优）
+</div>""",
+    },
+
     "jump-game-ii": {
         "type": "贪心",
         "difficulty": "中等",
