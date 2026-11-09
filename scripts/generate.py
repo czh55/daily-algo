@@ -10383,6 +10383,104 @@ public:
 </div>""",
     },
 
+    "binary-tree-maximum-path-sum": {
+        "type": "树后序递归",
+        "difficulty": "困难",
+        "frontend_id": "124",
+        "title": "二叉树中的最大路径和",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(h)",
+        "description": """<p>二叉树中的<strong>路径</strong>被定义为一条节点序列，序列中每对相邻节点之间都存在一条边。同一个节点在一条路径序列中<strong>至多出现一次</strong>。该路径<strong>至少包含一个</strong>节点，且不一定经过根节点。</p>
+<p><strong>路径和</strong>是路径中各节点值的总和。</p>
+<p>给你一个二叉树的根节点 <code>root</code>，返回其<strong>最大路径和</strong>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [1,2,3]</div>
+    <div class="example-output">输出：6</div>
+    <div class="example-explain">最优路径是 2 → 1 → 3，路径和为 2 + 1 + 3 = 6。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [-10,9,20,null,null,15,7]</div>
+    <div class="example-output">输出：42</div>
+    <div class="example-explain">最优路径是 15 → 20 → 7，路径和为 15 + 20 + 7 = 42（不经过根 -10）。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：遍历全树过程中见到的、以某节点为<strong>拐点</strong>（向左拐、向右拐）的路径和最大值<br><b>维护</b>：每访问一个节点，用 <code>左贡献+root.val+右贡献</code> 尝试刷新 <code>ans</code><br><b>更新</b>：<code>ans = max(ans, left_gain + root.val + right_gain)</code></td></tr>
+    <tr><td><code>gain(root)</code></td><td>int</td><td><b>定义</b>：从 <code>root</code> 出发、<strong>向下</strong>延伸的「单侧」最大路径和（父节点只能用这一条链，不能左右分叉）<br><b>维护</b>：后序先拿左右子树返回值 <code>gain(left)</code>、<code>gain(right)</code>，负贡献裁成 0<br><b>更新</b>：返回 <code>root.val + max(left_gain, right_gain)</code> 给父节点</td></tr>
+    <tr><td><code>left_gain</code> / <code>right_gain</code></td><td>int</td><td><b>定义</b>：当前节点左/右子树向上能贡献的最大路径和（不含当前节点）<br><b>维护</b>：<code>max(0, gain(child))</code>：子链为负则不作为拐点的一侧<br><b>更新</b>：仅在本层算 <code>ans</code> 与返回值时使用，不向上传递分叉信息</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举任意两点之间的简单路径，对每条路径求和；点对数量 O(n²)、路径长度 O(n)，总体 O(n³) 或更糟，大树不可行。</p>
+<p class="thinking-step">2. 重复在哪里？固定「路径上最高的拐点节点」后，这条路径 = 左子树某条向下链 + 拐点值 + 右子树某条向下链——左右两侧的最大向下贡献对每个节点只需求一次。</p>
+<p class="thinking-step">3. 树形 DP / 后序：子问题「从某节点向下延伸的最大路径和」可递归；在当前节点用左右贡献拼出「经过该拐点」的候选答案，再向父节点只返回<strong>单侧</strong>最优（不能带分叉）。</p>
+<p class="thinking-step">4. 负值节点：子链贡献若为负，当作 0 丢弃即可（路径不必硬走该子树）；单节点路径至少包含一个节点，全局 <code>ans</code> 初值需覆盖全负树（如 <code>root.val</code> 或 <code>-inf</code>）。</p>
+<p class="thinking-step">5. 与 #543 直径、#112 路径和的区别：本题路径可从任意节点到任意节点、权重可为负；拐点模型天然处理「不经过根」的最优解（示例 2）。</p>""",
+        "code_steps": """<p class="code-step">1. 用成员 <code>self.ans</code> 记录全局最大路径和（初值可为负无穷或首节点值）</p>
+<p class="code-step">2. 定义 <code>gain(node)</code>：空节点返回 0；否则后序计算左右子 <code>gain</code></p>
+<p class="code-step">3. <code>left_gain = max(0, gain(left))</code>，<code>right_gain = max(0, gain(right))</code></p>
+<p class="code-step">4. 用 <code>left_gain + node.val + right_gain</code> 更新 <code>self.ans</code></p>
+<p class="code-step">5. 向父返回 <code>node.val + max(left_gain, right_gain)</code>（单侧向下延伸）</p>
+<p class="code-step">6. 对 <code>root</code> 调用 <code>gain</code> 后返回 <code>self.ans</code></p>""",
+        "code_python": """class Solution:
+    def maxPathSum(self, root: TreeNode | None) -> int:
+        self.ans = -10**9
+
+        def gain(node: TreeNode | None) -> int:
+            if not node:
+                return 0
+            left = max(0, gain(node.left))
+            right = max(0, gain(node.right))
+            self.ans = max(self.ans, left + node.val + right)
+            return node.val + max(left, right)
+
+        gain(root)
+        return self.ans""",
+        "code_cpp": """class Solution {
+    int ans = INT_MIN;
+
+    int gain(TreeNode* node) {
+        if (!node) return 0;
+        int left = max(0, gain(node->left));
+        int right = max(0, gain(node->right));
+        ans = max(ans, left + node->val + right);
+        return node->val + max(left, right);
+    }
+
+public:
+    int maxPathSum(TreeNode* root) {
+        gain(root);
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(h)（递归栈，h 为树高）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 向父节点返回时只能带<strong>单侧</strong>子树：<code>node.val + max(left, right)</code>，不能把 <code>left+right</code> 传上去，否则父层会重复分叉。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 全局答案必须用「拐点公式」<code>left+val+right</code> 更新，不能只用返回值 <code>gain(root)</code>——根不一定是拐点（示例 2 最优路径不经过根）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 节点值可为负：<code>max(0, gain(child))</code> 表示「子链为负则不要」；若整树皆负，<code>ans</code> 应为其中最大节点值，勿用 0 当初值。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>root = [5] → 5</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全负</div>
+    <code>root = [-3,-1,-2] → -1</code>（选最大单节点）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：一侧为空</div>
+    <code>root = [2,-1] → 2</code>（不走向负左子）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：题目示例 2</div>
+    <code>root = [-10,9,20,null,null,15,7] → 42</code>（拐点在 20）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：长链 vs 短拐</div>
+    <code>root = [1,2,null,3] → 6</code>（路径 3→2→1 或含拐点的组合，注意负贡献裁剪）
+</div>""",
+    },
+
     "jump-game-ii": {
         "type": "贪心",
         "difficulty": "中等",

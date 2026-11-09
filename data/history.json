@@ -915,5 +915,12 @@
     "title": "买卖股票的最佳时机 III",
     "type": "一维DP",
     "difficulty": "困难"
+  },
+  {
+    "date": "2026-11-09",
+    "slug": "binary-tree-maximum-path-sum",
+    "title": "二叉树中的最大路径和",
+    "type": "树后序递归",
+    "difficulty": "困难"
   }
 ]
