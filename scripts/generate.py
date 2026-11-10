@@ -5797,6 +5797,109 @@ public:
     <code>s = "([])" → true；s = "([)]" → false</code>
 </div>""",
     },
+    "valid-palindrome": {
+        "type": "双指针",
+        "difficulty": "简单",
+        "frontend_id": "125",
+        "title": "验证回文串",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>如果在将所有大写字符转换为小写字符、并移除所有非字母和非数字字符之后，短语正着读和反着读都一样。则可以认为该短语是一个 <strong>回文串</strong> 。</p>
+<p>字母和数字都属于字母数字字符。</p>
+<p>给你一个字符串 <code>s</code>，如果它是 <strong>回文串</strong> ，返回 <code>true</code> ；否则，返回 <code>false</code> 。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "A man, a plan, a canal: Panama"</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">"amanaplanacanalpanama" 是回文串。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "race a car"</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">"raceacar" 不是回文串。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = " "</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">移除非字母数字字符之后为空串，空串视为回文。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>l</code></td><td>int</td><td><b>定义</b>：从左侧找到的、下一个待参与比较的字母数字字符下标<br><b>维护</b>：初始 <code>0</code>；若当前字符非字母数字则右移，直到 <code>s[l]</code> 有效或 <code>l &gt;= r</code><br><b>更新</b>：一轮比较成功后 <code>l += 1</code></td></tr>
+    <tr><td><code>r</code></td><td>int</td><td><b>定义</b>：从右侧找到的、下一个待参与比较的字母数字字符下标<br><b>维护</b>：初始 <code>len(s) - 1</code>；跳过非字母数字则左移<br><b>更新</b>：比较成功后 <code>r -= 1</code></td></tr>
+    <tr><td><code>norm(c)</code></td><td>char</td><td><b>定义</b>：将字母数字字符统一为小写（或等价比较）后的规范形式<br><b>维护</b>：只对 <code>isalnum</code> 为真的字符调用<br><b>更新</b>：每对 <code>(l, r)</code> 比较 <code>norm(s[l])</code> 与 <code>norm(s[r])</code>，不等则立刻返回 <code>false</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先按题意预处理：过滤出所有字母数字、转小写得到字符串 <code>t</code>，再判断 <code>t == t[::-1]</code>——正确，但要额外 O(n) 空间存 <code>t</code>，长度可达 2×10⁵。</p>
+<p class="thinking-step">2. 重复在哪里？回文只要求「对称位置上的有效字符」相等，标点与空格从不参与比较，不必真的删掉它们。</p>
+<p class="thinking-step">3. 双指针：两端向中间走，各指针先向内跳过非字母数字，再比较小写后的字符；全部配对成功即为回文。</p>
+<p class="thinking-step">4. 为什么跳过合法？当 <code>l</code> 还在 <code>r</code> 左侧时，被跳过的字符在回文意义上没有「对称搭档」，不影响已配对部分的正确性。</p>
+<p class="thinking-step">5. 空有效串（如示例 3）：指针相遇或交叉前未出现不等比较，循环正常结束，返回 <code>true</code>。时间 O(n)（每字符最多被两个指针各访问一次），空间 O(1)。</p>""",
+        "code_steps": """<p class="code-step">1. 令 <code>l = 0</code>，<code>r = len(s) - 1</code></p>
+<p class="code-step">2. 当 <code>l &lt; r</code>：内层循环使 <code>s[l]</code> 为字母数字，否则 <code>l++</code>；同理调整 <code>r</code></p>
+<p class="code-step">3. 若仍 <code>l &lt; r</code> 且 <code>tolower(s[l]) != tolower(s[r])</code>，返回 <code>false</code></p>
+<p class="code-step">4. 否则 <code>l++</code>、<code>r--</code>，继续下一对</p>
+<p class="code-step">5. 循环结束返回 <code>true</code></p>""",
+        "code_python": """class Solution:
+    def isPalindrome(self, s: str) -> bool:
+        l, r = 0, len(s) - 1
+
+        def alnum(i: int) -> bool:
+            return s[i].isalnum()
+
+        while l < r:
+            while l < r and not alnum(l):
+                l += 1
+            while l < r and not alnum(r):
+                r -= 1
+            if s[l].lower() != s[r].lower():
+                return False
+            l += 1
+            r -= 1
+        return True""",
+        "code_cpp": """class Solution {
+public:
+    bool isPalindrome(string s) {
+        int l = 0, r = (int)s.size() - 1;
+        while (l < r) {
+            while (l < r && !isalnum(s[l])) ++l;
+            while (l < r && !isalnum(s[r])) --r;
+            if (tolower(s[l]) != tolower(s[r]))
+                return false;
+            ++l;
+            --r;
+        }
+        return true;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 大小写：必须统一成小写（或 <code>tolower</code>）再比较，<code>'A' != 'a'</code> 若不做规范化会误判。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 跳过非法字符时也要检查 <code>l &lt; r</code>，否则指针交叉后仍访问会越界或重复比较。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 数字参与回文：<code>'0'</code>、<code>'1'</code> 等算字母数字字符，<code>isalnum</code> 为真；勿只处理字母。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：仅标点/空格</div>
+    <code>s = " " 或 ",.!" → true</code>（有效字符为空）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单字符</div>
+    <code>s = "a" → true；s = "0" → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：大小写混合</div>
+    <code>s = "Aa" → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：首尾不对称</div>
+    <code>s = "race a car" → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：数字回文</div>
+    <code>s = "0P" → false（'0' vs 'P'）</code>
+</div>""",
+    },
     "merge-two-sorted-lists": {
         "type": "链表指针",
         "difficulty": "简单",

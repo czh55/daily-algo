@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>验证回文串 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-11-10</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#125</span>
+                    <span class="problem-type tag-two-pointer">双指针</span>
+                    <span class="problem-difficulty difficulty-easy">简单</span>
+                </div>
+                <h1 class="problem-title">验证回文串</h1>
+                <a href="https://leetcode.cn/problems/valid-palindrome/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-11-10">
+                        <source src="../audio/2026-11-10.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-10', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-11-10', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-10', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-10', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>如果在将所有大写字符转换为小写字符、并移除所有非字母和非数字字符之后，短语正着读和反着读都一样。则可以认为该短语是一个 <strong>回文串</strong> 。</p>
+<p>字母和数字都属于字母数字字符。</p>
+<p>给你一个字符串 <code>s</code>，如果它是 <strong>回文串</strong> ，返回 <code>true</code> ；否则，返回 <code>false</code> 。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "A man, a plan, a canal: Panama"</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">"amanaplanacanalpanama" 是回文串。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "race a car"</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">"raceacar" 不是回文串。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = " "</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">移除非字母数字字符之后为空串，空串视为回文。</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 我先按题意预处理：过滤出所有字母数字、转小写得到字符串 <code>t</code>，再判断 <code>t == t[::-1]</code>——正确，但要额外 O(n) 空间存 <code>t</code>，长度可达 2×10⁵。</p>
+<p class="thinking-step">2. 重复在哪里？回文只要求「对称位置上的有效字符」相等，标点与空格从不参与比较，不必真的删掉它们。</p>
+<p class="thinking-step">3. 双指针：两端向中间走，各指针先向内跳过非字母数字，再比较小写后的字符；全部配对成功即为回文。</p>
+<p class="thinking-step">4. 为什么跳过合法？当 <code>l</code> 还在 <code>r</code> 左侧时，被跳过的字符在回文意义上没有「对称搭档」，不影响已配对部分的正确性。</p>
+<p class="thinking-step">5. 空有效串（如示例 3）：指针相遇或交叉前未出现不等比较，循环正常结束，返回 <code>true</code>。时间 O(n)（每字符最多被两个指针各访问一次），空间 O(1)。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>l</code></td><td>int</td><td><b>定义</b>：从左侧找到的、下一个待参与比较的字母数字字符下标<br><b>维护</b>：初始 <code>0</code>；若当前字符非字母数字则右移，直到 <code>s[l]</code> 有效或 <code>l &gt;= r</code><br><b>更新</b>：一轮比较成功后 <code>l += 1</code></td></tr>
+    <tr><td><code>r</code></td><td>int</td><td><b>定义</b>：从右侧找到的、下一个待参与比较的字母数字字符下标<br><b>维护</b>：初始 <code>len(s) - 1</code>；跳过非字母数字则左移<br><b>更新</b>：比较成功后 <code>r -= 1</code></td></tr>
+    <tr><td><code>norm(c)</code></td><td>char</td><td><b>定义</b>：将字母数字字符统一为小写（或等价比较）后的规范形式<br><b>维护</b>：只对 <code>isalnum</code> 为真的字符调用<br><b>更新</b>：每对 <code>(l, r)</code> 比较 <code>norm(s[l])</code> 与 <code>norm(s[r])</code>，不等则立刻返回 <code>false</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. 令 <code>l = 0</code>，<code>r = len(s) - 1</code></p>
+<p class="code-step">2. 当 <code>l &lt; r</code>：内层循环使 <code>s[l]</code> 为字母数字，否则 <code>l++</code>；同理调整 <code>r</code></p>
+<p class="code-step">3. 若仍 <code>l &lt; r</code> 且 <code>tolower(s[l]) != tolower(s[r])</code>，返回 <code>false</code></p>
+<p class="code-step">4. 否则 <code>l++</code>、<code>r--</code>，继续下一对</p>
+<p class="code-step">5. 循环结束返回 <code>true</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def isPalindrome(self, s: str) -&gt; bool:
+        l, r = 0, len(s) - 1
+
+        def alnum(i: int) -&gt; bool:
+            return s[i].isalnum()
+
+        while l &lt; r:
+            while l &lt; r and not alnum(l):
+                l += 1
+            while l &lt; r and not alnum(r):
+                r -= 1
+            if s[l].lower() != s[r].lower():
+                return False
+            l += 1
+            r -= 1
+        return True</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    bool isPalindrome(string s) {
+        int l = 0, r = (int)s.size() - 1;
+        while (l &lt; r) {
+            while (l &lt; r &amp;&amp; !isalnum(s[l])) ++l;
+            while (l &lt; r &amp;&amp; !isalnum(s[r])) --r;
+            if (tolower(s[l]) != tolower(s[r]))
+                return false;
+            ++l;
+            --r;
+        }
+        return true;
+    }
+};
+// 时间 O(n)，空间 O(1)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(1)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 大小写：必须统一成小写（或 <code>tolower</code>）再比较，<code>'A' != 'a'</code> 若不做规范化会误判。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 跳过非法字符时也要检查 <code>l &lt; r</code>，否则指针交叉后仍访问会越界或重复比较。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 数字参与回文：<code>'0'</code>、<code>'1'</code> 等算字母数字字符，<code>isalnum</code> 为真；勿只处理字母。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：仅标点/空格</div>
+    <code>s = " " 或 ",.!" → true</code>（有效字符为空）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单字符</div>
+    <code>s = "a" → true；s = "0" → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：大小写混合</div>
+    <code>s = "Aa" → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：首尾不对称</div>
+    <code>s = "race a car" → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：数字回文</div>
+    <code>s = "0P" → false（'0' vs 'P'）</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>
