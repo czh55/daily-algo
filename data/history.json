@@ -929,5 +929,12 @@
     "title": "验证回文串",
     "type": "双指针",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-11-11",
+    "slug": "word-ladder-ii",
+    "title": "单词接龙 II",
+    "type": "回溯",
+    "difficulty": "困难"
   }
 ]

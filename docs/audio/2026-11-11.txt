@@ -1,0 +1,83 @@
+欢迎收听每日算法语音讲解。今天是第 126 题，单词接龙 II。题型是回溯，难度困难。本次讲解预计时长 约 8 到 9 分钟，共 7 个部分。内容结构如下：第一，题面描述和输入输出示例；第二，思考过程，共 5 步；第三，变量语义，共 4 个核心变量；第四，落码步骤，共 6 步；第五，时间与空间复杂度；第六，常见坑点，共 3 条；第七，边界情况，共 4 条。好，我们开始。
+
+题目描述。按字典 wordList 完成从单词 beginWord 到单词 endWord 转化，一个表示此过程的 转换序列 是形式上像 beginWord -> s1 -> s2 -> ... -> sk 这样的单词序列，并满足：
+
+    每对相邻的单词之间仅有单个字母不同。
+
+    转换过程中的每个单词 si（1 <= i <= k）必须是字典 wordList 中的单词。注意，beginWord 不必在 wordList 中。
+
+    sk == endWord
+
+给你 beginWord、endWord 和 wordList。找出并返回所有从 beginWord 到 endWord 的 最短转换序列（每条序列以单词列表形式返回）。若不存在，返回空列表。
+
+示例。示例 1
+
+    输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]。示例 2
+
+    输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]
+
+先模拟答题者的思考过程，从暴力解法出发，找到重复劳动，再推导优化方向。
+
+1. 暴力：DFS 枚举所有 begin，得到end 的转化路径，再筛出最短的一批——路径数量可能指数级，且要跑完才知道最短长度，不现实。
+
+2. 重复在哪里？题面要的是最短序列；无权图上的最短路天然适合 BFS 分层，先确定「最少几步」，再只枚举符合该步数的路径。
+
+3. 建模：每个单词是点；差一位且在字典中的两词连边。求 beginWord 到 endWord 的所有最短路径。
+
+4. 两阶段：先用层序 BFS 填 dist（在首次把 endWord 入队的那一层处理完后即可停）；再 DFS 从 beginWord 出发，只走 dist[nw]==dist[w]+1 的边收集全部最短路径。
+
+5. 为什么 DFS 不会多走？若某边使距离增加超过最短层数，该分支不可能在相同步数内到达终点；与 BFS 标号一致即可保证只输出最短序列。
+
+接下来是变量语义，先理解每个变量的定义、维护和更新，再开始编码。
+
+变量 words，类型 set<str>。定义：可转换的中间单词集合（来自 wordList，用于 O(1) 判断某词是否在字典里）
+维护：建好后不变；neighbors 只扩展属于 words 的词
+更新：初始化 set(wordList)；若 endWord ∉ words 直接无解
+
+变量 dist[w]，类型 dict / int[]。定义：从 beginWord 到 w 的最短转化步数（边权均为 1 的无权最短路）
+维护：BFS 按层扩展，每个词只记录首次到达的层号（即最短距离）
+更新：发现新词 nw 时 dist[nw] = dist[w] + 1；层序 BFS 在首次遇到 endWord 的整层结束后可停止
+
+变量 path，类型 list<str>。定义：当前 DFS 已走出的单词序列（从 beginWord 到当前词）
+维护：只沿「距离 +1」的边扩展，保证路径总长等于 dist[endWord]
+更新：深入 path.append(nw)，回溯 path.pop()；到达 endWord 时把 path[:] 写入答案
+
+变量 neighbors(w)，类型 迭代器。定义：与 w 仅差一个字母且在 words 中的全部单词
+维护：枚举每位改 26 个字母后查集合（L≤5 时足够快）
+更新：BFS 与 DFS 共用同一套邻接生成规则
+
+落码步骤如下。
+
+1. words = set(wordList)；若 endWord 不在集合中，返回 []
+
+2. 实现 neighbors(w)：逐位替换 a–z，命中 words 则 yield
+
+3. 层序 BFS：dist[beginWord]=0，按层扩展直到本层首次发现 endWord 后结束该层并 break
+
+4. 若 endWord 不在 dist，返回 []
+
+5. DFS(w, path)：到 endWord 则记录；否则对每个 nw∈neighbors(w) 且 dist[nw]==dist[w]+1 递归，回溯 pop
+
+6. 从 [beginWord] 启动 DFS，返回 ans
+
+复杂度分析。时间复杂度 O(N·L²·26)，空间复杂度 O(N·L)。
+
+常见坑点，请注意。
+
+&#x2757; 未先判断 endWord 是否在字典：与官方题意一致，不在则必须返回空列表，不能指望 BFS 自行发现。
+
+&#x2757; BFS 一遇到 endWord 就立刻全局 break 而未处理完当前层：可能导致某些同层最短路上的中间词尚未入队，dist 不完整，DFS 漏解。
+
+&#x2757; DFS 未沿 dist[nw]==dist[w]+1 约束扩展：会把更长路径也收集进来，或陷入错误分支；应用 BFS 距离做「剪枝」。
+
+必测的边界情况。
+
+Case 1：终点不在字典
+
+Case 2：多条最短路径
+
+Case 3：无法连通
+
+Case 4：唯一最短路径
+
+讲解完毕。建议回到网页查看完整代码实现，动手写一遍加深理解。祝学习顺利！

@@ -5900,6 +5900,182 @@ public:
     <code>s = "0P" → false（'0' vs 'P'）</code>
 </div>""",
     },
+    "word-ladder-ii": {
+        "type": "回溯",
+        "difficulty": "困难",
+        "frontend_id": "126",
+        "title": "单词接龙 II",
+        "time_complexity": "O(N·L²·26)",
+        "space_complexity": "O(N·L)",
+        "description": """<p>按字典 <code>wordList</code> 完成从单词 <code>beginWord</code> 到单词 <code>endWord</code> 转化，一个表示此过程的 <strong>转换序列</strong> 是形式上像 <code>beginWord -&gt; s<sub>1</sub> -&gt; s<sub>2</sub> -&gt; ... -&gt; s<sub>k</sub></code> 这样的单词序列，并满足：</p>
+<ul>
+    <li>每对相邻的单词之间仅有单个字母不同。</li>
+    <li>转换过程中的每个单词 <code>s<sub>i</sub></code>（<code>1 &lt;= i &lt;= k</code>）必须是字典 <code>wordList</code> 中的单词。注意，<code>beginWord</code> 不必在 <code>wordList</code> 中。</li>
+    <li><code>s<sub>k</sub> == endWord</code></li>
+</ul>
+<p>给你 <code>beginWord</code>、<code>endWord</code> 和 <code>wordList</code>。找出并返回所有从 <code>beginWord</code> 到 <code>endWord</code> 的 <strong>最短转换序列</strong>（每条序列以单词列表形式返回）。若不存在，返回空列表。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]</div>
+    <div class="example-output">输出：[["hit","hot","dot","dog","cog"],["hit","hot","lot","log","cog"]]</div>
+    <div class="example-explain">最短长度为 5，存在两条不同路径。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]</div>
+    <div class="example-output">输出：[]</div>
+    <div class="example-explain"><code>endWord</code> 不在字典中，无法完成转化。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>words</code></td><td>set&lt;str&gt;</td><td><b>定义</b>：可转换的中间单词集合（来自 <code>wordList</code>，用于 O(1) 判断某词是否在字典里）<br><b>维护</b>：建好后不变；<code>neighbors</code> 只扩展属于 <code>words</code> 的词<br><b>更新</b>：初始化 <code>set(wordList)</code>；若 <code>endWord ∉ words</code> 直接无解</td></tr>
+    <tr><td><code>dist[w]</code></td><td>dict / int[]</td><td><b>定义</b>：从 <code>beginWord</code> 到 <code>w</code> 的最短转化步数（边权均为 1 的无权最短路）<br><b>维护</b>：BFS 按层扩展，每个词只记录首次到达的层号（即最短距离）<br><b>更新</b>：发现新词 <code>nw</code> 时 <code>dist[nw] = dist[w] + 1</code>；层序 BFS 在首次遇到 <code>endWord</code> 的整层结束后可停止</td></tr>
+    <tr><td><code>path</code></td><td>list&lt;str&gt;</td><td><b>定义</b>：当前 DFS 已走出的单词序列（从 <code>beginWord</code> 到当前词）<br><b>维护</b>：只沿「距离 +1」的边扩展，保证路径总长等于 <code>dist[endWord]</code><br><b>更新</b>：深入 <code>path.append(nw)</code>，回溯 <code>path.pop()</code>；到达 <code>endWord</code> 时把 <code>path[:]</code> 写入答案</td></tr>
+    <tr><td><code>neighbors(w)</code></td><td>迭代器</td><td><b>定义</b>：与 <code>w</code> 仅差一个字母且在 <code>words</code> 中的全部单词<br><b>维护</b>：枚举每位改 26 个字母后查集合（<code>L≤5</code> 时足够快）<br><b>更新</b>：BFS 与 DFS 共用同一套邻接生成规则</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：DFS 枚举所有 begin→end 的转化路径，再筛出最短的一批——路径数量可能指数级，且要跑完才知道最短长度，不现实。</p>
+<p class="thinking-step">2. 重复在哪里？题面要的是<strong>最短</strong>序列；无权图上的最短路天然适合 BFS 分层，先确定「最少几步」，再只枚举符合该步数的路径。</p>
+<p class="thinking-step">3. 建模：每个单词是点；差一位且在字典中的两词连边。求 <code>beginWord</code> 到 <code>endWord</code> 的所有最短路径。</p>
+<p class="thinking-step">4. 两阶段：先用层序 BFS 填 <code>dist</code>（在首次把 <code>endWord</code> 入队的那一层处理完后即可停）；再 DFS 从 <code>beginWord</code> 出发，只走 <code>dist[nw]==dist[w]+1</code> 的边收集全部最短路径。</p>
+<p class="thinking-step">5. 为什么 DFS 不会多走？若某边使距离增加超过最短层数，该分支不可能在相同步数内到达终点；与 BFS 标号一致即可保证只输出最短序列。</p>""",
+        "code_steps": """<p class="code-step">1. <code>words = set(wordList)</code>；若 <code>endWord</code> 不在集合中，返回 <code>[]</code></p>
+<p class="code-step">2. 实现 <code>neighbors(w)</code>：逐位替换 a–z，命中 <code>words</code> 则 yield</p>
+<p class="code-step">3. 层序 BFS：<code>dist[beginWord]=0</code>，按层扩展直到本层首次发现 <code>endWord</code> 后结束该层并 break</p>
+<p class="code-step">4. 若 <code>endWord</code> 不在 <code>dist</code>，返回 <code>[]</code></p>
+<p class="code-step">5. DFS(<code>w, path</code>)：到 <code>endWord</code> 则记录；否则对每个 <code>nw∈neighbors(w)</code> 且 <code>dist[nw]==dist[w]+1</code> 递归，回溯 <code>pop</code></p>
+<p class="code-step">6. 从 <code>[beginWord]</code> 启动 DFS，返回 <code>ans</code></p>""",
+        "code_python": """from collections import deque
+
+class Solution:
+    def findLadders(self, beginWord: str, endWord: str, wordList: list[str]) -> list[list[str]]:
+        words = set(wordList)
+        if endWord not in words:
+            return []
+
+        L = len(beginWord)
+
+        def neighbors(w: str):
+            for i in range(L):
+                for c in "abcdefghijklmnopqrstuvwxyz":
+                    if c == w[i]:
+                        continue
+                    nw = w[:i] + c + w[i + 1 :]
+                    if nw in words:
+                        yield nw
+
+        dist = {beginWord: 0}
+        q = deque([beginWord])
+        reached_end = False
+        while q and not reached_end:
+            for _ in range(len(q)):
+                w = q.popleft()
+                for nw in neighbors(w):
+                    if nw not in dist:
+                        dist[nw] = dist[w] + 1
+                        if nw == endWord:
+                            reached_end = True
+                        q.append(nw)
+
+        if endWord not in dist:
+            return []
+
+        ans: list[list[str]] = []
+
+        def dfs(w: str, path: list[str]) -> None:
+            if w == endWord:
+                ans.append(path[:])
+                return
+            for nw in neighbors(w):
+                if dist.get(nw) == dist[w] + 1:
+                    path.append(nw)
+                    dfs(nw, path)
+                    path.pop()
+
+        dfs(beginWord, [beginWord])
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<string>> findLadders(string beginWord, string endWord, vector<string>& wordList) {
+        unordered_set<string> words(wordList.begin(), wordList.end());
+        if (!words.count(endWord)) return {};
+
+        int L = (int)beginWord.size();
+        auto neighbors = [&](const string& w) {
+            vector<string> res;
+            for (int i = 0; i < L; ++i) {
+                for (char c = 'a'; c <= 'z'; ++c) {
+                    if (c == w[i]) continue;
+                    string nw = w;
+                    nw[i] = c;
+                    if (words.count(nw)) res.push_back(nw);
+                }
+            }
+            return res;
+        };
+
+        unordered_map<string, int> dist{{beginWord, 0}};
+        queue<string> q;
+        q.push(beginWord);
+        bool reached_end = false;
+        while (!q.empty() && !reached_end) {
+            int sz = (int)q.size();
+            for (int t = 0; t < sz; ++t) {
+                string w = q.front();
+                q.pop();
+                for (const string& nw : neighbors(w)) {
+                    if (!dist.count(nw)) {
+                        dist[nw] = dist[w] + 1;
+                        if (nw == endWord) reached_end = true;
+                        q.push(nw);
+                    }
+                }
+            }
+        }
+        if (!dist.count(endWord)) return {};
+
+        vector<vector<string>> ans;
+        vector<string> path{beginWord};
+
+        function<void(const string&)> dfs = [&](const string& w) {
+            if (w == endWord) {
+                ans.push_back(path);
+                return;
+            }
+            for (const string& nw : neighbors(w)) {
+                if (dist.count(nw) && dist[nw] == dist[w] + 1) {
+                    path.push_back(nw);
+                    dfs(nw);
+                    path.pop_back();
+                }
+            }
+        };
+        dfs(beginWord);
+        return ans;
+    }
+};
+// 时间 O(N·L²·26)，空间 O(N·L)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 未先判断 <code>endWord</code> 是否在字典：与官方题意一致，不在则必须返回空列表，不能指望 BFS 自行发现。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> BFS 一遇到 <code>endWord</code> 就立刻全局 <code>break</code> 而未处理完当前层：可能导致某些同层最短路上的中间词尚未入队，<code>dist</code> 不完整，DFS 漏解。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> DFS 未沿 <code>dist[nw]==dist[w]+1</code> 约束扩展：会把更长路径也收集进来，或陷入错误分支；应用 BFS 距离做「剪枝」。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：终点不在字典</div>
+    <code>wordList 无 endWord → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：多条最短路径</div>
+    <code>示例 1 的两条 5 词序列均应输出</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：无法连通</div>
+    <code>begin 与 end 不在同一连通分量 → []</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：唯一最短路径</div>
+    <code>只有一条链时 answers 长度为 1</code>
+</div>""",
+    },
     "merge-two-sorted-lists": {
         "type": "链表指针",
         "difficulty": "简单",
