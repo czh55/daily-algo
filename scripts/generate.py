@@ -57,6 +57,7 @@ TYPE_CLASS_MAP = {
     "字符串模拟": "string-sim",
     "数学模拟": "math-sim",
     "回溯": "backtrack",
+    "图BFS": "graph-bfs",
     "栈": "stack",
     "堆（优先队列）": "heap",
     "数组原地哈希": "inplace-hash",
@@ -5898,6 +5899,135 @@ public:
 <div class="edge-case">
     <div class="edge-label">Case 5：数字回文</div>
     <code>s = "0P" → false（'0' vs 'P'）</code>
+</div>""",
+    },
+    "word-ladder": {
+        "type": "图BFS",
+        "difficulty": "困难",
+        "frontend_id": "127",
+        "title": "单词接龙",
+        "time_complexity": "O(N·L²·26)",
+        "space_complexity": "O(N·L)",
+        "description": """<p>字典 <code>wordList</code> 中从单词 <code>beginWord</code> 到 <code>endWord</code> 的 <strong>转换序列</strong> 是一个按下述规格形成的序列 <code>beginWord -&gt; s<sub>1</sub> -&gt; s<sub>2</sub> -&gt; ... -&gt; s<sub>k</sub></code>：</p>
+<ul>
+    <li>每一对相邻的单词只差一个字母。</li>
+    <li>对于 <code>1 &lt;= i &lt;= k</code> 时，每个 <code>s<sub>i</sub></code> 都在 <code>wordList</code> 中。注意，<code>beginWord</code> 不需要在 <code>wordList</code> 中。</li>
+    <li><code>s<sub>k</sub> == endWord</code></li>
+</ul>
+<p>给你两个单词 <code>beginWord</code>、<code>endWord</code> 和一个字典 <code>wordList</code>，返回从 <code>beginWord</code> 到 <code>endWord</code> 的 <strong>最短转换序列</strong> 中的 <strong>单词数目</strong>。如果不存在这样的转换序列，返回 <code>0</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]</div>
+    <div class="example-output">输出：5</div>
+    <div class="example-explain">一个最短转换序列是 "hit" -&gt; "hot" -&gt; "dot" -&gt; "dog" -&gt; "cog"，返回长度 5（含首尾）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]</div>
+    <div class="example-output">输出：0</div>
+    <div class="example-explain"><code>endWord</code> "cog" 不在字典中，无法进行转换。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>words</code></td><td>set&lt;str&gt;</td><td><b>定义</b>：当前仍可被 BFS 扩展的字典词集（含 <code>endWord</code>，可从集合中剔除起点以去重）<br><b>维护</b>：某词首次入队时从 <code>words</code> 中移除，保证每个词最多被访问一次<br><b>更新</b>：初始化 <code>set(wordList)</code>；若 <code>endWord ∉ words</code> 直接返回 0</td></tr>
+    <tr><td><code>q</code></td><td>deque</td><td><b>定义</b>：BFS 队列，元素为 <code>(当前单词 w, 当前序列长度 len)</code>，<code>len</code> 含 <code>beginWord</code><br><b>维护</b>：队头出队扩展邻居；层序写法亦可按层维护距离<br><b>更新</b>：起点 <code>(beginWord, 1)</code> 入队；发现未访问邻居 <code>nw</code> 时 <code>(nw, len+1)</code> 入队</td></tr>
+    <tr><td><code>neighbors(w)</code></td><td>迭代器</td><td><b>定义</b>：与 <code>w</code> 仅差一个字母、且仍在 <code>words</code>（或词表）中的全部单词<br><b>维护</b>：逐位把 <code>w[i]</code> 换成 a–z 后查集合<br><b>更新</b>：每扩展一个 <code>w</code> 枚举全部合法 <code>nw</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：DFS 枚举所有 begin→end 的单词链，记录最短长度——分支因子大、路径指数级，且要搜完才知道最短，不可行。</p>
+<p class="thinking-step">2. 重复在哪里？求「最少几步」等价于无权图上两点最短路；边权均为 1，应先按距离分层扩展，而不是深搜到底再比长短。</p>
+<p class="thinking-step">3. 建模：每个单词是顶点；若两词只差一位字母且目标词在字典中，则连无向边。答案为 <code>beginWord</code> 到 <code>endWord</code> 的最短路上的<strong>顶点数</strong>（含起点）。</p>
+<p class="thinking-step">4. 层序 BFS：队列维护 <code>(词, 当前序列长度)</code>；首次扩展到 <code>endWord</code> 时返回 <code>len+1</code>（或当前层数 +1），即最短单词数目。</p>
+<p class="thinking-step">5. 与 #126 对比：本题只要最短长度，不必 DFS 收集全部路径；BFS 首次命中终点即可停，无需在本层全部扩展完再 DFS。</p>""",
+        "code_steps": """<p class="code-step">1. <code>words = set(wordList)</code>；若 <code>endWord</code> 不在集合中，返回 <code>0</code></p>
+<p class="code-step">2. 实现 <code>neighbors(w)</code>：每位替换 a–z，命中仍在 <code>words</code> 的词则 yield</p>
+<p class="code-step">3. 队列入 <code>(beginWord, 1)</code>；可将 <code>beginWord</code> 从 <code>words</code> 移除（若存在）避免重复</p>
+<p class="code-step">4. BFS：出队 <code>(w, d)</code>；对每个 <code>nw ∈ neighbors(w)</code>，若 <code>nw == endWord</code> 返回 <code>d+1</code>；否则从 <code>words</code> 删掉 <code>nw</code> 并 <code>(nw, d+1)</code> 入队</p>
+<p class="code-step">5. 队列空仍未到达终点，返回 <code>0</code></p>""",
+        "code_python": """from collections import deque
+
+class Solution:
+    def ladderLength(self, beginWord: str, endWord: str, wordList: list[str]) -> int:
+        words = set(wordList)
+        if endWord not in words:
+            return 0
+        words.discard(beginWord)
+
+        L = len(beginWord)
+
+        def neighbors(w: str):
+            for i in range(L):
+                for c in "abcdefghijklmnopqrstuvwxyz":
+                    if c == w[i]:
+                        continue
+                    nw = w[:i] + c + w[i + 1 :]
+                    if nw in words:
+                        yield nw
+
+        q = deque([(beginWord, 1)])
+        while q:
+            w, d = q.popleft()
+            for nw in neighbors(w):
+                if nw == endWord:
+                    return d + 1
+                words.remove(nw)
+                q.append((nw, d + 1))
+        return 0""",
+        "code_cpp": """class Solution {
+public:
+    int ladderLength(string beginWord, string endWord, vector<string>& wordList) {
+        unordered_set<string> words(wordList.begin(), wordList.end());
+        if (!words.count(endWord)) return 0;
+        words.erase(beginWord);
+
+        int L = (int)beginWord.size();
+        auto neighbors = [&](const string& w) {
+            vector<string> res;
+            for (int i = 0; i < L; ++i) {
+                for (char c = 'a'; c <= 'z'; ++c) {
+                    if (c == w[i]) continue;
+                    string nw = w;
+                    nw[i] = c;
+                    if (words.count(nw)) res.push_back(nw);
+                }
+            }
+            return res;
+        };
+
+        queue<pair<string, int>> q;
+        q.push({beginWord, 1});
+        while (!q.empty()) {
+            auto [w, d] = q.front();
+            q.pop();
+            for (const string& nw : neighbors(w)) {
+                if (nw == endWord) return d + 1;
+                words.erase(nw);
+                q.push({nw, d + 1});
+            }
+        }
+        return 0;
+    }
+};
+// 时间 O(N·L²·26)，空间 O(N·L)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回「边数」而非「单词数」：最短链 <code>hit→…→cog</code> 共 5 个词，应返回 5，不是 4 步变换。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 未先判断 <code>endWord</code> 是否在 <code>wordList</code>：与题意一致，不在则必须返回 0。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 邻居已在 BFS 中访问仍重复入队：应用 <code>visited</code> 或从 <code>words</code> 中删除已扩展词，否则队列爆炸、时间超限。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：终点不在字典</div>
+    <code>示例 2 → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：无法连通</div>
+    <code>begin 与 end 不在同一连通分量 → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：一步直达</div>
+    <code>begin 改一位即到 end（且 end 在列表）→ 2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：begin 恰在 wordList</div>
+    <code>应从 begin 出发、勿把起点当非法中间词重复计数</code>
 </div>""",
     },
     "word-ladder-ii": {

@@ -936,5 +936,12 @@
     "title": "单词接龙 II",
     "type": "回溯",
     "difficulty": "困难"
+  },
+  {
+    "date": "2026-11-12",
+    "slug": "word-ladder",
+    "title": "单词接龙",
+    "type": "图BFS",
+    "difficulty": "困难"
   }
 ]
