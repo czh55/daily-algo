@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最长连续序列 | 每日算法 · 变量语义法</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <span class="logo-icon">&#x25B3;</span>
+            </a>
+            <span class="header-date">2026-11-13</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <article class="problem-card">
+            <!-- 题头 -->
+            <header class="problem-header">
+                <div class="problem-meta">
+                    <span class="problem-id">#128</span>
+                    <span class="problem-type tag-hash">哈希表</span>
+                    <span class="problem-difficulty difficulty-medium">中等</span>
+                </div>
+                <h1 class="problem-title">最长连续序列</h1>
+                <a href="https://leetcode.cn/problems/longest-consecutive-sequence/" class="problem-link" target="_blank" rel="noopener">
+                    在 LeetCode 上查看 &#8599;
+                </a>
+            </header>
+
+            <section class="section audio-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F3A7;</span>
+                    语音讲解
+                </h2>
+                <p class="audio-hint">开车或通勤时可听，跟着思路走一遍</p>
+                <div class="audio-player-wrap">
+                    <audio controls preload="metadata" class="audio-player" id="audio-2026-11-13">
+                        <source src="../audio/2026-11-13.mp3" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                    <div class="playback-speed" aria-label="播放速度">
+                        <span class="speed-label">速度</span>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-13', 0.75)">0.75x</button>
+                        <button type="button" class="speed-btn active" onclick="setSpeed('2026-11-13', 1)">1x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-13', 1.25)">1.25x</button>
+                        <button type="button" class="speed-btn" onclick="setSpeed('2026-11-13', 1.5)">1.5x</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 题目描述 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4CB;</span>
+                    题目描述
+                </h2>
+                <div class="problem-description">
+                    <p>给定一个未排序的整数数组 <code>nums</code>，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。</p>
+<p>请你设计并实现时间复杂度为 <code>O(n)</code> 的算法解决此问题。</p>
+                </div>
+                <div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [100,4,200,1,3,2]</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain">最长数字连续序列是 [1, 2, 3, 4]。它的长度为 4。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [0,3,7,2,5,8,4,6,0,1]</div>
+    <div class="example-output">输出：9</div>
+    <div class="example-explain">连续段为 0,1,2,…,8，长度为 9（重复出现的 0 只计一次）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [1,0,1,2]</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain">最长连续序列是 [0, 1, 2]。</div>
+</div>
+            </section>
+
+            <!-- 模拟答题者思考 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4AD;</span>
+                    模拟答题者思考
+                </h2>
+                <div class="thinking-steps">
+                    <p class="thinking-step">1. 暴力：先排序，再线性扫相邻差为 1 的段——时间 O(n log n)，不满足 O(n)；且题面强调元素不必在原数组中连续，讲的是数值上的连续。</p>
+<p class="thinking-step">2. 重复在哪里？若从每个数都向右数 +1、+2…，同一段会被多个起点重复扩展；例如段 [1,2,3,4] 会从 1、2、3、4 各扫一遍，浪费成 O(n²)。</p>
+<p class="thinking-step">3. 关键：只有<strong>连续段的最小值</strong>才值得当起点——若 <code>num-1</code> 也在集合里，说明 <code>num</code> 不是段首，直接跳过。</p>
+<p class="thinking-step">4. 用哈希集合存全部数；对每个「段首」<code>num</code>（满足 <code>num-1 ∉ st</code>）不断查 <code>num+1, num+2, …</code> 是否在 <code>st</code>，算出段长并更新答案。</p>
+<p class="thinking-step">5. 均摊 O(n)：每个数最多作为段首扩展一次、作为中间元素最多被经过一次，总操作线性；并查集写法亦可行，但「只从段首扩展」更直观。</p>
+                </div>
+            </section>
+
+            <!-- 变量语义 -->
+            <section class="section highlight-box">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F9E0;</span>
+                    变量语义（先读这三句再编码）
+                </h2>
+                <div class="var-semantics">
+                    <table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>st</code></td><td>set&lt;int&gt;</td><td><b>定义</b>：数组中所有出现过的整数集合（去重），用于 O(1) 判断某值是否存在<br><b>维护</b>：建好后不变，扩展连续段时只读 <code>st</code><br><b>更新</b>：<code>st = set(nums)</code></td></tr>
+    <tr><td><code>num</code></td><td>int</td><td><b>定义</b>：当前考察的数组元素值（可遍历 <code>st</code> 或 <code>nums</code>）<br><b>维护</b>：仅当 <code>num - 1 ∉ st</code> 时，把 <code>num</code> 当作某条连续段的起点再向右扩展<br><b>更新</b>：每轮取下一个 <code>num</code>，非起点则跳过，避免同一段重复计数</td></tr>
+    <tr><td><code>cur / nxt</code></td><td>int</td><td><b>定义</b>：从起点 <code>num</code> 开始，当前段已确认的最右端值；扩展时看 <code>nxt = cur + 1</code> 是否在 <code>st</code> 中<br><b>维护</b>：段长为「从起点连续 +1 能走多远」的整数个数<br><b>更新</b>：<code>while nxt in st: cur = nxt; nxt += 1</code>，段长 <code>= cur - num + 1</code></td></tr>
+    <tr><td><code>ans</code></td><td>int</td><td><b>定义</b>：目前为止见过的最长连续段长度<br><b>维护</b>：每完成一次从合法起点出发的扩展后更新<br><b>更新</b>：<code>ans = max(ans, cur - num + 1)</code></td></tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <!-- 落码步骤 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x2328;&#xFE0F;</span>
+                    落码步骤
+                </h2>
+                <div class="code-steps">
+                    <p class="code-step">1. <code>st = set(nums)</code>；若为空返回 0</p>
+<p class="code-step">2. <code>ans = 0</code>；遍历 <code>num in st</code>（或 <code>nums</code>）</p>
+<p class="code-step">3. 若 <code>num - 1 in st</code>，跳过（非连续段起点）</p>
+<p class="code-step">4. 令 <code>cur = num</code>，当 <code>cur + 1 in st</code> 时 <code>cur += 1</code></p>
+<p class="code-step">5. <code>ans = max(ans, cur - num + 1)</code>；遍历结束返回 <code>ans</code></p>
+                </div>
+            </section>
+
+            <!-- 代码实现 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4BB;</span>
+                    代码实现
+                </h2>
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="switchTab(event, 'python')">Python</button>
+                    <button class="code-tab" onclick="switchTab(event, 'cpp')">C++</button>
+                </div>
+                <div class="code-panel active" id="tab-python">
+                    <pre><code class="language-python">class Solution:
+    def longestConsecutive(self, nums: list[int]) -&gt; int:
+        st = set(nums)
+        if not st:
+            return 0
+        ans = 0
+        for num in st:
+            if num - 1 in st:
+                continue
+            cur = num
+            while cur + 1 in st:
+                cur += 1
+            ans = max(ans, cur - num + 1)
+        return ans</code></pre>
+                </div>
+                <div class="code-panel" id="tab-cpp">
+                    <pre><code class="language-cpp">class Solution {
+public:
+    int longestConsecutive(vector&lt;int&gt;&amp; nums) {
+        unordered_set&lt;int&gt; st(nums.begin(), nums.end());
+        if (st.empty()) return 0;
+        int ans = 0;
+        for (int num : st) {
+            if (st.count(num - 1)) continue;
+            int cur = num;
+            while (st.count(cur + 1)) ++cur;
+            ans = max(ans, cur - num + 1);
+        }
+        return ans;
+    }
+};
+// 时间 O(n)，空间 O(n)</code></pre>
+                </div>
+            </section>
+
+            <!-- 复杂度分析 -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F4C8;</span>
+                    复杂度分析
+                </h2>
+                <div class="complexity">
+                    <div class="complexity-item">
+                        <span class="complexity-label">时间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                    <div class="complexity-item">
+                        <span class="complexity-label">空间复杂度</span>
+                        <code class="complexity-value">O(n)</code>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 常见坑 -->
+            <section class="section pitfalls-section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x26A0;&#xFE0F;</span>
+                    常见坑
+                </h2>
+                <div class="pitfalls">
+                    <p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 未判断段首就做扩展：从每个数都向右扫会导致同一段被重复计算，最坏 O(n²)。必须先确认 <code>num-1</code> 不在集合中。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 排序后扫「数组下标相邻」：连续指数组里缺数字也算一段（如 [1,3,5] 最长为 1），不能把下标连续当成数值连续。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 重复元素：应用集合去重；多个相同值不改变最长连续段长度，但不能因此漏掉段首判断。</p>
+                </div>
+            </section>
+
+            <!-- 边界 Case -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">&#x1F50D;</span>
+                    必测边界 Case
+                </h2>
+                <div class="edge-cases">
+                    <div class="edge-case">
+    <div class="edge-label">Case 1：空数组</div>
+    <code>nums = [] → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单元素</div>
+    <code>nums = [7] → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：全无连续</div>
+    <code>nums = [100, 4, 200, 1, 3, 2] 中孤立大数 → 同时存在长度 4 的段</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：含重复值</div>
+    <code>nums = [0,3,7,2,5,8,4,6,0,1] → 9</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：负数与跨零连续</div>
+    <code>nums = [-1, 0, 1, 2] → 4</code>
+</div>
+                </div>
+            </section>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>每日算法 &mdash; 用变量语义法，把「看懂题」稳定转成「写出代码」</p>
+            <p class="footer-meta">基于 <a href="https://github.com/czh55/daily-algo">daily-algo</a> 项目 · Cursor Automations 自动生成</p>
+        </div>
+    </footer>
+
+    <script>
+    function switchTab(event, lang) {
+        var tabs = document.querySelectorAll('.code-tab');
+        var panels = document.querySelectorAll('.code-panel');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        event.target.classList.add('active');
+        document.getElementById('tab-' + lang).classList.add('active');
+    }
+    
+function setSpeed(dateStr, rate) {
+    var audio = document.getElementById('audio-' + dateStr);
+    if (!audio) return;
+    audio.playbackRate = rate;
+    var wrap = audio.closest('.audio-player-wrap');
+    if (!wrap) return;
+    wrap.querySelectorAll('.speed-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseFloat(btn.textContent) === rate) btn.classList.add('active');
+    });
+}
+
+    </script>
+</body>
+</html>

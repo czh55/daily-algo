@@ -943,5 +943,12 @@
     "title": "单词接龙",
     "type": "图BFS",
     "difficulty": "困难"
+  },
+  {
+    "date": "2026-11-13",
+    "slug": "longest-consecutive-sequence",
+    "title": "最长连续序列",
+    "type": "哈希表",
+    "difficulty": "中等"
   }
 ]
