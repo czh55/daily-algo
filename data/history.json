@@ -950,5 +950,12 @@
     "title": "最长连续序列",
     "type": "哈希表",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-14",
+    "slug": "sum-root-to-leaf-numbers",
+    "title": "求根节点到叶节点数字之和",
+    "type": "树前序递归",
+    "difficulty": "中等"
   }
 ]

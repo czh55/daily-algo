@@ -5448,6 +5448,98 @@ public:
 </div>""",
     },
 
+    "sum-root-to-leaf-numbers": {
+        "type": "树前序递归",
+        "difficulty": "中等",
+        "frontend_id": "129",
+        "title": "求根节点到叶节点数字之和",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(h)（递归栈深度，最坏 O(n)）",
+        "description": """<p>给你一个二叉树的根节点 <code>root</code>，树中每个节点都存放有一个 <code>0</code> 到 <code>9</code> 之间的数字。</p>
+<p>每条从根节点到<strong>叶节点</strong>的路径都代表一个数字：例如，路径 <code>1 → 2 → 3</code> 表示数字 <code>123</code>。计算从根节点到叶节点生成的<strong>所有数字之和</strong>。</p>
+<p><strong>叶节点</strong> 是指没有子节点的节点。树中节点数目在 <code>[1, 1000]</code>，节点值 <code>0 ≤ val ≤ 9</code>，树高不超过 10。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：root = [1,2,3]</div>
+    <div class="example-output">输出：25</div>
+    <div class="example-explain">路径 1→2 表示 12，路径 1→3 表示 13，总和 12 + 13 = 25。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：root = [4,9,0,5,1]</div>
+    <div class="example-output">输出：1026</div>
+    <div class="example-explain">路径 4→9→5 = 495，4→9→1 = 491，4→0 = 40，总和 495 + 491 + 40 = 1026。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>prefix</code></td><td>int</td><td><b>定义</b>：从根沿当前 DFS 路径走到<strong>当前节点</strong>时，已拼接成的十进制数（高位在左）<br><b>维护</b>：进入节点 <code>u</code> 时执行 <code>prefix = prefix * 10 + u.val</code>，与路径上各位左移拼接一致<br><b>更新</b>：递归孩子时传入更新后的 <code>prefix</code>；回溯由递归返回自然消解，无需显式撤销</td></tr>
+    <tr><td><code>node</code></td><td>TreeNode*</td><td><b>定义</b>：当前访问的节点，DFS 沿一条根到叶路径向下<br><b>维护</b>：仅当<strong>左右皆空</strong>时，才把当前 <code>prefix</code> 计入总和；中间节点只向下传参、不结算<br><b>更新</b>：先算本层 <code>prefix</code>，再递归 <code>left</code> / <code>right</code>，返回值相加得到子树贡献</td></tr>
+    <tr><td><code>sumNumbers(root)</code> / <code>dfs(node, prefix)</code></td><td>int</td><td><b>定义</b>：以 <code>node</code> 为根的子树中，所有根到叶路径对应数字之和（子树内路径均共享当前已走前缀的祖先部分）<br><b>维护</b>：空节点返回 0；答案 = 本层若是叶子则加 <code>prefix</code>，否则加左右子树的 DFS 返回值<br><b>更新</b>：顶层 <code>dfs(root, 0)</code>，根前尚无数字故初始 <code>prefix = 0</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：枚举每条根到叶的路径，把节点值按顺序拼成字符串再转整数求和——正确，但字符串拼接与转换有额外开销。</p>
+<p class="thinking-step">2. 重复在哪里？多条路径共享祖先前缀（例如 4→9→5 与 4→9→1 共用「49」），适合在 DFS 下行时维护<strong>一个随深度递增的整数前缀</strong>，而不是每次从根重新拼。</p>
+<p class="thinking-step">3. 前序递推：到节点 <code>u</code> 时 <code>prefix = prefix * 10 + u.val</code>；若 <code>u</code> 为叶子，该路径只贡献这一个数 <code>prefix</code>；否则答案等于左右子树分别带着同一规则继续 DFS 后再相加。</p>
+<p class="thinking-step">4. 与 #112 路径和的对比：那里维护「还差多少」的 <code>rem</code>；这里维护「已拼成多少」的 <code>prefix</code>，同样在<strong>叶子</strong>才结算，中间不能提前加总。</p>
+<p class="thinking-step">5. 节点值 0–9、树高 ≤ 10，<code>prefix</code> 最大约 10 位，整型安全；每节点访问 O(1)，总时间 O(n)，栈深 O(h)。</p>""",
+        "code_steps": """<p class="code-step">1. 定义 <code>dfs(node, prefix)</code>：若 <code>node</code> 为空返回 0</p>
+<p class="code-step">2. <code>prefix = prefix * 10 + node.val</code></p>
+<p class="code-step">3. 若 <code>node</code> 无左右孩子（叶子），返回 <code>prefix</code></p>
+<p class="code-step">4. 否则返回 <code>dfs(left, prefix) + dfs(right, prefix)</code></p>
+<p class="code-step">5. 接口：<code>return dfs(root, 0)</code></p>""",
+        "code_python": """class Solution:
+    def sumNumbers(self, root: TreeNode | None) -> int:
+        def dfs(node: TreeNode | None, prefix: int) -> int:
+            if not node:
+                return 0
+            prefix = prefix * 10 + node.val
+            if not node.left and not node.right:
+                return prefix
+            return dfs(node.left, prefix) + dfs(node.right, prefix)
+
+        return dfs(root, 0)""",
+        "code_cpp": """class Solution {
+public:
+    int sumNumbers(TreeNode* root) {
+        return dfs(root, 0);
+    }
+
+private:
+    int dfs(TreeNode* node, int prefix) {
+        if (!node) return 0;
+        prefix = prefix * 10 + node->val;
+        if (!node->left && !node->right)
+            return prefix;
+        return dfs(node->left, prefix) + dfs(node->right, prefix);
+    }
+};
+// 时间 O(n)，空间 O(h)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 未到叶子就累加：只有一条边或到中间节点就把 <code>prefix</code> 加入答案，会把「前缀数字」误当成完整路径数（如只走到 1→2 就加 12，而右子树还有路径）。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 混淆「节点值之和」与「路径拼接数」：本题是十进制拼接（1→2→3 为 123），不是 <code>1+2+3=6</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 单节点树：根即为叶子，应返回 <code>root.val</code>，而非 0；空指针由题目约束一般不会出现，但 <code>dfs</code> 仍应 <code>return 0</code> 保平安。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单节点</div>
+    <code>root = [5] → 5</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：官方示例 1</div>
+    <code>root = [1,2,3] → 25</code>（12 + 13）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：官方示例 2</div>
+    <code>root = [4,9,0,5,1] → 1026</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：路径含 0</div>
+    <code>root = [4,0] → 40</code>（4→0 拼接为 40，不是 4+0）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：仅左链或仅右链</div>
+    <code>root = [1,2,null,3] → 123</code>（唯一根到叶路径）
+</div>""",
+    },
+
     "letter-combinations-of-a-phone-number": {
         "type": "回溯",
         "difficulty": "中等",
