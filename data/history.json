@@ -957,5 +957,12 @@
     "title": "求根节点到叶节点数字之和",
     "type": "树前序递归",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-15",
+    "slug": "surrounded-regions",
+    "title": "被围绕的区域",
+    "type": "网格搜索",
+    "difficulty": "中等"
   }
 ]

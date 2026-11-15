@@ -5540,6 +5540,139 @@ private:
 </div>""",
     },
 
+    "surrounded-regions": {
+        "type": "网格搜索",
+        "difficulty": "中等",
+        "frontend_id": "130",
+        "title": "被围绕的区域",
+        "time_complexity": "O(m·n)",
+        "space_complexity": "O(m·n)（递归栈最坏）/ O(min(m,n))（BFS 队列）",
+        "description": """<p>给你一个 <code>m x n</code> 的矩阵 <code>board</code>，由若干字符 <code>'X'</code> 和 <code>'O'</code> 组成，<strong>捕获</strong> 所有 <strong>被围绕的区域</strong>：</p>
+<ul>
+<li><strong>连接：</strong>一个单元格与水平或垂直方向上相邻的单元格连接。</li>
+<li><strong>区域：</strong>连接所有 <code>'O'</code> 的单元格来形成一个区域。</li>
+<li><strong>围绕：</strong>若区域中所有 <code>'O'</code> 都不在棋盘边缘，则该区域被包围，应整块由 <code>'X'</code> 围住。</li>
+</ul>
+<p>通过<strong>原地</strong>将矩阵中应被捕获的 <code>'O'</code> 替换为 <code>'X'</code> 完成捕获；不需要返回值。矩阵规模 <code>1 ≤ m, n ≤ 200</code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：board = [["X","X","X","X"],["X","O","O","X"],["X","X","O","X"],["X","O","X","X"]]</div>
+    <div class="example-output">输出：[["X","X","X","X"],["X","X","X","X"],["X","X","X","X"],["X","O","X","X"]]</div>
+    <div class="example-explain">中间三块 <code>O</code> 被 <code>X</code> 完全围住应翻成 <code>X</code>；左下角与边界相连的 <code>O</code> 区域不能捕获。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：board = [["X"]]</div>
+    <div class="example-output">输出：[["X"]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>board[r][c]</code></td><td>char</td><td><b>定义</b>：格子当前字符，<code>'X'</code> / <code>'O'</code>，搜索过程中临时用 <code>'#'</code> 标记「与边界连通、不可捕获」的 <code>O</code><br><b>维护</b>：仅会对起点为 <code>'O'</code> 的格子改值；边界 DFS 把连通的 <code>O</code> 标成 <code>'#'</code>，最终清扫把仍为 <code>'O'</code> 的翻 <code>'X'</code>、把 <code>'#'</code> 还原 <code>'O'</code><br><b>更新</b>：进入 DFS 时若为 <code>'O'</code> 先写 <code>'#'</code>；清扫阶段按字符分类一次性改写</td></tr>
+    <tr><td><code>dfs(r, c)</code></td><td>void</td><td><b>定义</b>：从 <code>(r,c)</code> 出发，沿四邻域扩散，标记所有与当前「安全 <code>O</code> 分量」连通的格子<br><b>维护</b>：越界、非 <code>'O'</code> 立即返回；否则标 <code>'#'</code> 并向四方向递归<br><b>更新</b>：仅从四条边上的每个 <code>'O'</code> 启动，保证标记集合 = 与边界相接的全部 <code>O</code></td></tr>
+    <tr><td><code>dirs</code></td><td>(int,int)[]</td><td><b>定义</b>：四方向偏移 <code>[(0,1),(0,-1),(1,0),(-1,0)]</code><br><b>维护</b>：常量，对角线不算连通<br><b>更新</b>：不更新</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：找出每个由 <code>O</code> 构成的连通块，若块内任一格在边界上则保留，否则整块改 <code>X</code>——正确，但要先找块、再判边界，写法繁琐。</p>
+<p class="thinking-step">2. 重复在哪里？「是否被围绕」等价于「是否与棋盘边缘连通」：<strong>与边界连通的 <code>O</code> 永远不会被捕获</strong>，只有完全在内部的 <code>O</code> 才需要翻成 <code>X</code>。</p>
+<p class="thinking-step">3. 正难则反：不从内部孤立块入手，而从四条边上的每个 <code>O</code> 出发做 DFS/BFS，把能到达的全部标为「安全」；这一步和 #200 岛屿数量是同一种网格淹没，只是种子点在边界上。</p>
+<p class="thinking-step">4. 第二遍线性扫描：仍是 <code>O</code> 的格子必为被围块 → 改 <code>X</code>；标成安全标记（如 <code>#</code>）的还原为 <code>O</code>；本来就是 <code>X</code> 的不动。</p>
+<p class="thinking-step">5. 每格最多被访问常数次，时间 O(m·n)；用临时字符代替 <code>visited</code>，额外空间主要为 DFS 栈 O(m·n) 最坏。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>board</code> 为空直接返回；记 <code>m, n</code></p>
+<p class="code-step">2. 定义 <code>dfs(r,c)</code>：越界或 <code>board[r][c] != 'O'</code> 返回；否则 <code>board[r][c]='#'</code>，四方向递归</p>
+<p class="code-step">3. 对四条边界上每个 <code>board[r][c]=='O'</code> 调用 <code>dfs(r,c)</code></p>
+<p class="code-step">4. 双重循环每个格子：<code>O</code> → <code>X</code>，<code>#</code> → <code>O</code></p>
+<p class="code-step">5. 原地修改，无返回值</p>""",
+        "code_python": """class Solution:
+    def solve(self, board: list[list[str]]) -> None:
+        if not board or not board[0]:
+            return
+        m, n = len(board), len(board[0])
+
+        def dfs(r: int, c: int) -> None:
+            if r < 0 or r >= m or c < 0 or c >= n or board[r][c] != "O":
+                return
+            board[r][c] = "#"
+            dfs(r + 1, c)
+            dfs(r - 1, c)
+            dfs(r, c + 1)
+            dfs(r, c - 1)
+
+        for r in range(m):
+            for c in range(n):
+                if (r == 0 or r == m - 1 or c == 0 or c == n - 1) and board[r][c] == "O":
+                    dfs(r, c)
+
+        for r in range(m):
+            for c in range(n):
+                if board[r][c] == "O":
+                    board[r][c] = "X"
+                elif board[r][c] == "#":
+                    board[r][c] = "O"
+""",
+        "code_cpp": """class Solution {
+    int m, n;
+public:
+    void solve(vector<vector<char>>& board) {
+        if (board.empty() || board[0].empty()) return;
+        m = board.size();
+        n = board[0].size();
+
+        for (int r = 0; r < m; ++r) {
+            for (int c = 0; c < n; ++c) {
+                bool on_border = (r == 0 || r == m - 1 || c == 0 || c == n - 1);
+                if (on_border && board[r][c] == 'O')
+                    dfs(board, r, c);
+            }
+        }
+
+        for (int r = 0; r < m; ++r) {
+            for (int c = 0; c < n; ++c) {
+                if (board[r][c] == 'O')
+                    board[r][c] = 'X';
+                else if (board[r][c] == '#')
+                    board[r][c] = 'O';
+            }
+        }
+    }
+
+private:
+    void dfs(vector<vector<char>>& board, int r, int c) {
+        if (r < 0 || r >= m || c < 0 || c >= n || board[r][c] != 'O')
+            return;
+        board[r][c] = '#';
+        dfs(board, r + 1, c);
+        dfs(board, r - 1, c);
+        dfs(board, r, c + 1);
+        dfs(board, r, c - 1);
+    }
+};
+// 时间 O(m·n)，空间 O(m·n)（递归栈最坏）""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 正向找「被围块」容易重复造 visited 或并查集，思路绕；应牢记<strong>不可捕获 ⟺ 与边界 <code>O</code> 连通</strong>，从边界出发反标记。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 清扫时误把临时标记当 <code>X</code>：标记字符必须与普通 <code>X</code> 区分（如 <code>#</code>），最后一轮要把 <code>#</code> 还原成 <code>O</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 单行或单列棋盘：整条边都是边界，该边上所有 <code>O</code> 都会先被标安全，不会被翻成 <code>X</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：官方示例 1</div>
+    <code>4×4，中间被围 O 全变 X，左下 border O 保留</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全 X</div>
+    <code>board = [["X","X"],["X","X"]] → 不变</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单行全 O</div>
+    <code>board = [["O","O","O"]] → 仍全 O（均在边界）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：1×1 为 O</div>
+    <code>board = [["O"]] → [["O"]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：内部孤岛</div>
+    <code>3×3 中心 O、四周 X → 中心变 X</code>
+</div>""",
+    },
+
     "letter-combinations-of-a-phone-number": {
         "type": "回溯",
         "difficulty": "中等",
