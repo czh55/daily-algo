@@ -964,5 +964,12 @@
     "title": "被围绕的区域",
     "type": "网格搜索",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-16",
+    "slug": "palindrome-partitioning",
+    "title": "分割回文串",
+    "type": "回溯",
+    "difficulty": "中等"
   }
 ]

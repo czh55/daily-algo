@@ -5673,6 +5673,128 @@ private:
 </div>""",
     },
 
+    "palindrome-partitioning": {
+        "type": "回溯",
+        "difficulty": "中等",
+        "frontend_id": "131",
+        "title": "分割回文串",
+        "time_complexity": "O(n · 2^n)（回溯枚举切分；预计算回文表 O(n²)；|s|≤16 有上界）",
+        "space_complexity": "O(n²)（回文 DP 表 + 递归栈 ≤ n，不计输出）",
+        "description": """<p>给你一个字符串 <code>s</code>，请你将 <code>s</code> 分割成一些<strong>子串</strong>，使每个子串都是 <strong>回文串</strong>。返回 <code>s</code> 所有可能的分割方案。</p>
+<p>子串为 <code>s</code> 中<strong>连续</strong>的一段，分割必须<strong>不重叠、按顺序覆盖整个</strong> <code>s</code>，且每段都满足回文。题目保证 <code>1 ≤ s.length ≤ 16</code>，<code>s</code> 仅由小写英文字母组成。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "aab"</div>
+    <div class="example-output">输出：[["a","a","b"],["aa","b"]]</div>
+    <div class="example-explain">先切 <code>"a"|"a"|"b"</code>，或切 <code>"aa"|"b"</code>（<code>"aa"</code> 是回文）；<code>"a"|"ab"</code> 非法因为 <code>"ab"</code> 不是回文。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "a"</div>
+    <div class="example-output">输出：[["a"]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>is_pal[i][j]</code></td><td>bool[n][n]</td><td><b>定义</b>：<code>s[i..j]</code>（含端点）是否为回文<br><b>维护</b>：预处理后全程只读，供回溯 O(1) 判段合法性<br><b>更新</b>：按区间长度递增填表：<code>s[i]==s[j]</code> 且（长度 ≤3 或 <code>is_pal[i+1][j-1]</code>）时为真</td></tr>
+    <tr><td><code>path</code></td><td>list&lt;str&gt;</td><td><b>定义</b>：当前已确定的前缀切分（从左到右各段子串）<br><b>维护</b>：DFS 每选定一段回文子串就 <code>append</code>，回溯时 <code>pop</code><br><b>更新</b>：仅当 <code>start==n</code> 时，将 <code>path</code> 的副本加入 <code>ans</code></td></tr>
+    <tr><td><code>start</code></td><td>int</td><td><b>定义</b>：下一段在 <code>s</code> 中的起始下标（含）<br><b>维护</b>：每成功切出一段 <code>s[start..end]</code> 后，子问题从 <code>end+1</code> 继续<br><b>更新</b>：初始为 0；枚举 <code>end</code> 从 <code>start</code> 到 <code>n-1</code>，仅当 <code>is_pal[start][end]</code> 才递归</td></tr>
+    <tr><td><code>ans</code></td><td>list&lt;list&lt;str&gt;&gt;</td><td><b>定义</b>：所有合法分割方案<br><b>维护</b>：只在用完整个字符串时收集一整条 <code>path</code><br><b>更新</b>：每到达叶子（<code>start==n</code>）追加 <code>path[:]</code> 一次</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：在 <code>s</code> 的每个「缝隙」决定切或不切，共有 <code>2^{n-1}</code> 种切法，每种检查每段是否回文——思路对，但重复判断同一子串是否回文。</p>
+<p class="thinking-step">2. 重复在哪里？回溯时不断问「<code>s[i..j]</code> 是不是回文？」，朴素双指针每次 O(n)，分支又多。</p>
+<p class="thinking-step">3. 关键转化：按<strong>从左到右顺序</strong>切分，用 <code>start</code> 表示下一段起点；枚举本段终点 <code>end</code>，只有 <code>s[start..end]</code> 为回文才继续切后面——子问题变成「在 <code>s[end+1:]</code> 里继续找分割」，和 #93 复原 IP 是同一类「顺序切分 + 合法性剪枝」。</p>
+<p class="thinking-step">4. 预计算二维表 <code>is_pal[i][j]</code>：中心扩展思想压缩成 DP，区间从小到大填，O(n²) 一次建好，回溯每层 O(1) 查表。</p>
+<p class="thinking-step">5. 手推 <code>s="aab"</code>：<code>start=0</code> 可试 <code>end=0</code>（<code>"a"</code>）→ 递归得 <code>"a","b"</code> 与整条 <code>"a","a","b"</code>；<code>end=1</code> 得 <code>"aa","b"</code>；<code>end=2</code> 时 <code>"aab"</code> 非回文跳过。答案两组。<code>n≤16</code> 时搜索完全可行。</p>""",
+        "code_steps": """<p class="code-step">1. 记 <code>n = len(s)</code>，建 <code>is_pal[n][n]</code>，双重循环按区间长度填表</p>
+<p class="code-step">2. 初始化 <code>ans = []</code>、<code>path = []</code></p>
+<p class="code-step">3. 定义 DFS <code>backtrack(start)</code>：若 <code>start == n</code>，将 <code>path[:]</code> 加入 <code>ans</code> 并返回</p>
+<p class="code-step">4. 对 <code>end</code> 从 <code>start</code> 到 <code>n-1</code>：若 <code>not is_pal[start][end]</code> 跳过；否则 <code>path.append(s[start:end+1])</code>，<code>backtrack(end+1)</code>，<code>path.pop()</code></p>
+<p class="code-step">5. 从 <code>backtrack(0)</code> 启动，返回 <code>ans</code></p>""",
+        "code_python": """class Solution:
+    def partition(self, s: str) -> list[list[str]]:
+        n = len(s)
+        is_pal = [[False] * n for _ in range(n)]
+        for j in range(n):
+            for i in range(j, -1, -1):
+                if s[i] == s[j] and (j - i < 2 or is_pal[i + 1][j - 1]):
+                    is_pal[i][j] = True
+
+        ans: list[list[str]] = []
+        path: list[str] = []
+
+        def backtrack(start: int) -> None:
+            if start == n:
+                ans.append(path[:])
+                return
+            for end in range(start, n):
+                if not is_pal[start][end]:
+                    continue
+                path.append(s[start : end + 1])
+                backtrack(end + 1)
+                path.pop()
+
+        backtrack(0)
+        return ans""",
+        "code_cpp": """class Solution {
+public:
+    vector<vector<string>> partition(string s) {
+        int n = s.size();
+        vector<vector<bool>> isPal(n, vector<bool>(n, false));
+        for (int j = 0; j < n; ++j) {
+            for (int i = j; i >= 0; --i) {
+                if (s[i] == s[j] && (j - i < 2 || isPal[i + 1][j - 1]))
+                    isPal[i][j] = true;
+            }
+        }
+
+        vector<vector<string>> ans;
+        vector<string> path;
+
+        function<void(int)> backtrack = [&](int start) {
+            if (start == n) {
+                ans.push_back(path);
+                return;
+            }
+            for (int end = start; end < n; ++end) {
+                if (!isPal[start][end]) continue;
+                path.push_back(s.substr(start, end - start + 1));
+                backtrack(end + 1);
+                path.pop_back();
+            }
+        };
+
+        backtrack(0);
+        return ans;
+    }
+};
+// 时间 O(n·2^n) 回溯 + O(n²) 预计算；空间 O(n²)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 收集答案时用 <code>path</code> 引用而非副本：必须 <code>ans.append(path[:])</code> 或 C++ 中在叶子层拷贝 <code>path</code>，否则后续 <code>pop</code> 会污染已存结果。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 回文判错：长度为 1、2 时条件 <code>j-i&lt;2</code> 要单独处理；不要写成 <code>is_pal[i+1][j-1]</code> 而未判边界导致越界或漏判。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 子串必须连续：不能打乱字符顺序；每段是 <code>s[start:end+1]</code>，不是任意子序列。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单字符</div>
+    <code>s = "a" → [["a"]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：示例 aab</div>
+    <code>s = "aab" → [["a","a","b"],["aa","b"]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：全书为回文</div>
+    <code>s = "aaa" → 四种切分（每个缝可切可不切且每段仍回文）</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：无多字符回文段</div>
+    <code>s = "abc" → [["a","b","c"]]</code>（只能逐字符切）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：较长重复</div>
+    <code>s = "aaaa" → 共 8 种合法分割</code>（注意重叠枚举的是不同切点，不是同一子串重复使用）
+</div>""",
+    },
+
     "letter-combinations-of-a-phone-number": {
         "type": "回溯",
         "difficulty": "中等",
