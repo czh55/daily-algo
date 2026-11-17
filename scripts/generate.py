@@ -5795,6 +5795,121 @@ public:
 </div>""",
     },
 
+    "palindrome-partitioning-ii": {
+        "type": "一维DP",
+        "difficulty": "困难",
+        "frontend_id": "132",
+        "title": "分割回文串 II",
+        "time_complexity": "O(n²)（预计算回文表 O(n²) + 后缀 DP 每层枚举切点 O(n²)）",
+        "space_complexity": "O(n²)（回文 DP 表 + 一维 cuts 数组）",
+        "description": """<p>给你一个字符串 <code>s</code>，请你将 <code>s</code> 分割成一些子串，使<strong>每个子串都是回文串</strong>。</p>
+<p>返回符合要求的<strong>最少分割次数</strong>（切刀数：整串已是回文则返回 0）。</p>
+<p><code>1 ≤ s.length ≤ 2000</code>，<code>s</code> 仅由小写英文字母组成。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "aab"</div>
+    <div class="example-output">输出：1</div>
+    <div class="example-explain">一次切分：<code>"aa"|"b"</code>，两段均为回文；切成 <code>"a"|"a"|"b"</code> 需要两次，不是最少。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "a"</div>
+    <div class="example-output">输出：0</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "ab"</div>
+    <div class="example-output">输出：1</div>
+    <div class="example-explain"><code>"ab"</code> 不是回文，只能 <code>"a"|"b"</code>，切一刀。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>is_pal[i][j]</code></td><td>bool[n][n]</td><td><b>定义</b>：<code>s[i..j]</code> 是否为回文<br><b>维护</b>：与 #131 相同，预计算后全程只读<br><b>更新</b>：按区间长度递增填表：<code>s[i]==s[j]</code> 且（长度 ≤2 或 <code>is_pal[i+1][j-1]</code>）</td></tr>
+    <tr><td><code>cuts[i]</code></td><td>int[n]</td><td><b>定义</b>：子串 <code>s[i..n-1]</code> 切成全回文段的<strong>最少切刀数</strong><br><b>维护</b>：从右向左填；答案为 <code>cuts[0]</code><br><b>更新</b>：枚举第一段终点 <code>j</code>（<code>s[i..j]</code> 为回文）：若 <code>j==n-1</code> 则代价 0，否则 <code>1 + cuts[j+1]</code>；<code>cuts[i]</code> 取各合法 <code>j</code> 的最小值</td></tr>
+    <tr><td><code>j</code></td><td>int</td><td><b>定义</b>：当前尝试的第一段回文子串的右端点下标<br><b>维护</b>：对每个起点 <code>i</code>，<code>j</code> 从 <code>i</code> 枚举到 <code>n-1</code><br><b>更新</b>：仅当 <code>is_pal[i][j]</code> 才参与松弛 <code>cuts[i]</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 我先想暴力：像 #131 一样回溯枚举所有切法，记录切刀数取最小——正确但 <code>n≤2000</code> 时 <code>2^n</code> 完全不可行。</p>
+<p class="thinking-step">2. 重复在哪里？对后缀 <code>s[i..]</code> 来说，第一刀落在哪、后面又是「后缀最小切分」同一子结构；不同切法会重复解同一 <code>s[j+1..]</code>，应记忆化而非 DFS 裸搜。</p>
+<p class="thinking-step">3. 定义 <code>cuts[i]</code> = <code>s[i..n-1]</code> 的最少切刀数。枚举第一段为 <code>s[i..j]</code>（须回文）：若这一段已是整串后缀，代价 0；否则这一刀加上 <code>cuts[j+1]</code>。取最小即最优子结构。</p>
+<p class="thinking-step">4. 回文判断不能每次 O(n)：复用 #131 的 <code>is_pal</code> 预处理 O(n²)，DP 再 O(n²)。手推 <code>s="aab"</code>：<code>cuts[2]=0</code>（<code>"b"</code>）；<code>cuts[1]</code> 只能 <code>"b"|"?"</code> 得 1；<code>cuts[0]</code> 试 <code>"a"|…</code> 得 2、<code>"aa"|"b"</code> 得 1 → 答案 1。</p>
+<p class="thinking-step">5. 填表顺序：<code>i</code> 从 <code>n-1</code> 递减到 0，计算 <code>cuts[i]</code> 时 <code>cuts[j+1]</code>（<code>j&lt;n-1</code>）已就绪。</p>""",
+        "code_steps": """<p class="code-step">1. 记 <code>n = len(s)</code>，建 <code>is_pal[n][n]</code>（与 #131 相同双重循环按长度填表）</p>
+<p class="code-step">2. 初始化 <code>cuts = [0] * n</code>；<code>cuts[n-1] = 0</code>（单字符后缀无需切）</p>
+<p class="code-step">3. 对 <code>i</code> 从 <code>n-2</code> 到 <code>0</code>：<code>cuts[i] = n</code>（哨兵），再枚举 <code>j</code> 从 <code>i</code> 到 <code>n-1</code></p>
+<p class="code-step">4. 若 <code>not is_pal[i][j]</code> 跳过；否则 <code>cost = 0 if j == n-1 else 1 + cuts[j+1]</code>，<code>cuts[i] = min(cuts[i], cost)</code></p>
+<p class="code-step">5. 返回 <code>cuts[0]</code></p>""",
+        "code_python": """class Solution:
+    def minCut(self, s: str) -> int:
+        n = len(s)
+        is_pal = [[False] * n for _ in range(n)]
+        for j in range(n):
+            for i in range(j, -1, -1):
+                if s[i] == s[j] and (j - i < 2 or is_pal[i + 1][j - 1]):
+                    is_pal[i][j] = True
+
+        cuts = [0] * n
+        for i in range(n - 2, -1, -1):
+            best = n  # 少于此值即可
+            for j in range(i, n):
+                if not is_pal[i][j]:
+                    continue
+                cost = 0 if j == n - 1 else 1 + cuts[j + 1]
+                best = min(best, cost)
+            cuts[i] = best
+        return cuts[0]""",
+        "code_cpp": """class Solution {
+public:
+    int minCut(string s) {
+        int n = s.size();
+        vector<vector<bool>> isPal(n, vector<bool>(n, false));
+        for (int j = 0; j < n; ++j) {
+            for (int i = j; i >= 0; --i) {
+                if (s[i] == s[j] && (j - i < 2 || isPal[i + 1][j - 1]))
+                    isPal[i][j] = true;
+            }
+        }
+
+        vector<int> cuts(n, 0);
+        for (int i = n - 2; i >= 0; --i) {
+            int best = n;
+            for (int j = i; j < n; ++j) {
+                if (!isPal[i][j]) continue;
+                int cost = (j == n - 1) ? 0 : 1 + cuts[j + 1];
+                best = min(best, cost);
+            }
+            cuts[i] = best;
+        }
+        return cuts[0];
+    }
+};
+// 时间 O(n²)，空间 O(n²)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 把「段数」当「切刀数」：整串回文应返回 <code>0</code>，不是 <code>1</code>；一段后缀对应 0 刀，多段才加切刀。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>j == n-1</code> 时忘记代价为 0：写成 <code>1 + cuts[n]</code> 会越界或多算一刀。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>cuts[i]</code> 必须从大到小填：若从小到大，<code>cuts[j+1]</code> 可能尚未计算，子问题顺序错误。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单字符</div>
+    <code>s = "a" → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全书回文</div>
+    <code>s = "aba" → 0</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：示例 aab</div>
+    <code>s = "aab" → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：两字符无回文二字</div>
+    <code>s = "ab" → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：长重复</div>
+    <code>s = "aaaa" → 0</code>（整串回文）；<code>s = "aaab" → 1</code>（<code>"aaa"|"b"</code>）
+</div>""",
+    },
+
     "letter-combinations-of-a-phone-number": {
         "type": "回溯",
         "difficulty": "中等",

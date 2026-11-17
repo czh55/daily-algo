@@ -971,5 +971,12 @@
     "title": "分割回文串",
     "type": "回溯",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-17",
+    "slug": "palindrome-partitioning-ii",
+    "title": "分割回文串 II",
+    "type": "一维DP",
+    "difficulty": "困难"
   }
 ]
