@@ -14448,6 +14448,137 @@ public:
 </div>""",
     },
 
+    "clone-graph": {
+        "type": "图BFS",
+        "difficulty": "中等",
+        "frontend_id": "133",
+        "title": "克隆图",
+        "time_complexity": "O(V + E)",
+        "space_complexity": "O(V)",
+        "description": """<p>给你无向<strong>连通</strong>图中一个节点的引用，请你返回该图的<strong>深拷贝</strong>（克隆）。</p>
+<p>图中的每个节点都包含它的值 <code>val</code>（<code>int</code>）和其邻居的列表（<code>list[Node]</code>）。</p>
+<pre class="lc-code">
+class Node {
+    public int val;
+    public List&lt;Node&gt; neighbors;
+}</pre>
+<p>简单起见，每个节点的值都和它的索引相同。给定节点将始终是图中的第一个节点（值为 1）。你必须将<strong>给定节点的拷贝</strong>作为对克隆图的引用返回。</p>
+<p>图中节点数 <code>[0, 100]</code>；节点值唯一；无重复边、无自环；图为连通图。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：adjList = [[2,4],[1,3],[2,4],[1,3]]</div>
+    <div class="example-output">输出：[[2,4],[1,3],[2,4],[1,3]]</div>
+    <div class="example-explain">4 个节点：1 邻接 2、4；2 邻接 1、3；3 邻接 2、4；4 邻接 1、3。克隆后结构相同，但各 <code>Node</code> 对象均为新分配。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：adjList = [[]]</div>
+    <div class="example-output">输出：[[]]</div>
+    <div class="example-explain">只有一个值为 1 的节点，无任何邻居。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：adjList = []</div>
+    <div class="example-output">输出：[]</div>
+    <div class="example-explain">图为空，不含任何节点，应返回 <code>null</code>。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>mp</code></td><td>dict / map&lt;Node*,Node*&gt;</td><td><b>定义</b>：原图节点 → 已创建克隆节点的映射，保证同一原节点只克隆一次、邻居可复用同一克隆体<br><b>维护</b>：首次从 BFS 到达某原节点时立刻为其 <code>new Node(val)</code> 并登记；后续仅通过 <code>mp</code> 取克隆指针挂边<br><b>更新</b>：起点入队前先 <code>mp[node]=Node(node.val)</code>；发现邻居 <code>v</code> 未在表中则新建并入队</td></tr>
+    <tr><td><code>q</code></td><td>deque</td><td><b>定义</b>：待处理「原图节点」的 BFS 队列，保证按连通块顺序扩展克隆体的邻居表<br><b>维护</b>：队头出队后对每个原邻居补全 <code>mp[cur].neighbors</code> 并可能让新原节点入队<br><b>更新</b>：初始入队给定 <code>node</code>；仅当 <code>v ∉ mp</code> 时把 <code>v</code> 入队</td></tr>
+    <tr><td><code>cur</code></td><td>Node*（原）</td><td><b>定义</b>：本轮正在为其克隆体 <code>mp[cur]</code> 连接全部无向边的原图节点<br><b>维护</b>：遍历 <code>cur.neighbors</code>，将 <code>mp[nb]</code> 追加进克隆邻接表（无向图每条边处理一次即可方向一致）<br><b>更新</b>：每次 <code>q.popleft()</code> 得到</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：深拷贝整个邻接表结构——但对每个节点「new 一个副本」时，邻居指针仍指向<strong>原图</strong> 或错误重复 new，同一拓扑在不同边上会对应多个互不关联的克隆，判题会失败。</p>
+<p class="thinking-step">2. 重复在哪里？无向连通图中，节点值唯一，「原节点 identity」与「克隆节点」必须一对一；每条边 (u,v) 在克隆图上要连的是 (clone(u), clone(v))，而 clone(u) 依赖 u 是否已建过。</p>
+<p class="thinking-step">3. 核心：哈希表 <code>原 → 克隆</code>。走到原节点 u 时，若表中没有就先创建 clone(u)；接着把每个邻居 v 的 clone(v) 挂到 clone(u).neighbors——若 v 尚未克隆则递归/BFS 继续。</p>
+<p class="thinking-step">4. 用 BFS：从给定节点入队，出队时补全邻居边并扩展新顶点，与 #127 单词接龙同属「图上层次扩展」，但边来自显式邻接表、且需维护克隆映射。</p>
+<p class="thinking-step">5. <code>node is null</code>（空图）直接返回 null；单点无邻居时映射里只有起点、邻居列表为空。整张图每个点与每条边各访问常数次，O(V+E)。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>node is None</code>，返回 <code>None</code></p>
+<p class="code-step">2. 创建空映射 <code>mp</code>，<code>mp[node] = Node(node.val)</code>，队列入 <code>node</code></p>
+<p class="code-step">3. BFS：出队 <code>cur</code>，遍历 <code>cur.neighbors</code> 中每个 <code>nb</code></p>
+<p class="code-step">4. 若 <code>nb ∉ mp</code>，则 <code>mp[nb]=Node(nb.val)</code> 并将 <code>nb</code> 入队</p>
+<p class="code-step">5. 将 <code>mp[nb]</code> 追加到 <code>mp[cur].neighbors</code></p>
+<p class="code-step">6. 返回 <code>mp[node]</code>（给定节点的克隆根）</p>""",
+        "code_python": """from collections import deque
+from typing import Optional
+
+# class Node:
+#     def __init__(self, val=0, neighbors=None):
+#         self.val = val
+#         self.neighbors = neighbors if neighbors is not None else []
+
+class Solution:
+    def cloneGraph(self, node: Optional['Node']) -> Optional['Node']:
+        if node is None:
+            return None
+        mp = {node: Node(node.val)}
+        q = deque([node])
+        while q:
+            cur = q.popleft()
+            clone = mp[cur]
+            for nb in cur.neighbors:
+                if nb not in mp:
+                    mp[nb] = Node(nb.val)
+                    q.append(nb)
+                clone.neighbors.append(mp[nb])
+        return mp[node]""",
+        "code_cpp": """/*
+// Definition for a Node.
+class Node {
+public:
+    int val;
+    vector<Node*> neighbors;
+    Node() { val = 0; neighbors = {}; }
+    Node(int _val) { val = _val; neighbors = {}; }
+};
+*/
+
+class Solution {
+public:
+    Node* cloneGraph(Node* node) {
+        if (!node) return nullptr;
+        unordered_map<Node*, Node*> mp;
+        queue<Node*> q;
+        mp[node] = new Node(node->val);
+        q.push(node);
+        while (!q.empty()) {
+            Node* cur = q.front();
+            q.pop();
+            for (Node* nb : cur->neighbors) {
+                if (!mp.count(nb)) {
+                    mp[nb] = new Node(nb->val);
+                    q.push(nb);
+                }
+                mp[cur]->neighbors.push_back(mp[nb]);
+            }
+        }
+        return mp[node];
+    }
+};
+// 时间 O(V+E)，空间 O(V)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 不做映射、对每个邻居直接 <code>new Node(nb.val)</code> 再递归：同一 <code>nb</code> 被多条边引用时会生成多个克隆，图结构错误且可能无限递归。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>adjList = []</code> 时入参为 <code>null</code>，须先判空再访问 <code>node.val</code> / 入队。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> DFS 写法若在「挂邻居」之后才登记映射，从 u 到 v 再到 u 可能重复创建；应<strong>在进入/发现节点时立刻</strong>写入 <code>mp</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空图</div>
+    <code>node = null → null</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：孤立单点</div>
+    <code>adjList = [[]] → 一个克隆节点、neighbors 为空</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：两节点互连</div>
+    <code>[[2],[1]]：clone(1) 与 clone(2) 互相指向，而非指向原图 1、2</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：较大连通图</div>
+    <code>节点 ≤ 100、值唯一，验证映射大小等于 V、边数 2E 次 append</code>
+</div>""",
+    },
+
     "simplify-path": {
         "type": "栈",
         "difficulty": "中等",
