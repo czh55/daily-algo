@@ -985,5 +985,12 @@
     "title": "克隆图",
     "type": "图BFS",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-19",
+    "slug": "gas-station",
+    "title": "加油站",
+    "type": "贪心",
+    "difficulty": "中等"
   }
 ]

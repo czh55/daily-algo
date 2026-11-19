@@ -14579,6 +14579,103 @@ public:
 </div>""",
     },
 
+    "gas-station": {
+        "type": "贪心",
+        "difficulty": "中等",
+        "frontend_id": "134",
+        "title": "加油站",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>在一条环路上有 <code>n</code> 个加油站，其中第 <code>i</code> 个加油站有汽油 <code>gas[i]</code> 升。</p>
+<p>你有一辆油箱容量无限的汽车，从第 <code>i</code> 个加油站开往第 <code>i+1</code> 个加油站需要消耗汽油 <code>cost[i]</code> 升。你从其中的一个加油站出发，开始时油箱为空。</p>
+<p>给定两个整数数组 <code>gas</code> 和 <code>cost</code>，如果你可以按顺序绕环路行驶一周，则返回出发时加油站的编号，否则返回 <code>-1</code>。如果存在解，则<strong>保证</strong>它是<strong>唯一</strong>的。</p>
+<p><code>n == gas.length == cost.length</code>，<code>1 &lt;= n &lt;= 10<sup>5</sup></code>，<code>0 &lt;= gas[i], cost[i] &lt;= 10<sup>4</sup></code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：gas = [1,2,3,4,5], cost = [3,4,5,1,2]</div>
+    <div class="example-output">输出：3</div>
+    <div class="example-explain">从 3 号站出发：到 4 站剩 8 升，经 0→1→2 再回到 3，全程油量始终非负，故起点为索引 3。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：gas = [2,3,4], cost = [3,4,3]</div>
+    <div class="example-output">输出：-1</div>
+    <div class="example-explain">任一起点都无法完成整圈：总补给不足以支付全程耗油。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>total</code></td><td>int</td><td><b>定义</b>：全程 <code>Σ(gas[i]-cost[i])</code>，表示绕圈一圈后油箱相对出发时的净增量<br><b>维护</b>：从左到右扫完所有站各累加一次差值，与起点无关<br><b>更新</b>：每步 <code>total += gas[i] - cost[i]</code>；若最终 <code>total &lt; 0</code> 则无解，直接返回 -1</td></tr>
+    <tr><td><code>tank</code></td><td>int</td><td><b>定义</b>：从候选起点 <code>start</code> 出发，沿环路开到当前站 <code>i</code> 后车上的剩余汽油（尚未在 <code>i</code> 加油）<br><b>维护</b>：仅当 <code>tank ≥ 0</code> 时说明「从 <code>start</code> 能顺利开到 <code>i</code>」；一旦变负则 <code>start..i</code> 内任一站作起点都不合法<br><b>更新</b>：每站 <code>tank += gas[i] - cost[i]</code>；若 <code>tank &lt; 0</code> 则 <code>start = i+1</code> 且 <code>tank = 0</code></td></tr>
+    <tr><td><code>start</code></td><td>int</td><td><b>定义</b>：当前唯一可能的合法出发站下标（题目保证若有解则唯一）<br><b>维护</b>：初值为 0；每当 <code>tank</code> 跌破 0，说明上一段候选区间不可能，起点右移到下一站<br><b>更新</b>：<code>tank &lt; 0</code> 时设 <code>start = i + 1</code>；扫描结束后若 <code>total ≥ 0</code> 则返回 <code>start</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：枚举起点 <code>s = 0..n-1</code>，模拟开车绕圈 <code>n</code> 步，每步加油再扣路段油耗；任一步油量为负则换起点，单次 O(n)，总 O(n²)。</p>
+<p class="thinking-step">2. 重复在哪里？固定起点时要一步步累加「净收益」<code>gas[i]-cost[i]</code>；换起点时又从 0 重算，大量前缀和被重复计算。</p>
+<p class="thinking-step">3. 全局必要条件：一圈总净油量 <code>Σ(gas-cost) ≥ 0</code>，否则无论如何都回不了起点；这是充分必要条件里的一半，可 O(n) 先判无解。</p>
+<p class="thinking-step">4. 贪心缩小起点：从左扫维护 <code>tank</code> 和候选 <code>start</code>。若开到 <code>i</code> 时 <code>tank &lt; 0</code>，说明从 <code>start..i</code> 任一站出发都会在到达某站前断油（前面油量更少），故唯一可能起点只能 ≥ <code>i+1</code>，重置 <code>tank</code> 从新区间继续。</p>
+<p class="thinking-step">5. 扫完一圈且 <code>total ≥ 0</code> 时，最后留下的 <code>start</code> 即为答案；与「总净增非负 + 最后一小段前缀可行」合在一起，保证整圈可行。单次扫描 O(n)、O(1) 空间。</p>""",
+        "code_steps": """<p class="code-step">1. <code>total = tank = 0</code>，<code>start = 0</code></p>
+<p class="code-step">2. 对 <code>i in 0..n-1</code>：<code>d = gas[i] - cost[i]</code>，<code>total += d</code>，<code>tank += d</code></p>
+<p class="code-step">3. 若 <code>tank &lt; 0</code>：<code>start = i + 1</code>，<code>tank = 0</code>（抛弃不可行前缀）</p>
+<p class="code-step">4. 若 <code>total &lt; 0</code> 返回 <code>-1</code>，否则返回 <code>start</code></p>""",
+        "code_python": """class Solution:
+    def canCompleteCircuit(self, gas: list[int], cost: list[int]) -> int:
+        total = tank = 0
+        start = 0
+        n = len(gas)
+        for i in range(n):
+            d = gas[i] - cost[i]
+            total += d
+            tank += d
+            if tank < 0:
+                start = i + 1
+                tank = 0
+        return start if total >= 0 else -1""",
+        "code_cpp": """class Solution {
+public:
+    int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+        long long total = 0, tank = 0;
+        int start = 0;
+        int n = gas.size();
+        for (int i = 0; i < n; ++i) {
+            int d = gas[i] - cost[i];
+            total += d;
+            tank += d;
+            if (tank < 0) {
+                start = i + 1;
+                tank = 0;
+            }
+        }
+        return total >= 0 ? start : -1;
+    }
+};
+// 时间 O(n)，空间 O(1)；total 可用 long long 防溢出""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 只判断 <code>tank</code> 中途非负就返回 <code>start</code>，却忘记先算全程 <code>total</code>：总补给为负时必为 -1，不能信最后一次 <code>start</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> <code>tank &lt; 0</code> 时只改 <code>start</code> 却不把 <code>tank</code> 清零：会把「上一段失败路径」的负油量带到新起点，误判后续站。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 模拟时顺序搞错：应先到达站 <code>i</code> 并消耗 <code>cost[i-1]</code> 再在站 <code>i</code> 加 <code>gas[i]</code>；用差分 <code>gas[i]-cost[i]</code> 等价于「到站加油再走下一段」的环状扫描写法，不要对同一站重复加减。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：无解总量</div>
+    <code>gas=[2,3,4], cost=[3,4,3] → -1</code>（<code>total &lt; 0</code>）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单站自环</div>
+    <code>gas=[5], cost=[4] → 0</code>（加 5 耗 4 仍能回到 0 号站）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：起点不在 0</div>
+    <code>gas=[1,2,3,4,5], cost=[3,4,5,1,2] → 3</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：首尾刚好平衡</div>
+    <code>每站 gas[i]==cost[i]，n&gt;1 → 0</code>（总净增为 0，从 0 出发可一圈）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：大 n 防溢出</div>
+    <code>Σ 可达 10^5×10^4；C++ 中 <code>total</code> 建议 long long</code>
+</div>""",
+    },
+
     "simplify-path": {
         "type": "栈",
         "difficulty": "中等",
