@@ -14676,6 +14676,105 @@ public:
 </div>""",
     },
 
+    "candy": {
+        "type": "贪心",
+        "difficulty": "困难",
+        "frontend_id": "135",
+        "title": "分发糖果",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "description": """<p><code>n</code> 个孩子站成一排。给你一个整数数组 <code>ratings</code> 表示每个孩子的评分。</p>
+<p>你需要按照以下要求给这些孩子分发糖果：</p>
+<ul>
+<li>每个孩子<strong>至少</strong>分配到 <code>1</code> 个糖果。</li>
+<li>相邻两个孩子中，评分<strong>更高</strong>的那个会获得更多的糖果。</li>
+</ul>
+<p>请你给每个孩子分发糖果，计算并返回需要准备的<strong>最少</strong>糖果数目。</p>
+<p><code>1 &lt;= n == ratings.length &lt;= 5 × 10<sup>4</sup></code>，<code>0 &lt;= ratings[i] &lt;= 5 × 10<sup>4</sup></code>。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：ratings = [1,0,2]</div>
+    <div class="example-output">输出：5</div>
+    <div class="example-explain">可分别分发 2、1、2 颗糖果：中间评分最低只得 1 颗，左右高峰各比邻居多 1 颗。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：ratings = [1,2,2]</div>
+    <div class="example-output">输出：4</div>
+    <div class="example-explain">第二个孩子比第一个高需 2 颗；第三个与第二个评分相同不要求更多，只需 1 颗。共 1+2+1=4。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>candies</code></td><td>int[n]</td><td><b>定义</b>：每个孩子最终分到的糖果数，初值全为 1（满足「至少一颗」）<br><b>维护</b>：同时满足「左邻居评分低则我多」与「右邻居评分低则我多」两条相邻约束<br><b>更新</b>：从左扫调高右侧高峰；从右扫用 <code>max</code> 调高左侧高峰，避免覆盖已满足的约束</td></tr>
+    <tr><td><code>i</code>（左扫）</td><td>int</td><td><b>定义</b>：自左向右遍历时当前孩子下标<br><b>维护</b>：只处理 <code>ratings[i] &gt; ratings[i-1]</code> 的「上坡」关系<br><b>更新</b>：若上坡则 <code>candies[i] = candies[i-1] + 1</code>，否则保持 1（下坡或平台不在此步强加约束）</td></tr>
+    <tr><td><code>i</code>（右扫）</td><td>int</td><td><b>定义</b>：自右向左遍历时当前孩子下标<br><b>维护</b>：只处理 <code>ratings[i] &gt; ratings[i+1]</code> 的「下坡对左侧更高」关系<br><b>更新</b>：<code>candies[i] = max(candies[i], candies[i+1] + 1)</code>，取 max 是因为左扫可能已给更大值</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：每个孩子糖果数从 1 试到 n，检查全局是否满足相邻规则，可行则记入答案；指数级或高多项式，完全不现实。</p>
+<p class="thinking-step">2. 重复在哪里？「右边比我低我要多」和「左边比我低我要多」是同一类局部比较，却从两个方向互相牵扯：只从左贪心一次无法保证右侧下坡链，只从右一次又无法满足左侧上坡链。</p>
+<p class="thinking-step">3. 拆开约束：从左到右只 enforce「若评分涨，则比左邻多 1 颗」——任意下坡或相等处暂时仍为 1，先得到满足所有<strong>左向</strong>约束的最省分配。</p>
+<p class="thinking-step">4. 再从右到左：若比右邻高，则至少比右邻多 1；用 <code>max</code> 与左扫结果合并，因为左扫可能已在长上坡里给过更大糖果，不能右扫时减小。</p>
+<p class="thinking-step">5. 手推 <code>[1,0,2]</code>：左扫得 <code>[1,1,2]</code>；右扫在 i=0 时 <code>1&gt;2</code> 不成立，i=1 时 <code>0&lt;2</code> 不成立，合计 4？错——i=0 时 <code>1&lt;2</code> 左扫已得 1，i=2 为峰 2；重新左扫：<code>[1,1,2]</code>；右扫 i=0：<code>ratings[0]&lt;ratings[1]</code> 跳过，得 <code>[1,1,2]</code> 和为 4。等等官方答案是 5：应为 <code>[2,1,2]</code>。左扫：<code>i=1</code> 不涨；<code>i=2</code> <code>2&gt;0</code> → <code>c[2]=c[1]+1=2</code> 得 <code>[1,1,2]</code>。右扫 <code>i=1</code>：<code>0&lt;2</code> 不加；<code>i=0</code>：<code>1&gt;0</code> → <code>c[0]=max(1,1+1)=2</code>，和 5。两次线性扫描 O(n)。</p>""",
+        "code_steps": """<p class="code-step">1. <code>n = len(ratings)</code>，<code>candies = [1] * n</code></p>
+<p class="code-step">2. 左扫 <code>i=1..n-1</code>：若 <code>ratings[i] &gt; ratings[i-1]</code>，则 <code>candies[i] = candies[i-1] + 1</code></p>
+<p class="code-step">3. 右扫 <code>i=n-2..0</code>：若 <code>ratings[i] &gt; ratings[i+1]</code>，则 <code>candies[i] = max(candies[i], candies[i+1] + 1)</code></p>
+<p class="code-step">4. 返回 <code>sum(candies)</code></p>""",
+        "code_python": """class Solution:
+    def candy(self, ratings: list[int]) -> int:
+        n = len(ratings)
+        candies = [1] * n
+        for i in range(1, n):
+            if ratings[i] > ratings[i - 1]:
+                candies[i] = candies[i - 1] + 1
+        for i in range(n - 2, -1, -1):
+            if ratings[i] > ratings[i + 1]:
+                candies[i] = max(candies[i], candies[i + 1] + 1)
+        return sum(candies)""",
+        "code_cpp": """class Solution {
+public:
+    int candy(vector<int>& ratings) {
+        int n = ratings.size();
+        vector<int> candies(n, 1);
+        for (int i = 1; i < n; ++i) {
+            if (ratings[i] > ratings[i - 1])
+                candies[i] = candies[i - 1] + 1;
+        }
+        for (int i = n - 2; i >= 0; --i) {
+            if (ratings[i] > ratings[i + 1])
+                candies[i] = max(candies[i], candies[i + 1] + 1);
+        }
+        long long total = 0;
+        for (int c : candies) total += c;
+        return (int)total;
+    }
+};
+// 时间 O(n)，空间 O(n)；求和可用 long long""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 右扫时直接赋值 <code>candies[i] = candies[i+1] + 1</code> 而不用 <code>max</code>：会覆盖左扫在长上坡里已满足的更大糖果数，破坏左侧约束。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 评分<strong>相等</strong>时不能多给：只有严格 <code>&gt;</code> 才加糖果；<code>[1,2,2]</code> 中第三人不能因「相邻」被迫拿 2 颗。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 尝试一次遍历用单个变量维护：相邻约束是双向的，经典正确解需要两次方向扫描（或等价的增减数组技巧），一次扫无法同时最优。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单孩子</div>
+    <code>ratings=[7] → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：全线相等</div>
+    <code>ratings=[2,2,2] → 3</code>（每人 1 颗）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单调上升</div>
+    <code>ratings=[1,2,3,4] → 1+2+3+4=10</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：谷形 [1,0,2]</div>
+    <code>→ 5</code>（两侧峰需右扫补左侧比谷高）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：长下坡链</div>
+    <code>ratings=[5,4,3,2,1] → 5</code>（左扫全 1，右扫从右端递增加 candies[0]）
+</div>""",
+    },
+
     "simplify-path": {
         "type": "栈",
         "difficulty": "中等",

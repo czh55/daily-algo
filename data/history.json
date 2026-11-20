@@ -992,5 +992,12 @@
     "title": "加油站",
     "type": "贪心",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-20",
+    "slug": "candy",
+    "title": "分发糖果",
+    "type": "贪心",
+    "difficulty": "困难"
   }
 ]
