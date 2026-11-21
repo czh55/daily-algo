@@ -999,5 +999,12 @@
     "title": "分发糖果",
     "type": "贪心",
     "difficulty": "困难"
+  },
+  {
+    "date": "2026-11-21",
+    "slug": "single-number",
+    "title": "只出现一次的数字",
+    "type": "位运算",
+    "difficulty": "简单"
   }
 ]

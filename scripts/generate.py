@@ -14775,6 +14775,83 @@ public:
 </div>""",
     },
 
+    "single-number": {
+        "type": "位运算",
+        "difficulty": "简单",
+        "frontend_id": "136",
+        "title": "只出现一次的数字",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个 <strong>非空</strong> 整数数组 <code>nums</code> ，除了某个元素只出现一次以外，其余每个元素均出现两次。找出那个只出现了一次的元素。</p>
+<p>你必须设计并实现线性时间复杂度的算法来解决此问题，且该算法只使用常量额外空间。</p>
+<p><code>1 &lt;= nums.length &lt;= 3 × 10<sup>4</sup></code>，<code>-3 × 10<sup>4</sup> &lt;= nums[i] &lt;= 3 × 10<sup>4</sup></code>，除某个元素仅出现一次外，其余均出现两次。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [2,2,1]</div>
+    <div class="example-output">输出：1</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [4,1,2,1,2]</div>
+    <div class="example-output">输出：4</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：nums = [1]</div>
+    <div class="example-output">输出：1</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>xor</code></td><td>int</td><td><b>定义</b>：当前已扫描元素按位异或的累积结果，初值 0（异或幺元）<br><b>维护</b>：同一数字出现偶数次异或后为 0，最终仅剩「只出现一次」的数字<br><b>更新</b>：每扫到一个 <code>nums[i]</code>，令 <code>xor ^= nums[i]</code></td></tr>
+    <tr><td><code>nums[i]</code></td><td>int</td><td><b>定义</b>：当前待合并进累积异或的数组元素<br><b>维护</b>：从左到右单次遍历，每个元素恰好参与一次异或<br><b>更新</b>：循环变量 <code>i</code> 自增，直至 <code>i == n</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：用哈希表统计每个数出现次数，再找计数为 1 的数——O(n) 时间、O(n) 额外空间，满足时间但不满足「常量空间」。</p>
+<p class="thinking-step">2. 重复在哪里？成对出现的数字在「谁和谁相同」上重复，但我们只关心<strong>出现奇数次</strong>的那个数；配对信息可以用代数消掉，不必真的记频次表。</p>
+<p class="thinking-step">3. 异或性质：<code>a ^ a = 0</code>、<code>a ^ 0 = a</code>、交换结合律——把全部元素异或起来，成对相同的会相互抵消为 0，剩下就是单元素。</p>
+<p class="thinking-step">4. 手推 <code>[4,1,2,1,2]</code>：顺序异或可任意重排，等价于 <code>4 ^ (1^1) ^ (2^2) = 4</code>，与顺序无关。</p>
+<p class="thinking-step">5. 一遍扫完、只留一个整型变量，O(n) 时间、O(1) 空间，正好贴合题面要求。</p>""",
+        "code_steps": """<p class="code-step">1. <code>xor = 0</code></p>
+<p class="code-step">2. 遍历 <code>nums</code>，对每个 <code>x</code> 执行 <code>xor ^= x</code></p>
+<p class="code-step">3. 返回 <code>xor</code></p>""",
+        "code_python": """class Solution:
+    def singleNumber(self, nums: list[int]) -> int:
+        xor = 0
+        for x in nums:
+            xor ^= x
+        return xor""",
+        "code_cpp": """class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        int xor = 0;
+        for (int x : nums)
+            xor ^= x;
+        return xor;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 本题假设「其余均出现<strong>两次</strong>」——若出现三次（见 LeetCode 137）则一次异或不够，需用出现次数对 3 取模的位计数法，别与 136 混用同一套模板。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用「异或和」当校验却忘记<strong>初始 xor=0</strong>：单独一个元素时输出应为该元素本身，初值错会导致整体偏移。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 排序后相邻去重或双指针需要 O(n log n) 且思路复杂——能 O(n) XOR 时不要过度设计。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单元素</div>
+    <code>nums = [1] → 1</code>（直接返回唯一值）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单元素在末尾</div>
+    <code>nums = [2,2,1] → 1</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：单元素在开头</div>
+    <code>nums = [4,1,2,1,2] → 4</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：含负数</div>
+    <code>nums = [-1,-1,5] → 5</code>（异或对补码同样成立）
+</div>""",
+    },
+
     "simplify-path": {
         "type": "栈",
         "difficulty": "中等",
