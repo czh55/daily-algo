@@ -1006,5 +1006,12 @@
     "title": "只出现一次的数字",
     "type": "位运算",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-11-22",
+    "slug": "single-number-ii",
+    "title": "只出现一次的数字 II",
+    "type": "位运算",
+    "difficulty": "中等"
   }
 ]

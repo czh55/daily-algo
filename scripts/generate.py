@@ -14852,6 +14852,87 @@ public:
 </div>""",
     },
 
+    "single-number-ii": {
+        "type": "位运算",
+        "difficulty": "中等",
+        "frontend_id": "137",
+        "title": "只出现一次的数字 II",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)",
+        "description": """<p>给你一个整数数组 <code>nums</code>，除某个元素仅出现 <strong>一次</strong> 外，其余每个元素都恰出现 <strong>三次</strong>。请你找出并返回那个只出现了一次的元素。</p>
+<p>你必须设计并实现<strong>线性时间</strong>复杂度、<strong>常数级空间</strong>的算法。</p>
+<p><code>1 &lt;= nums.length &lt;= 3 × 10<sup>4</sup></code>，<code>-2<sup>31</sup> &lt;= nums[i] &lt;= 2<sup>31</sup> - 1</code>，除某元素恰好出现 1 次外，其余均恰好出现 3 次。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：nums = [2,2,3,2]</div>
+    <div class="example-output">输出：3</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：nums = [0,1,0,1,0,1,99]</div>
+    <div class="example-output">输出：99</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>ones</code></td><td>int（位掩码）</td><td><b>定义</b>：按位记录「该二进制位在已扫描元素中出现次数 mod 3 的余数为 1」的位集合，初值 0<br><b>维护</b>：出现 3 次的数每位都会经历 0→1→2→0，最终只有「出现 1 次」的数会在 <code>ones</code> 上留下该位的 1<br><b>更新</b>：见每轮 <code>num</code> 后 <code>ones = (ones ^ num) &amp; ~twos</code></td></tr>
+    <tr><td><code>twos</code></td><td>int（位掩码）</td><td><b>定义</b>：按位记录「该位出现次数 mod 3 的余数为 2」的位集合，初值 0<br><b>维护</b>：与 <code>ones</code> 共同参与三态有限自动机，禁止同一位同时在两者中为 1（用 <code>&amp; ~</code> 互斥）<br><b>更新</b>：见每轮 <code>num</code> 后 <code>twos = (twos ^ num) &amp; ~ones</code>（须在更新 <code>ones</code> 之后）</td></tr>
+    <tr><td><code>num</code></td><td>int</td><td><b>定义</b>：当前扫入的数组元素<br><b>维护</b>：从左到右单次遍历，每个元素驱动一次状态转移<br><b>更新</b>：循环取下一位，直至数组结束</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：哈希表统计频次，找计数为 1 的键——O(n) 时间但 O(n) 空间，不满足「常数空间」。</p>
+<p class="thinking-step">2. 重复在哪里？成组出现三次的数字会在「第几次见到这一位」上重复；我们不需要记住是哪个数，只需知道<strong>每一位上 1 被累计了几次 mod 3</strong>。</p>
+<p class="thinking-step">3. 逐位思路：对 32 个二进制位分别统计全数组中该位为 1 的次数，再 <code>% 3</code> 拼回整数——O(32n)=O(n) 时间、O(1) 空间，但写 32 层循环臃肿。</p>
+<p class="thinking-step">4. 压缩：每一位独立地只有三种余数状态 {0,1,2}，用两个位掩码 <code>ones</code>（余 1）与 <code>twos</code>（余 2）并行编码全部 32 位；见到 <code>num</code> 时对所有位同时做三态转移，等价于「对该位计数 +num 的此位，再 mod 3」。</p>
+<p class="thinking-step">5. 与 #136 对比：两次 XOR 可消「出现 2 次」；出现 3 次要用 mod 3 计数，不能一股脑异或。</p>
+<p class="thinking-step">6. 扫完返回 <code>ones</code>：恰出现三次的数各 bit 会归零；只出现一次的那一项的余数 1 状态留在 <code>ones</code> 里，即答案。</p>""",
+        "code_steps": """<p class="code-step">1. <code>ones = 0</code>，<code>twos = 0</code></p>
+<p class="code-step">2. 遍历每个 <code>num</code>：</p>
+<p class="code-step">3. &nbsp;&nbsp;&nbsp;<code>ones = (ones ^ num) &amp; ~twos</code></p>
+<p class="code-step">4. &nbsp;&nbsp;&nbsp;<code>twos = (twos ^ num) &amp; ~ones</code>（顺序固定：先算 ones 再算 twos）</p>
+<p class="code-step">5. 返回 <code>ones</code></p>""",
+        "code_python": """class Solution:
+    def singleNumber(self, nums: list[int]) -> int:
+        ones = 0  # 各位 mod3 余 1 的位掩码
+        twos = 0  # 各位 mod3 余 2 的位掩码
+        for num in nums:
+            ones = (ones ^ num) & ~twos
+            twos = (twos ^ num) & ~ones
+        return ones""",
+        "code_cpp": """class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        int ones = 0, twos = 0;
+        for (int num : nums) {
+            ones = (ones ^ num) & ~twos;
+            twos = (twos ^ num) & ~ones;
+        }
+        return ones;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 与 #136 混淆：本题是「其余出现<strong>三次</strong>」，全体 XOR 无法抵消，必须用 mod 3 位计数或 <code>ones/twos</code> 状态机。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 两行更新的<strong>顺序不能反</strong>：须先 <code>ones = (ones ^ num) &amp; ~twos</code>，再 <code>twos = (twos ^ num) &amp; ~ones</code>，否则互斥约束被破坏。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>&amp; ~twos</code> / <code>&amp; ~ones</code>：缺了掩码会让同一位在 <code>ones</code> 与 <code>twos</code> 同时为 1，状态非法。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 返回值写成 <code>ones ^ twos</code> 或只盯 <code>twos</code>：本题最终答案就是扫完后的 <code>ones</code>。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：单次元素</div>
+    <code>nums = [7] → 7</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单元素夹在三个重复中</div>
+    <code>nums = [2,2,3,2] → 3</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：多组三元组 + 一个单元素</div>
+    <code>nums = [0,1,0,1,0,1,99] → 99</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：负数</div>
+    <code>nums = [-5,-5,-5,8] → 8</code>（补码下按位状态机同样成立）
+</div>""",
+    },
+
     "simplify-path": {
         "type": "栈",
         "difficulty": "中等",
