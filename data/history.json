@@ -1013,5 +1013,12 @@
     "title": "只出现一次的数字 II",
     "type": "位运算",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-23",
+    "slug": "copy-list-with-random-pointer",
+    "title": "随机链表的复制",
+    "type": "哈希表",
+    "difficulty": "中等"
   }
 ]

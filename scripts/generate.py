@@ -14933,6 +14933,106 @@ public:
 </div>""",
     },
 
+    "copy-list-with-random-pointer": {
+        "type": "哈希表",
+        "difficulty": "中等",
+        "frontend_id": "138",
+        "title": "随机链表的复制",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(n)",
+        "description": """<p>给你一个长度为 <code>n</code> 的链表，每个节点包含一个额外增加的随机指针 <code>random</code>，该指针可以指向链表中的任何节点或空节点。</p>
+<p>构造这个链表的<strong>深拷贝</strong>：复制链表应由 <code>n</code> 个全新节点组成，每个新节点的值等于对应原节点，且 <code>next</code>、<code>random</code> 都指向复制链表中的新节点。<strong>复制链表中的指针均不得指向原链表中的节点</strong>。</p>
+<p><code>0 &lt;= n &lt;= 1000</code>，<code>-10<sup>4</sup> &lt;= Node.val &lt;= 10<sup>4</sup></code>，<code>Node.random</code> 为 <code>null</code> 或指向链表中的节点。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [[7,null],[13,0],[11,4],[10,2],[1,0]]</div>
+    <div class="example-output">输出：[[7,null],[13,0],[11,4],[10,2],[1,0]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [[1,1],[2,1]]</div>
+    <div class="example-output">输出：[[1,1],[2,1]]</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：head = [[3,null],[3,0],[3,null]]</div>
+    <div class="example-output">输出：[[3,null],[3,0],[3,null]]</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>old_to_new</code></td><td>dict[Node→Node]</td><td><b>定义</b>：原节点到新节点的映射表<br><b>维护</b>：第一轮遍历后，表中每个原节点都有唯一对应的新节点<br><b>更新</b>：扫过原节点 <code>cur</code> 时 <code>old_to_new[cur] = Node(cur.val)</code></td></tr>
+    <tr><td><code>cur</code></td><td>Node*</td><td><b>定义</b>：当前正在处理的原链表节点<br><b>维护</b>：第一轮建表、第二轮连线时沿 <code>next</code> 从左到右推进<br><b>更新</b>：每轮 <code>cur = cur.next</code></td></tr>
+    <tr><td><code>newHead</code></td><td>Node*</td><td><b>定义</b>：复制链表的头节点<br><b>维护</b>：等于 <code>old_to_new[head]</code>（若 <code>head</code> 非空）<br><b>更新</b>：第一轮建表完成后一次性确定，之后只改各节点的 <code>next/random</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力直觉：按顺序复制每个节点的 <code>val</code>，再按索引数组还原 <code>next</code> 与 <code>random</code>——可行但丢失链表结构，且 random 是指针不是下标时不好处理。</p>
+<p class="thinking-step">2. 重复在哪里？设 <code>random</code> 指针时，若只知道「原 random 指向谁」，却找不到「新链表里对应的那一个」，就会误指到原节点或重复造节点。</p>
+<p class="thinking-step">3. 核心转化：深拷贝的关键不是「复制值」，而是建立<strong>原节点 → 新节点</strong>的一一对应；有了这张表，<code>new.random = old_to_new[old.random]</code> 就能 O(1) 翻译任意 random 关系。</p>
+<p class="thinking-step">4. 故拆两轮：第一轮只造节点并登记映射；第二轮遍历原链表，用表给每个新节点接上正确的 <code>next</code> 与 <code>random</code>。</p>
+<p class="thinking-step">5. 进阶：可用「穿插复制 + 拆链」做到 O(1) 额外空间，但哈希表两遍写法最不易写错，适合作为变量语义法的标准落码。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>head is None</code>，直接返回 <code>None</code></p>
+<p class="code-step">2. 第一轮：<code>cur = head</code>，沿 <code>next</code> 遍历，对每个 <code>cur</code> 执行 <code>old_to_new[cur] = Node(cur.val)</code></p>
+<p class="code-step">3. 第二轮：<code>cur = head</code> 再扫一遍，令 <code>old_to_new[cur].next = old_to_new.get(cur.next)</code>（<code>cur.next</code> 为空则 <code>get</code> 得 <code>None</code>）</p>
+<p class="code-step">4. 同步设置 <code>old_to_new[cur].random = old_to_new.get(cur.random)</code></p>
+<p class="code-step">5. 返回 <code>old_to_new[head]</code></p>""",
+        "code_python": """class Solution:
+    def copyRandomList(self, head: 'Optional[Node]') -> 'Optional[Node]':
+        if not head:
+            return None
+        old_to_new = {}  # 原节点 -> 复制节点
+        cur = head
+        while cur:
+            old_to_new[cur] = Node(cur.val)
+            cur = cur.next
+        cur = head
+        while cur:
+            old_to_new[cur].next = old_to_new.get(cur.next)
+            old_to_new[cur].random = old_to_new.get(cur.random)
+            cur = cur.next
+        return old_to_new[head]""",
+        "code_cpp": """class Solution {
+public:
+    Node* copyRandomList(Node* head) {
+        if (!head) return nullptr;
+        unordered_map<Node*, Node*> old_to_new;
+        for (Node* cur = head; cur; cur = cur->next)
+            old_to_new[cur] = new Node(cur->val);
+        for (Node* cur = head; cur; cur = cur->next) {
+            if (cur->next)
+                old_to_new[cur]->next = old_to_new[cur->next];
+            else
+                old_to_new[cur]->next = nullptr;
+            if (cur->random)
+                old_to_new[cur]->random = old_to_new[cur->random];
+            else
+                old_to_new[cur]->random = nullptr;
+        }
+        return old_to_new[head];
+    }
+};
+// 时间 O(n)，空间 O(n)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 在一轮循环里同时建节点又接 <code>next</code>：<code>cur.next</code> 对应的新节点可能尚未创建，访问 <code>old_to_new[cur.next]</code> 会 KeyError——必须<strong>先全部建档、再统一连线</strong>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 直接把 <code>new.random = old.random</code>：违反题意，新节点仍指向原链表；必须用 <code>old_to_new[old.random]</code> 翻译。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 用 <code>old_to_new[cur.next]</code> 而非 <code>.get(...)</code>：尾节点或 <code>random is null</code> 时应对应 <code>None</code>，不能强取字典键。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空链表</div>
+    <code>head = null → null</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点 random 为空</div>
+    <code>[[7,null]] → [[7,null]]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：random 指回自己</div>
+    <code>[[1,1],[2,1]] → 第二个节点的 random 指向第一个复制节点</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：多个节点 val 相同</div>
+    <code>[[3,null],[3,0],[3,null]] → 映射按<strong>节点身份</strong>而非 val 区分</code>
+</div>""",
+    },
+
     "simplify-path": {
         "type": "栈",
         "difficulty": "中等",
