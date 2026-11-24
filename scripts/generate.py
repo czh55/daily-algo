@@ -15033,6 +15033,111 @@ public:
 </div>""",
     },
 
+    "word-break": {
+        "type": "一维DP",
+        "difficulty": "中等",
+        "frontend_id": "139",
+        "title": "单词拆分",
+        "time_complexity": "O(n² × L)（n 为串长，L 为字典单词最大长度；子串判等每次 O(L)）",
+        "space_complexity": "O(n + M)（dp 数组 O(n)，字典哈希集 O(M)）",
+        "description": """<p>给你一个字符串 <code>s</code> 和一个字符串列表 <code>wordDict</code> 作为字典。如果可以利用字典中出现的一个或多个单词拼接出 <code>s</code> 则返回 <code>true</code>。</p>
+<p><strong>注意：</strong>不要求字典中出现的单词全部都使用，并且字典中的单词可以重复使用。</p>
+<p><code>1 &lt;= s.length &lt;= 300</code>，<code>1 &lt;= wordDict.length &lt;= 1000</code>，<code>1 &lt;= wordDict[i].length &lt;= 20</code>，<code>s</code> 与词典项仅由小写英文字母组成，词典中单词互不相同。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "leetcode", wordDict = ["leet","code"]</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">由 <code>"leet"</code> 与 <code>"code"</code> 拼接而成。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "applepenapple", wordDict = ["apple","pen"]</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">由 <code>"apple" "pen" "apple"</code> 拼接；词典单词可重复使用。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">无法用给定单词拼出整串。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>word_set</code></td><td>set[str]</td><td><b>定义</b>：字典 <code>wordDict</code> 转成的集合，用于 O(1) 判断某子串是否在词典中<br><b>维护</b>：构造后只读，遍历过程中不变<br><b>更新</b>：预处理 <code>word_set = set(wordDict)</code> 一次性建成</td></tr>
+    <tr><td><code>dp[i]</code></td><td>bool[n+1]</td><td><b>定义</b>：<code>s[0:i)</code>（长度为 <code>i</code> 的前缀）能否被词典单词<strong>顺序拼接</strong>成整段<br><b>维护</b>：<code>dp[0]=True</code>（空前缀）；目标答案为 <code>dp[n]</code>，<code>n=len(s)</code><br><b>更新</b>：枚举最后一段左端点 <code>j</code>：若 <code>dp[j]</code> 且 <code>s[j:i]</code> ∈ <code>word_set</code>，则令 <code>dp[i]=True</code></td></tr>
+    <tr><td><code>i</code> / <code>j</code></td><td>int</td><td><b>定义</b>：<code>i</code> 为当前考察的前缀右边界（不含），<code>j</code> 为「最后一段单词」的起始下标<br><b>维护</b>：外层 <code>i</code> 从 1 增至 <code>n</code>；内层 <code>j</code> 从 0 到 <code>i-1</code><br><b>更新</b>：找到任一合法 <code>j</code> 即可置 <code>dp[i]</code>，不必枚举全部切法</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：回溯枚举 <code>s</code> 上所有切分点，检查每一段是否都在词典里——指数级分支（切点组合），<code>n≤300</code> 会 TLE。</p>
+<p class="thinking-step">2. 重复在哪里？判断「<code>s[i:]</code> 能否拼好」时，先试某段 <code>w</code> 再递归余下后缀——同一后缀被不同前缀重复求解，应记忆化而非裸 DFS。</p>
+<p class="thinking-step">3. 转化：只问「能否」，不必输出方案。定义 <code>dp[i]</code> = 前缀 <code>s[0:i)</code> 可否被拼接。若存在切分点 <code>j</code> 使 <code>dp[j]</code> 为真且尾段 <code>s[j:i]</code> 是词典词，则 <code>dp[i]</code> 为真——典型一维 DP。</p>
+<p class="thinking-step">4. 手推 <code>s="leetcode"</code>，词典 <code>leet, code</code>：<code>dp[0]=True</code>；<code>i=4</code> 时 <code>j=0</code>，<code>"leet"</code> 在集内 → <code>dp[4]=True</code>；<code>i=8</code> 时 <code>j=4</code>，<code>"code"</code> 在集内且 <code>dp[4]</code> → <code>dp[8]=True</code>。</p>
+<p class="thinking-step">5. 反面 <code>catsandog</code>：虽有 <code>cat/sand</code> 等词，但不存在让<strong>整串</strong>结束的切法（经典迷惑：<code>cats+and+og</code> 中 <code>og</code> 不在词典），<code>dp[n]</code> 保持 false。</p>""",
+        "code_steps": """<p class="code-step">1. <code>word_set = set(wordDict)</code>，<code>n = len(s)</code>，<code>dp = [False] * (n + 1)</code>，<code>dp[0] = True</code></p>
+<p class="code-step">2. 对 <code>i</code> 从 1 到 <code>n</code>：初始化 <code>dp[i] = False</code>（若找到合法切分再置真）</p>
+<p class="code-step">3. 内层 <code>j</code> 从 0 到 <code>i-1</code>：若 <code>not dp[j]</code> 跳过；否则检查 <code>s[j:i] in word_set</code></p>
+<p class="code-step">4. 若子串在词典中：<code>dp[i] = True</code> 并 <code>break</code>（本题只需判断存在性）</p>
+<p class="code-step">5. 返回 <code>dp[n]</code></p>""",
+        "code_python": """class Solution:
+    def wordBreak(self, s: str, wordDict: List[str]) -> bool:
+        word_set = set(wordDict)
+        n = len(s)
+        dp = [False] * (n + 1)
+        dp[0] = True
+        for i in range(1, n + 1):
+            for j in range(i):
+                if not dp[j]:
+                    continue
+                if s[j:i] in word_set:
+                    dp[i] = True
+                    break
+        return dp[n]""",
+        "code_cpp": """class Solution {
+public:
+    bool wordBreak(string s, vector<string>& wordDict) {
+        unordered_set<string> wordSet(wordDict.begin(), wordDict.end());
+        int n = s.size();
+        vector<bool> dp(n + 1, false);
+        dp[0] = true;
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 0; j < i; ++j) {
+                if (!dp[j]) continue;
+                if (wordSet.count(s.substr(j, i - j))) {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+        return dp[n];
+    }
+};
+// 时间 O(n²·L)，空间 O(n + |wordDict|)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 下标与长度混淆：<code>dp[i]</code> 表示<strong>长度为 i</strong> 的前缀 <code>s[0:i)</code>，不是「第 i 个字符」；答案应读 <code>dp[len(s)]</code>，不是 <code>dp[n-1]</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 忘记 <code>dp[0]=True</code>：空前缀是合法起点，否则任何整词匹配都无法从 <code>j=0</code> 转移。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误以为词典单词必须各用一次：题目允许重复与未使用；只需存在一种拼接方式，与 Word Break II 求全部方案不同。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：整串即一个词</div>
+    <code>s = "a", wordDict = ["a"] → true</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：重复使用同一词</div>
+    <code>s = "aaaa", wordDict = ["aa"] → true</code>（<code>aa+aa</code>）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：无解但有前缀词</div>
+    <code>s = "catsandog" → false</code>（官方示例 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：长串由多段拼成</div>
+    <code>s = "applepenapple" → true</code>（官方示例 2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：词典不含任何子串</div>
+    <code>s = "ab", wordDict = ["cd"] → false</code>
+</div>""",
+    },
+
     "simplify-path": {
         "type": "栈",
         "difficulty": "中等",

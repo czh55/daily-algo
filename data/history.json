@@ -1020,5 +1020,12 @@
     "title": "随机链表的复制",
     "type": "哈希表",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-24",
+    "slug": "word-break",
+    "title": "单词拆分",
+    "type": "一维DP",
+    "difficulty": "中等"
   }
 ]
