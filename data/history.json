@@ -1027,5 +1027,12 @@
     "title": "单词拆分",
     "type": "一维DP",
     "difficulty": "中等"
+  },
+  {
+    "date": "2026-11-25",
+    "slug": "word-break-ii",
+    "title": "单词拆分 II",
+    "type": "回溯",
+    "difficulty": "困难"
   }
 ]

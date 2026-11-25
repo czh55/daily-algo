@@ -15138,6 +15138,127 @@ public:
 </div>""",
     },
 
+    "word-break-ii": {
+        "type": "回溯",
+        "difficulty": "困难",
+        "frontend_id": "140",
+        "title": "单词拆分 II",
+        "time_complexity": "O(N² · M) 枚举切点 + 输出规模（最坏 O(n · 2ⁿ) 种句子；|s|≤20 可接受）",
+        "space_complexity": "O(N² · M)（记忆化存每个后缀的全部句子；M 为词典单词总长上界）",
+        "description": """<p>给定一个字符串 <code>s</code> 和一个字符串字典 <code>wordDict</code>，在 <code>s</code> 中插入空格来构建句子，使句子中所有单词都在词典中。<strong>以任意顺序</strong>返回所有这些可能的句子。</p>
+<p><strong>注意：</strong>词典中的同一个单词可能在分段中被重复使用多次；词典内单词互不相同。</p>
+<p><code>1 &lt;= s.length &lt;= 20</code>，<code>1 &lt;= wordDict.length &lt;= 1000</code>，<code>1 &lt;= wordDict[i].length &lt;= 10</code>，<code>s</code> 与词典项仅由小写英文字母组成。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：s = "catsanddog", wordDict = ["cat","cats","and","sand","dog"]</div>
+    <div class="example-output">输出：["cats and dog","cat sand dog"]</div>
+    <div class="example-explain">两种合法切分：<code>cats|and|dog</code> 与 <code>cat|sand|dog</code>。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：s = "pineapplepenapple", wordDict = ["apple","pen","applepen","pine","pineapple"]</div>
+    <div class="example-output">输出：["pine apple pen apple","pineapple pen apple","pine applepen apple"]</div>
+    <div class="example-explain">词典词可重复出现在方案中（如两个 <code>apple</code>）。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：s = "catsandog", wordDict = ["cats","dog","sand","and","cat"]</div>
+    <div class="example-output">输出：[]</div>
+    <div class="example-explain">无完整切分方案（与 #139 判断为 false 的同一串）。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>word_set</code></td><td>set[str]</td><td><b>定义</b>：词典转集合，O(1) 判断某子串是否为整词<br><b>维护</b>：构造后只读<br><b>更新</b>：<code>word_set = set(wordDict)</code> 预处理一次</td></tr>
+    <tr><td><code>memo[i]</code></td><td>dict[int, list[str]]</td><td><b>定义</b>：子串 <code>s[i:]</code> 能形成的<strong>全部</strong>句子列表（各词间已含单空格）<br><b>维护</b>：仅当某 <code>i</code> 首次展开完毕才写入，避免重复 DFS 同一后缀<br><b>更新</b>：<code>dfs(i)</code> 结束时 <code>memo[i] = 本层拼出的 sentences</code>；无解后缀记 <code>[]</code> 亦缓存</td></tr>
+    <tr><td><code>i</code> / <code>j</code></td><td>int</td><td><b>定义</b>：<code>i</code> 为当前待切后缀起点；<code>j</code> 为「第一段词」的右边界（不含）<br><b>维护</b>：每选中合法词 <code>s[i:j]</code> 后子问题从 <code>dfs(j)</code> 继续<br><b>更新</b>：内层枚举 <code>j</code>，仅 <code>s[i:j] in word_set</code> 才拼接 <code>词 + 空格 + 后缀句</code></td></tr>
+    <tr><td><code>sentences</code></td><td>list[str]</td><td><b>定义</b>：<code>dfs(i)</code> 当次调用返回的、以 <code>s[i:]</code> 为 remainder 的全部完整句子<br><b>维护</b>：由首词与 <code>memo[j]</code>（或 <code>dfs(j)</code>）笛卡尔式拼接而得<br><b>更新</b>：<code>i==n</code> 时返回 <code>[""]</code> 作为空后缀占位，便于上层拼接</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：回溯每一刀是否落在合法词边界上，凑齐整条路径后压成一句——与 #131 分割回文串同形，但合法性改成「段 ∈ 词典」；须收集<strong>所有</strong>方案，不能只求真。</p>
+<p class="thinking-step">2. 重复在哪里？不同前缀切法会反复求解「<code>s[k:]</code> 能拼成哪些句子？」——同一后缀状态应记忆化，而非裸回溯指数爆炸。</p>
+<p class="thinking-step">3. 与 #139 关系：#139 用 <code>dp[i]=bool</code> 只问「前缀可否」；本题要列出句子，令 <code>memo[i] = list[str]</code> 表示后缀 <code>s[i:]</code> 的全部句子，由首词 + 递归子后缀拼接。</p>
+<p class="thinking-step">4. 手推 <code>s="catsanddog"</code>：<code>dfs(0)</code> 先试 <code>"cats"</code> → <code>dfs(7)</code> 得 <code>"and dog"</code> → <code>"cats and dog"</code>；再试 <code>"cat"</code> → <code>dfs(3)</code> 经 <code>"sand"</code>、<code>"dog"</code> 得 <code>"cat sand dog"</code>。两路径互不干扰因 <code>memo</code> 缓存各起点。</p>
+<p class="thinking-step">5. <code>|s|≤20</code> 保证输出与搜索可控；若忘记缓存或拼接空格，易 WA/TLE。</p>""",
+        "code_steps": """<p class="code-step">1. <code>word_set = set(wordDict)</code>，<code>n = len(s)</code>，<code>memo: dict[int, list[str]] = {}</code></p>
+<p class="code-step">2. 定义 <code>dfs(i)</code>：若 <code>i in memo</code> 直接返回；若 <code>i == n</code> 返回 <code>[""]</code></p>
+<p class="code-step">3. 初始化本层 <code>res = []</code>，<code>j</code> 从 <code>i+1</code> 到 <code>n</code>，令 <code>word = s[i:j]</code></p>
+<p class="code-step">4. 若 <code>word not in word_set</code> 跳过；否则对 <code>dfs(j)</code> 的每个后缀句 <code>tail</code>，拼接 <code>word + (" " + tail if tail else "")</code> 加入 <code>res</code></p>
+<p class="code-step">5. <code>memo[i] = res</code> 并返回；入口 <code>return dfs(0)</code></p>""",
+        "code_python": """class Solution:
+    def wordBreak(self, s: str, wordDict: List[str]) -> List[str]:
+        word_set = set(wordDict)
+        n = len(s)
+        memo: dict[int, list[str]] = {}
+
+        def dfs(i: int) -> list[str]:
+            if i in memo:
+                return memo[i]
+            if i == n:
+                return [""]
+            res: list[str] = []
+            for j in range(i + 1, n + 1):
+                word = s[i:j]
+                if word not in word_set:
+                    continue
+                for tail in dfs(j):
+                    sent = word if not tail else f"{word} {tail}"
+                    res.append(sent)
+            memo[i] = res
+            return res
+
+        return dfs(0)""",
+        "code_cpp": """class Solution {
+public:
+    vector<string> wordBreak(string s, vector<string>& wordDict) {
+        unordered_set<string> wordSet(wordDict.begin(), wordDict.end());
+        int n = s.size();
+        unordered_map<int, vector<string>> memo;
+
+        function<vector<string>(int)> dfs = [&](int i) -> vector<string> {
+            if (memo.count(i)) return memo[i];
+            if (i == n) return {""};
+            vector<string> res;
+            for (int j = i + 1; j <= n; ++j) {
+                string word = s.substr(i, j - i);
+                if (!wordSet.count(word)) continue;
+                for (const string& tail : dfs(j)) {
+                    if (tail.empty()) res.push_back(word);
+                    else res.push_back(word + " " + tail);
+                }
+            }
+            return memo[i] = res;
+        };
+
+        return dfs(0);
+    }
+};
+// 时间：输出规模 × 切点枚举；空间：memo + 答案""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 照搬 #139 只返回 <code>bool</code>：本题要<strong>列出全部句子</strong>，状态应是「后缀 → 句子列表」而非单个真假。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 拼接空格：空后缀 <code>tail==""</code> 时不能再加前导空格，否则多一个空格导致与判题不一致。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 未记忆化：同一 <code>i</code> 会被多种首词重复展开，<code>|s|≤20</code> 时仍可能 TLE；务必 <code>memo[i]</code> 缓存含空列表的结果。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：无解</div>
+    <code>s = "catsandog" → []</code>（官方示例 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：整串一词</div>
+    <code>s = "a", wordDict = ["a"] → ["a"]</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：前缀重叠词</div>
+    <code>cat / cats 同时存在 → 分支互不剪枝，答案含多句</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：重复用同一词典词</div>
+    <code>pineapplepenapple → 方案中可出现两个 apple</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 5：最长 |s|=20</div>
+    <code>依赖 memo，避免对同一后缀裸 DFS</code>
+</div>""",
+    },
+
     "simplify-path": {
         "type": "栈",
         "difficulty": "中等",
