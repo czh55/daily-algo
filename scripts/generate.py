@@ -15033,6 +15033,98 @@ public:
 </div>""",
     },
 
+    "linked-list-cycle": {
+        "type": "链表指针",
+        "difficulty": "简单",
+        "frontend_id": "141",
+        "title": "环形链表",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)（快慢指针；哈希表写法为 O(n)）",
+        "description": """<p>给你一个链表的头节点 <code>head</code>，判断链表中是否有环。</p>
+<p>如果链表中有某个节点，可以通过连续跟踪 <code>next</code> 指针再次到达，则链表中存在环。评测系统用整数 <code>pos</code> 表示尾结点连回的位置（索引从 0 开始），<strong><code>pos</code> 不作为参数传入</strong>，仅用于构造测试数据。</p>
+<p>有环返回 <code>true</code>，否则返回 <code>false</code>。</p>
+<p><code>0 &lt;= 节点数 &lt;= 10<sup>4</sup></code>，<code>-10<sup>5</sup> &lt;= Node.val &lt;= 10<sup>5</sup></code>，<code>pos</code> 为 <code>-1</code> 或有效索引。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [3,2,0,-4], pos = 1</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">尾部连接到第二个节点，形成环。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [1,2], pos = 0</div>
+    <div class="example-output">输出：true</div>
+    <div class="example-explain">尾部连接到第一个节点。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：head = [1], pos = -1</div>
+    <div class="example-output">输出：false</div>
+    <div class="example-explain">单节点且 <code>next</code> 为空，无环。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>slow</code></td><td>ListNode*</td><td><b>定义</b>：慢指针，每轮沿 <code>next</code> 走 1 步<br><b>维护</b>：与 <code>fast</code> 同从 <code>head</code> 出发；若有环，二者终将在环内某点相遇<br><b>更新</b>：每轮 <code>slow = slow.next</code></td></tr>
+    <tr><td><code>fast</code></td><td>ListNode*</td><td><b>定义</b>：快指针，每轮沿 <code>next</code> 走 2 步<br><b>维护</b>：无环时先到尽头；有环时在环内追上慢指针<br><b>更新</b>：每轮 <code>fast = fast.next.next</code>，且进入循环前需保证 <code>fast</code> 与 <code>fast.next</code> 非空</td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：用哈希集合记录「已访问节点」，若下一步落在集合里则有环——时间 O(n)、空间 O(n)，符合题意但进阶要求 O(1) 额外空间。</p>
+<p class="thinking-step">2. 重复在哪里？无环链表的节点只会被走一次；有环时从某点起会在环里无限转圈，本质是「是否再次经过同一节点」。</p>
+<p class="thinking-step">3. Floyd 判圈：快指针每次走 2 步、慢指针走 1 步。无环时快指针先碰到 <code>null</code>；有环时二者进入环后，快指针像绕操场追人，相对速度为 1，必在某处相遇。</p>
+<p class="thinking-step">4. 落码只需在相遇时返回 <code>true</code>；若 <code>fast</code> 走到尽头（或 <code>fast.next</code> 为空）则返回 <code>false</code>。</p>""",
+        "code_steps": """<p class="code-step">1. 若 <code>head is None</code> 或 <code>head.next is None</code>，直接 <code>return False</code></p>
+<p class="code-step">2. <code>slow = fast = head</code></p>
+<p class="code-step">3. 循环条件 <code>while fast and fast.next</code>：先推进 <code>slow = slow.next</code>，<code>fast = fast.next.next</code></p>
+<p class="code-step">4. 若 <code>slow == fast</code>，返回 <code>True</code></p>
+<p class="code-step">5. 循环正常结束返回 <code>False</code></p>""",
+        "code_python": """class Solution:
+    def hasCycle(self, head: Optional[ListNode]) -> bool:
+        if not head or not head.next:
+            return False
+        slow = fast = head
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+            if slow is fast:
+                return True
+        return False""",
+        "code_cpp": """class Solution {
+public:
+    bool hasCycle(ListNode *head) {
+        if (!head || !head->next) return false;
+        ListNode* slow = head;
+        ListNode* fast = head;
+        while (fast && fast->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+            if (slow == fast) return true;
+        }
+        return false;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 循环写成 <code>while fast</code> 却不判 <code>fast.next</code>：快指针要走两步，在最后一个节点上对空指针取 <code>next</code> 会崩溃——应写 <code>while (fast && fast->next)</code>。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 在移动指针<strong>之前</strong>就判断 <code>slow == fast</code>：初态二者同为 <code>head</code> 会误判有环；应先各走一轮再比较，或在循环内先移动再判相等。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 误以为只有尾连回头才有环：环可在任意位置闭合；判环不依赖 <code>pos</code>，只关心指针是否重复经过同一节点。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：空链表</div>
+    <code>head = null → false</code>
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：单节点无环</div>
+    <code>[1], pos = -1 → false</code>（官方示例 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：两节点成环</div>
+    <code>[1,2], pos = 0 → true</code>（官方示例 2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：长链尾入环</div>
+    <code>[3,2,0,-4], pos = 1 → true</code>（官方示例 1）
+</div>""",
+    },
+
     "word-break": {
         "type": "一维DP",
         "difficulty": "中等",

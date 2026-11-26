@@ -1034,5 +1034,12 @@
     "title": "单词拆分 II",
     "type": "回溯",
     "difficulty": "困难"
+  },
+  {
+    "date": "2026-11-26",
+    "slug": "linked-list-cycle",
+    "title": "环形链表",
+    "type": "链表指针",
+    "difficulty": "简单"
   }
 ]
