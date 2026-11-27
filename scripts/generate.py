@@ -15125,6 +15125,106 @@ public:
 </div>""",
     },
 
+    "linked-list-cycle-ii": {
+        "type": "链表指针",
+        "difficulty": "中等",
+        "frontend_id": "142",
+        "title": "环形链表 II",
+        "time_complexity": "O(n)",
+        "space_complexity": "O(1)（Floyd 双指针；哈希表记录已访问节点为 O(n)）",
+        "description": """<p>给定一个链表的头节点 <code>head</code>，返回链表<strong>开始入环的第一个节点</strong>；若链表无环，返回 <code>null</code>。</p>
+<p>如果链表中有某个节点，可以通过连续跟踪 <code>next</code> 指针再次到达，则链表中存在环。评测系统内部用整数 <code>pos</code> 表示尾结点连回的位置（<strong>索引从 0 开始</strong>）；<code>pos</code> 为 <code>-1</code> 表示无环。<strong>注意：<code>pos</code> 不作为参数传入</strong>，且<strong>不允许修改链表</strong>。</p>
+<p><code>0 &lt;= 节点数 &lt;= 10<sup>4</sup></code>，<code>-10<sup>5</sup> &lt;= Node.val &lt;= 10<sup>5</sup></code>，<code>pos</code> 为 <code>-1</code> 或有效索引。</p>""",
+        "examples": """<div class="example-block">
+    <h4>示例 1</h4>
+    <div class="example-input">输入：head = [3,2,0,-4], pos = 1</div>
+    <div class="example-output">输出：返回索引为 1 的链表节点</div>
+    <div class="example-explain">尾部连接到第二个节点，入环点为值为 <code>2</code> 的节点。</div>
+</div>
+<div class="example-block">
+    <h4>示例 2</h4>
+    <div class="example-input">输入：head = [1,2], pos = 0</div>
+    <div class="example-output">输出：返回索引为 0 的链表节点</div>
+    <div class="example-explain">尾连回头节点，入环点即 <code>1</code> 所在节点。</div>
+</div>
+<div class="example-block">
+    <h4>示例 3</h4>
+    <div class="example-input">输入：head = [1], pos = -1</div>
+    <div class="example-output">输出：返回 null</div>
+    <div class="example-explain">单节点且 <code>next</code> 为空，无环。</div>
+</div>""",
+        "var_semantics": """<table class="var-table">
+    <thead><tr><th>变量</th><th>类型</th><th>语义（三句法）</th></tr></thead>
+    <tbody>
+    <tr><td><code>slow</code> / <code>fast</code></td><td>ListNode*</td><td><b>定义</b>：第一阶段快慢指针，判环并求相遇点<br><b>维护</b>：<code>slow</code> 每步走 1，<code>fast</code> 每步走 2；无环则 <code>fast</code> 先到尽头<br><b>更新</b>：循环中同步推进；若相遇则说明有环</td></tr>
+    <tr><td>相遇点 <code>meet</code></td><td>ListNode*</td><td><b>定义</b>：环内快慢指针第一次重合的节点（某次 <code>slow == fast</code>）<br><b>维护</b>：存在环时必有；数学上距入环点沿环向前的步数，等于从 <code>head</code> 走到入环点的步数<br><b>更新</b>：第一阶段结束时由 <code>slow</code> 与 <code>fast</code> 赋值</td></tr>
+    <tr><td>第二阶段 <code>slow</code></td><td>ListNode*</td><td><b>定义</b>：求入环点时，一个指针从 <code>head</code> 出发、另一个从 <code>meet</code> 出发，同步每次走 1 步<br><b>维护</b>：二者相遇的节点即为链表入环的第一个节点<br><b>更新</b>：相遇后置 <code>slow = head</code>（或令 <code>fast = head</code>），再 <code>while (slow != fast) { 同步 next }</code></td></tr>
+    </tbody>
+</table>""",
+        "thinking_steps": """<p class="thinking-step">1. 暴力：哈希表记录已访问节点，第一次重复访问的节点即入环点；时间 O(n)、空间 O(n)，可行但进阶要求 O(1) 额外空间。</p>
+<p class="thinking-step">2. 重复在哪里？#141 只问有没有环；本题还要<strong>定位入环点</strong>。若已知环长与相遇位置，可回推入环点，但环长未知时不能先扫一圈计数。</p>
+<p class="thinking-step">3. 先用 Floyd 判圈得到相遇点；无环则 <code>fast</code> 触达 <code>null</code> 直接返回空。有环时经典结论：设入环前长为 <code>a</code>、相遇点顺时针距入环点为 <code>b</code>、环长 <code>c</code>，则 <code>2(a+b)=a+b+kc</code> ⇒ <code>a ≡ c-b (mod c)</code>，故从 <code>head</code> 走 <code>a</code> 步与从相遇点走 <code>a</code> 步会同时到达入环点。</p>
+<p class="thinking-step">4. 落码：阶段一与 #141 相同；相遇后 <code>slow = head</code>，两者同步单步前进直至再次相遇，该节点即答案。</p>
+<p class="thinking-step">5. 手推示例 1：<code>[3,2,0,-4]</code> 尾连节点 <code>2</code>，入环点应为第二个节点；阶段二从 <code>head=3</code> 与相遇点同时出发，将在节点 <code>2</code> 汇合。</p>""",
+        "code_steps": """<p class="code-step">1. <code>slow = fast = head</code>；<code>while fast and fast.next</code>：快慢推进，若 <code>slow == fast</code> 跳出（有环）</p>
+<p class="code-step">2. 若循环因 <code>fast</code> 为空结束，<code>return None</code>（无环）</p>
+<p class="code-step">3. <code>slow = head</code>；<code>while slow != fast</code>：二者各走 <code>next</code> 一步</p>
+<p class="code-step">4. 返回 <code>slow</code>（与 <code>fast</code> 同指向入环点）</p>""",
+        "code_python": """class Solution:
+    def detectCycle(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        slow = fast = head
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+            if slow is fast:
+                slow = head
+                while slow is not fast:
+                    slow = slow.next
+                    fast = fast.next
+                return slow
+        return None""",
+        "code_cpp": """class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        ListNode* slow = head;
+        ListNode* fast = head;
+        while (fast && fast->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+            if (slow == fast) {
+                slow = head;
+                while (slow != fast) {
+                    slow = slow->next;
+                    fast = fast->next;
+                }
+                return slow;
+            }
+        }
+        return nullptr;
+    }
+};
+// 时间 O(n)，空间 O(1)""",
+        "pitfalls": """<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 判环循环条件仍须 <code>fast && fast->next</code>，否则快指针双步会空指针解引用。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 相遇后误把 <code>slow</code> 留在环内、只动 <code>fast</code> 也能做对，但教材写法是 <code>slow = head</code> 再双指针同步走——不要与阶段一的「快慢不等步」混在同一层循环里。</p>
+<p class="pitfall-item"><span class="pitfall-icon">&#x2757;</span> 无环时返回 <code>nullptr</code> / <code>None</code>，不要返回相遇点或 <code>head</code>；#141 返回布尔，本题返回节点引用。</p>""",
+        "edge_cases": """<div class="edge-case">
+    <div class="edge-label">Case 1：无环</div>
+    <code>[1], pos = -1 → null</code>（官方示例 3）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 2：整链成环（入环点为头）</div>
+    <code>[1,2], pos = 0 → 头节点</code>（官方示例 2）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 3：长直线后入环</div>
+    <code>[3,2,0,-4], pos = 1 → 第二个节点</code>（官方示例 1）
+</div>
+<div class="edge-case">
+    <div class="edge-label">Case 4：空链表</div>
+    <code>head = null → null</code>
+</div>""",
+    },
+
     "word-break": {
         "type": "一维DP",
         "difficulty": "中等",

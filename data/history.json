@@ -1041,5 +1041,12 @@
     "title": "环形链表",
     "type": "链表指针",
     "difficulty": "简单"
+  },
+  {
+    "date": "2026-11-27",
+    "slug": "linked-list-cycle-ii",
+    "title": "环形链表 II",
+    "type": "链表指针",
+    "difficulty": "中等"
   }
 ]
